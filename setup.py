@@ -14,7 +14,7 @@ extras_require = {
         'betamax',  # recording api calls for testing
         'betamax-serializers',
         'twine',  # uploading to pypi
-    ],
+    ]
 }
 extras_require['complete'] = sorted(set(sum(extras_require.values(), [])))
 
@@ -38,9 +38,9 @@ setup(
         'python-dotenv',  # for loading env variables
     ],
     classifiers=[
-      "Development Status :: 1 - Planning",
-      "Programming Language :: Python :: 3",
-      "Programming Language :: Python :: 3.7",
+        "Development Status :: 1 - Planning",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
     ],
     extras_require=extras_require,
     entry_points={'console_scripts': ['stare=stare.commandline:stare']},
