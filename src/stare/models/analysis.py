@@ -2,6 +2,8 @@ import attr
 
 
 def make_phase0(data):
+    print(data)
+    print(data['id'])
     return Phase0(
         id=data['id'],
         start_date=data['start_date'],
@@ -17,6 +19,8 @@ def make_phase0(data):
 
 
 def make_analysis(data):
+    print(data)
+    print(data['id'])
     return Analysis(
         id=data['id'],
         short_title=data['short_title'],
@@ -27,7 +31,7 @@ def make_analysis(data):
         deletion_request=data['deletion_request'],
         deletion_reason=data['deletion_reason'],
         deletion=data['deletion'],
-        phase_0=make_phase0(data['phase_0']),
+        phase_0=make_phase0(data['phase_0']) if 'phase_0' in data else None,
     )
 
 
@@ -51,7 +55,7 @@ class Phase0(object):
 
 @attr.s
 class Analysis(object):
-    id = (attr.ib(),)
+    id = attr.ib()
     short_title = attr.ib()
     full_title = attr.ib()
     pub_short_title = attr.ib()
