@@ -2,8 +2,6 @@ import attr
 
 
 def make_phase0(data):
-    print(data)
-    print(data['id'])
     return Phase0(
         id=data['id'],
         start_date=data['start_date'],
@@ -19,8 +17,6 @@ def make_phase0(data):
 
 
 def make_analysis(data):
-    print(data)
-    print(data['id'])
     return Analysis(
         id=data['id'],
         short_title=data['short_title'],
