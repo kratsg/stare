@@ -18,7 +18,6 @@ def user_temp(tmpdir):
     assert temp.isfile() == False
 
     u = stare.core.User(save_auth=temp.strpath)
-    u._name = _name
     u._id_token = {'exp': time.time() + 3600, 'userLogin': _name}
     u._response = _response
     u._status_code = _status_code
