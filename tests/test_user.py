@@ -19,7 +19,7 @@ def user_temp(tmpdir):
 
     u = stare.core.User(save_auth=temp.strpath)
     u._name = _name
-    u._id_token = {'exp': time.time() + 3600, 'name': _name}
+    u._id_token = {'exp': time.time() + 3600, 'userLogin': _name}
     u._response = _response
     u._status_code = _status_code
     u._access_token = _access_token
