@@ -7,5 +7,5 @@ def test_get(auth_session):
         response = auth_session.get('papers')
         assert auth_session._response.status_code == 200
         assert response
-        assert 'analyses' in response
-        assert stare.models.institution.make_paper_list(response['papers'])
+        assert 'papers' in response
+        assert stare.models.paper.make_paper_list(response['papers'])
