@@ -1,0 +1,91 @@
+{
+  "http_interactions": [
+    {
+      "recorded_at": "2019-08-27T15:26:32",
+      "request": {
+        "body": {
+          "encoding": "utf-8",
+          "string": ""
+        },
+        "headers": {
+          "Accept": [
+            "*/*"
+          ],
+          "Accept-Encoding": [
+            "gzip, deflate"
+          ],
+          "Api-Key": [
+            "foo"
+          ],
+          "Connection": [
+            "keep-alive"
+          ],
+          "User-Agent": [
+            "python-requests/2.22.0"
+          ]
+        },
+        "method": "GET",
+        "uri": "https://glance-stage.cern.ch/release/frapi/atlas/analysis/api/public/auth"
+      },
+      "response": {
+        "body": {
+          "encoding": null,
+          "string": "{\"message\":\"Invalid key.\"}"
+        },
+        "headers": {
+          "Access-Control-Allow-Headers": [
+            "API-KEY, Authorization"
+          ],
+          "Access-Control-Allow-Methods": [
+            "GET, POST, PUT, DELETE"
+          ],
+          "Access-Control-Allow-Origin": [
+            "*"
+          ],
+          "Cache-Control": [
+            "private"
+          ],
+          "Connection": [
+            "Keep-Alive"
+          ],
+          "Content-Length": [
+            "26"
+          ],
+          "Content-Type": [
+            "application/json"
+          ],
+          "Date": [
+            "Tue, 27 Aug 2019 15:26:31 GMT"
+          ],
+          "Expires": [
+            "Thu, 19 Nov 1981 08:52:00 GMT"
+          ],
+          "Keep-Alive": [
+            "timeout=5, max=100"
+          ],
+          "Pragma": [
+            "no-cache"
+          ],
+          "Server": [
+            "Apache/2.4.6 (CentOS) OpenSSL/1.0.2k-fips mod_fcgid/2.3.9 PHP/5.4.16"
+          ],
+          "Set-Cookie": [
+            "PHPSESSID=k3mqco99pkm8i77jfbeda5mhl1; path=/"
+          ],
+          "Vary": [
+            "User-Agent"
+          ],
+          "X-Powered-By": [
+            "PHP/5.4.16"
+          ]
+        },
+        "status": {
+          "code": 401,
+          "message": "Unauthorized"
+        },
+        "url": "https://glance-stage.cern.ch/release/frapi/atlas/analysis/api/public/auth"
+      }
+    }
+  ],
+  "recorded_with": "betamax/0.8.1"
+}

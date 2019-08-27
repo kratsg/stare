@@ -119,7 +119,9 @@ class User(object):
         self._parse_id_token()
 
         if not self.is_authorized():
-            log.warning('Authorization failed. {}'.format(self._response))
+            log.warning(
+                'Authorization failed. Message: {}'.format(self._response['message'])
+            )
         else:
             self._dump()
 
@@ -177,9 +179,6 @@ class User(object):
 
     def is_expired(self):
         return not (self.expires_in > 0)
-
-    def is_anonymous(self):
-        return self.name == 'User Anonymous'
 
     def __repr__(self):
         return "{0:s}(name={1:s}, expires_in={2:d}s)".format(
