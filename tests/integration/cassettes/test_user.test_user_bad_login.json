@@ -1,7 +1,7 @@
 {
   "http_interactions": [
     {
-      "recorded_at": "2019-08-27T15:26:32",
+      "recorded_at": "2019-08-27T18:30:31",
       "request": {
         "body": {
           "encoding": "utf-8",
@@ -55,7 +55,7 @@
             "application/json"
           ],
           "Date": [
-            "Tue, 27 Aug 2019 15:26:31 GMT"
+            "Tue, 27 Aug 2019 18:30:30 GMT"
           ],
           "Expires": [
             "Thu, 19 Nov 1981 08:52:00 GMT"
@@ -70,7 +70,7 @@
             "Apache/2.4.6 (CentOS) OpenSSL/1.0.2k-fips mod_fcgid/2.3.9 PHP/5.4.16"
           ],
           "Set-Cookie": [
-            "PHPSESSID=k3mqco99pkm8i77jfbeda5mhl1; path=/"
+            "PHPSESSID=g167hdf5kqfc8anr0n1uifhi42; path=/"
           ],
           "Vary": [
             "User-Agent"
