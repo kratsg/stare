@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+import pkg_resources
 
 load_dotenv()
 
@@ -17,5 +18,11 @@ settings = SimpleNamespace(
     ),
     CASSETTE_LIBRARY_DIR=os.getenv(
         'CASSETTE_LIBRARY_DIR', 'tests/integration/cassettes'
+    ),
+    CERN_SSL_CHAIN=os.getenv(
+        'CERN_SSL_CHAIN',
+        pkg_resources.resource_filename(
+            __name__, os.path.join('data', 'CERN_chain.pem')
+        ),
     ),
 )

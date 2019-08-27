@@ -28,20 +28,12 @@ _session = core.Session()
     '--save-auth',
     help='Filename to save authenticated user to for persistence between requests',
 )
-@click.option(
-    '--verify-ssl/--no-verify-ssl',
-    default=True,
-    help='Enable or disable SSL verification of requests',
-)
-def stare(apikey, site_url, save_auth, verify_ssl):
+def stare(apikey, site_url, save_auth):
     global _session
     os.environ['GLANCE_API_KEY'] = apikey
     os.environ['SITE_URL'] = site_url
     _session.user._save_auth = save_auth
     _session.user._load()
-    # verify SSL or not
-    _session.verify = verify_ssl
-    _session.user._session.verify = verify_ssl
 
 
 @stare.command()

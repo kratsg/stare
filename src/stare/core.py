@@ -22,10 +22,12 @@ class User(object):
         audience='#FIXME',
         jwtOptions={'verify_signature': False},  # FIXME
         save_auth=None,
+        verify=settings.CERN_SSL_CHAIN,
     ):
 
         # session handling (for injection in tests)
         self._session = requests.Session()
+        self._session.verify = verify
         # store last call to authorize
         self._response = None
         self._status_code = None
@@ -203,11 +205,18 @@ class Session(requests.Session):
     }
     SUCCESS_STATUSES = {codes['created'], codes['ok']}
 
-    def __init__(self, user=None, prefix_url=settings.SITE_URL, save_auth=None):
+    def __init__(
+        self,
+        user=None,
+        prefix_url=settings.SITE_URL,
+        save_auth=None,
+        verify=settings.CERN_SSL_CHAIN,
+    ):
         super(Session, self).__init__()
         self.user = user if user else User(save_auth=save_auth)
         self.auth = self._authorize
         self.prefix_url = prefix_url
+        self.verify = verify
         # store last call
         self._response = None
         # add caching
