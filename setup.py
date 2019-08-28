@@ -23,6 +23,7 @@ setup(
     version="0.0.3",
     package_dir={"": "src"},
     packages=find_packages(where="src", exclude=["tests"]),
+    include_package_data=True,
     description="",
     long_description="",
     url="https://giordonstark.com.com",
