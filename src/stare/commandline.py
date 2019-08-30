@@ -27,6 +27,7 @@ _session = core.Session()
 @click.option(
     '--save-auth',
     help='Filename to save authenticated user to for persistence between requests',
+    default='.auth',
 )
 def stare(apikey, site_url, save_auth):
     global _session
