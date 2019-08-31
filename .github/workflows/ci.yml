@@ -33,3 +33,6 @@ jobs:
     - name: Test with pytest
       run: |
         python -m pytest -r sx
+    - name: Security check
+      run: |
+        python -m bandit -r src/stare
