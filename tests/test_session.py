@@ -5,7 +5,7 @@ import requests
 
 @pytest.fixture
 def session(mocker):
-    mocker.patch('stare.core.User.authorize', return_value=True)
+    mocker.patch('stare.core.User.authenticate', return_value=True)
     mocker.patch('stare.core.Session._handle_response', return_value=True)
     # patch objects
     s = stare.core.Session()

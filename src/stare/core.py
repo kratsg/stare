@@ -29,7 +29,7 @@ class User(object):
         # session handling (for injection in tests)
         self._session = requests.Session()
         self._session.verify = verify
-        # store last call to authorize
+        # store last call to authenticate
         self._response = None
         self._status_code = None
         # store jwks for validation/verification
@@ -57,7 +57,7 @@ class User(object):
                         )
                     )
                     return False
-                if saved_user.is_authorized():
+                if saved_user.is_authenticated():
                     self.__dict__.update(saved_user.__dict__)
                     return True
                 return False
@@ -76,7 +76,7 @@ class User(object):
             return False
 
     def _dump(self):
-        if self.is_authorized() and not self.is_expired() and self._save_auth:
+        if self.is_authenticated() and not self.is_expired() and self._save_auth:
             try:
                 pickle.dump(self, open(self._save_auth, 'wb'), pickle.HIGHEST_PROTOCOL)
                 return True
@@ -101,9 +101,9 @@ class User(object):
                 options=self._jwtOptions,
             )
 
-    def authorize(self):
+    def authenticate(self):
         # if not expired, do nothing
-        if self.is_authorized():
+        if self.is_authenticated():
             return True
         # session-less request
         response = self._session.get(
@@ -119,7 +119,7 @@ class User(object):
         # handle parsing the id token
         self._parse_id_token()
 
-        if not self.is_authorized():
+        if not self.is_authenticated():
             log.warning(
                 'Authorization failed. Message: {}'.format(self._response['message'])
             )
@@ -171,7 +171,7 @@ class User(object):
     def bearer(self):
         return self._raw_id_token if self._raw_id_token else ''
 
-    def is_authorized(self):
+    def is_authenticated(self):
         return bool(
             self._status_code == codes['ok']
             and self._access_token
@@ -225,7 +225,7 @@ class Session(requests.Session):
         )
 
     def _authorize(self, req):
-        self.user.authorize()
+        self.user.authenticate()
         req.headers.update({'Authorization': 'Bearer {0:s}'.format(self.user.bearer)})
         return req
 

@@ -21,9 +21,9 @@ def test_user_bad_login(caplog):
     user = stare.core.User(apiKey='foo', jwtOptions=jwtOptions)
     with betamax.Betamax(user._session).use_cassette('test_user.test_user_bad_login'):
         with caplog.at_level(logging.INFO, 'stare'):
-            user.authorize()
+            user.authenticate()
             assert 'Invalid key.' in caplog.text
-        assert user.is_authorized() == False
+        assert user.is_authenticated() == False
         assert user._response
 
 
@@ -33,7 +33,7 @@ def test_user_good_login(caplog):
     user = stare.core.User(jwtOptions=jwtOptions)
     with betamax.Betamax(user._session).use_cassette('test_user.test_user_good_login'):
         with caplog.at_level(logging.INFO, 'stare'):
-            user.authorize()
+            user.authenticate()
             assert caplog.text == ''
-        assert user.is_authorized()
+        assert user.is_authenticated()
         assert user._response

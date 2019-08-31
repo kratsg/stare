@@ -39,8 +39,8 @@ def stare(apikey, site_url, save_auth):
 
 @stare.command()
 def authenticate():
-    _session.user.authorize()
-    if _session.user.is_authorized():
+    _session.user.authenticate()
+    if _session.user.is_authenticated():
         click.echo(
             "You have signed in as {}(id={}). Your token expires in {}s.\n\t- permissions: {}\n\t- egroups: {}\n\t- usergroups: {}".format(
                 _session.user.name,

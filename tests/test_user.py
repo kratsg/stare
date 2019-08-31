@@ -28,11 +28,11 @@ def user_temp(tmpdir):
 
 def test_user_expires(user_temp):
     user, _ = user_temp
-    assert user.is_authorized()
+    assert user.is_authenticated()
     assert user.is_expired() == False
     assert user.expires_in > 0
     user._id_token['exp'] = time.time() - 1
-    assert user.is_authorized()
+    assert user.is_authenticated()
     assert user.is_expired()
     assert user.expires_in == 0
 
