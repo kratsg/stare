@@ -2,6 +2,22 @@
 
 The python wrapper for the Glance API.
 
+## CLI Usage
+
+Use `stare --help` for the various options provided.
+
+## Python Usage
+
+```
+import stare
+client = stare.Glance()
+
+# list of analyses as dict
+analyses = client.analyses['analyses']
+# list of papers as dict
+papers = client.papers['papers']
+```
+
 ## SSL
 
 In order to get SSL handshakes working (certificate verification), one needs to make sure we add/trust the CERN Certification Authorities (CA) for both the Root and the Grid CAs. Specifically, we rely on the Root CA to sign/issue the Grid CA. The Grid CA is what's relied on for the SSL chain. To make this happen, we'll need both PEM for each CA combined into a single `CERN_chain.pem` file which is bundled up with this package.
