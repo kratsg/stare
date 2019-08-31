@@ -53,6 +53,16 @@ def test_session_request(session):
     assert session._handle_response.call_count == 1
 
 
+def test_session_request_call(session):
+    session('GET', 'analyses')
+    assert session._normalize_url.called
+    assert session.request.called
+    assert super(stare.core.Session, session).request.called
+    assert session.send.called
+    assert super(stare.core.Session, session).send.called
+    assert session._handle_response.call_count == 1
+
+
 def test_session_prepare_request(session):
     req = requests.Request('GET', 'analyses')
     prep = session.prepare_request(req)
@@ -66,5 +76,12 @@ def test_session_send(session):
     req = requests.Request('GET', 'analyses')
     prep = session.prepare_request(req)
     session.send(prep)
+    assert super(stare.core.Session, session).send.called
+    assert session._handle_response.call_count == 1
+
+
+def test_session_send_call(session):
+    req = requests.Request('GET', 'analyses')
+    session(req)
     assert super(stare.core.Session, session).send.called
     assert session._handle_response.call_count == 1

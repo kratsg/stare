@@ -266,3 +266,9 @@ class Session(requests.Session):
     def request(self, method, url, *args, **kwargs):
         url = self._normalize_url(url)
         return super(Session, self).request(method, url, *args, **kwargs)
+
+    def __call__(self, *args, **kwargs):
+        if len(args) == 1:
+            return self.send(self.prepare_request(*args), **kwargs)
+        else:
+            return self.request(*args, **kwargs)

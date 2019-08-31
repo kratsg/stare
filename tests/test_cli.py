@@ -10,16 +10,17 @@ from stare import commandline
 
 @pytest.fixture(scope='module')
 def recorder_session(auth_user):
-    commandline._session.user = auth_user
+    commandline.client.session.user = auth_user
     with betamax.Betamax(
-        commandline._session, cassette_library_dir=stare.settings.CASSETTE_LIBRARY_DIR
+        commandline.client.session,
+        cassette_library_dir=stare.settings.CASSETTE_LIBRARY_DIR,
     ) as recorder:
         yield recorder
 
 
 def test_commandline():
-    assert commandline._session
-    assert commandline._session.user
+    assert commandline.client.session
+    assert commandline.client.session.user
 
 
 def test_version():

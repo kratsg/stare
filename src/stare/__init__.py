@@ -1,8 +1,20 @@
 from .version import __version__
-from . import core
-from . import exceptions
-from . import models
+from .core import Session
 from .settings import settings
+from requests import Request
 
 
-__all__ = ['__version__', 'core', 'exceptions', 'models', 'settings']
+class Glance(object):
+    def __init__(self, session=None):
+        self.session = session if session else Session()
+
+    @property
+    def analyses(self):
+        return self.session(Request('GET', 'analyses'))
+
+    @property
+    def papers(self):
+        return self.session(Request('GET', 'papers'))
+
+
+__all__ = ['__version__', 'Session', 'settings', 'Glance']

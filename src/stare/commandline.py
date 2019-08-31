@@ -5,14 +5,12 @@ import json
 import os
 
 from .version import __version__
-from . import core
-from . import settings
-from . import utilities
+from . import Glance, settings, utilities
 
 logging.basicConfig(format=utilities.FORMAT_STRING, level=logging.INFO)
 log = logging.getLogger(__name__)
 
-_session = core.Session()
+client = Glance()
 
 
 @click.group(context_settings=dict(help_option_names=['-h', '--help']))
@@ -30,36 +28,36 @@ _session = core.Session()
     default='.auth',
 )
 def stare(apikey, site_url, save_auth):
-    global _session
+    global client
     os.environ['GLANCE_API_KEY'] = apikey
     os.environ['SITE_URL'] = site_url
-    _session.user._save_auth = save_auth
-    _session.user._load()
+    client.session.user._save_auth = save_auth
+    client.session.user._load()
 
 
 @stare.command()
 def authenticate():
-    _session.user.authenticate()
-    if _session.user.is_authenticated():
+    client.session.user.authenticate()
+    if client.session.user.is_authenticated():
         click.echo(
             "You have signed in as {}(id={}). Your token expires in {}s.\n\t- permissions: {}\n\t- egroups: {}\n\t- usergroups: {}".format(
-                _session.user.name,
-                _session.user.id,
-                _session.user.expires_in,
-                _session.user.permissions,
-                _session.user.egroups,
-                _session.user.usergroups,
+                client.session.user.name,
+                client.session.user.id,
+                client.session.user.expires_in,
+                client.session.user.permissions,
+                client.session.user.egroups,
+                client.session.user.usergroups,
             )
         )
 
 
 @stare.command()
 def list_analyses():
-    click.echo(json.dumps(_session.get("analyses"), indent=2))
+    click.echo(json.dumps(client.analyses, indent=2))
     sys.exit(0)
 
 
 @stare.command()
 def list_papers():
-    click.echo(json.dumps(_session.get('papers'), indent=2))
+    click.echo(json.dumps(client.papers, indent=2))
     sys.exit(0)
