@@ -8,6 +8,7 @@ from jose import jwt
 import time
 import os
 import pickle  # nosec
+import copy
 
 from .settings import settings
 from . import exceptions
@@ -228,10 +229,12 @@ class Session(requests.Session):
         req.headers.update({'Authorization': 'Bearer {0:s}'.format(self.user.bearer)})
         return req
 
-    def request(self, method, url, *args, **kwargs):
+    def _normalize_url(self, url):
         if self.prefix_url not in url:
-            url = requests.compat.urljoin(self.prefix_url, url)
-        response = super(Session, self).request(method, url, *args, **kwargs)
+            return requests.compat.urljoin(self.prefix_url, url)
+        return url
+
+    def _handle_response(self, response):
         self._response = response
         log.debug(
             'Response: {} ({} bytes)'.format(
@@ -250,3 +253,16 @@ class Session(requests.Session):
                 raise exceptions.BadJSON(response)
         else:
             raise exceptions.UnhandledResponse(response)
+
+    def prepare_request(self, request):
+        request = copy.deepcopy(request)
+        request.url = self._normalize_url(request.url)
+        return super(Session, self).prepare_request(request)
+
+    def send(self, request, **kwargs):
+        response = super(Session, self).send(request, **kwargs)
+        return self._handle_response(response)
+
+    def request(self, method, url, *args, **kwargs):
+        url = self._normalize_url(url)
+        return super(Session, self).request(method, url, *args, **kwargs)
