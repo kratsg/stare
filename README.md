@@ -39,4 +39,6 @@ This can be passed into any python `requests::Session` via `verify='/path/to/CER
 [1] [DER vs PEM?](https://support.ssl.com/Knowledgebase/Article/View/19/0/der-vs-crt-vs-cer-vs-pem-certificates-and-how-to-convert-them)
 
 
-See http://bhomnick.net/design-pattern-python-api-client/
+# Reference
+* http://bhomnick.net/design-pattern-python-api-client/
+* https://packaging.python.org/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/
