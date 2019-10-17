@@ -20,7 +20,7 @@ extras_require['complete'] = sorted(set(sum(extras_require.values(), [])))
 
 setup(
     name="stare",
-    version="0.0.5",
+    version="0.0.6",
     package_dir={"": "src"},
     packages=find_packages(where="src", exclude=["tests"]),
     include_package_data=True,
