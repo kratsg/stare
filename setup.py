@@ -1,4 +1,4 @@
-from os import path
+import os
 from setuptools import setup, find_packages
 
 extras_require = {
@@ -19,7 +19,10 @@ extras_require = {
 }
 extras_require['complete'] = sorted(set(sum(extras_require.values(), [])))
 
-with open(path.join(this_directory, 'README.md'), encoding='utf-8') as readme_md:
+with open(
+    os.path.join(os.path.abspath(os.path.dirname(__file__)), 'README.md'),
+    encoding='utf-8',
+) as readme_md:
     long_description = readme_md.read()
 
 
