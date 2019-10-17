@@ -14,12 +14,14 @@ jobs:
       uses: actions/setup-python@v1
       with:
         python-version: 3.7
+
     - name: Install pep517
       run: >-
         python -m
         pip install
         pep517
         --user
+
     - name: Build a binary wheel and a source tarball for untagged commits
       if: !startsWith(github.event.ref, 'refs/tags')
       run: >-
@@ -29,12 +31,14 @@ jobs:
         --binary
         --out-dir dist/
         .
+
     - name: Publish distribution 📦 to Test PyPI
       if: !startsWith(github.event.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@master
       with:
         password: ${{ secrets.testpypi_password }}
         repository_url: https://test.pypi.org/legacy/
+
     - name: Build a binary wheel and a source tarball for tagged commits
       if: startsWith(github.event.ref, 'refs/tags')
       run: >-
@@ -44,6 +48,7 @@ jobs:
         --binary
         --out-dir dist/
         .
+
     - name: Publish distribution 📦 to PyPI
       if: startsWith(github.event.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@master
