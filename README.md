@@ -1,5 +1,7 @@
 # stare
 
+[![GitHub Actions Status](https://github.com/kratsg/stare/workflows/CI/CD/badge.svg)](https://github.com/kratsg/stare/actions)
+
 The python wrapper for the Glance API.
 
 ## CLI Usage
