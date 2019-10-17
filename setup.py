@@ -26,7 +26,7 @@ setup(
     include_package_data=True,
     description="",
     long_description="",
-    url="https://giordonstark.com.com",
+    url="https://giordonstark.com",
     author="Giordon Stark",
     author_email="gstark@cern.ch",
     license="BSD 3-clause",
