@@ -18,6 +18,9 @@ extras_require = {
 }
 extras_require['complete'] = sorted(set(sum(extras_require.values(), [])))
 
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as readme_md:
+    long_description = readme_md.read()
+
 
 def _is_test_pypi():
     """
@@ -46,8 +49,8 @@ setup(
     package_dir={"": "src"},
     packages=find_packages(where="src", exclude=["tests"]),
     include_package_data=True,
-    description="",
-    long_description="",
+    description="python sdk for Glance API",
+    long_description=long_description,
     url="https://giordonstark.com",
     author="Giordon Stark",
     author_email="gstark@cern.ch",
