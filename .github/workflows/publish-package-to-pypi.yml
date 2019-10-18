@@ -4,6 +4,7 @@ on:
     branches:
     - master
     tags:
+    - v*
 
 jobs:
   build-n-publish:
@@ -29,11 +30,11 @@ jobs:
         password: ${{ secrets.testpypi_password }}
         repository_url: https://test.pypi.org/legacy/
     - name: Build a binary wheel and a source tarball for tagged commits
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      if: startsWith(github.event.ref, 'refs/tags')
       run: |
         python -m pep517.build --source --binary --out-dir dist/ .
     - name: Publish distribution 📦 to PyPI
-      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      if: startsWith(github.event.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@master
       with:
         password: ${{ secrets.pypi_password }}
