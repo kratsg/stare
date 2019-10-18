@@ -28,8 +28,8 @@ with open(
 
 def _is_test_pypi():
     """
-    Determine if the CI environment has TESTPYPI_UPLOAD defined and
-    set to true (c.f. .travis.yml)
+    Determine if the CI environment has IS_COMMIT_TAGGED defined and
+    set to true (c.f. .github/workflows/publish-package-to-pypi.yml)
     The use_scm_version kwarg accepts a callable for the local_scheme
     configuration parameter with argument "version". This can be replaced
     with a lambda as the desired version structure is {next_version}.dev{distance}
@@ -41,7 +41,7 @@ def _is_test_pypi():
 
     return (
         {'local_scheme': lambda version: ''}
-        if getenv('TESTPYPI_UPLOAD') == 'true'
+        if getenv('IS_COMMIT_TAGGED') == 'false'
         else False
     )
 
