@@ -48,7 +48,7 @@ def _is_test_pypi():
 
 setup(
     name="stare",
-    version="0.0.12",
+    version="0.0.13",
     use_scm_version=_is_test_pypi(),
     package_dir={"": "src"},
     packages=find_packages(where="src", exclude=["tests"]),
