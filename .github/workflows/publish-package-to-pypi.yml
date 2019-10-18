@@ -19,20 +19,17 @@ jobs:
     - name: Install pep517
       run: |
         python -m pip install pep517 --user
-    - name: Build a binary wheel and a source tarball for untagged commits
-      if: github.event_name == 'push' && !startsWith(github.event.ref, 'refs/tags')
+    - name: Build a binary wheel and a source tarball
+      env:
+        TESTPYPI_UPLOAD: '${{ !startsWith(github.event.ref, "refs/tags") }}'
       run: |
-        TESTPYPI_UPLOAD=true python -m pep517.build --source --binary --out-dir dist/ .
+        python -m pep517.build --source --binary --out-dir dist/ .
     - name: Publish distribution 📦 to Test PyPI
       if: github.event_name == 'push' && !startsWith(github.event.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@master
       with:
         password: ${{ secrets.testpypi_password }}
         repository_url: https://test.pypi.org/legacy/
-    - name: Build a binary wheel and a source tarball for tagged commits
-      if: startsWith(github.event.ref, 'refs/tags')
-      run: |
-        python -m pep517.build --source --binary --out-dir dist/ .
     - name: Publish distribution 📦 to PyPI
       if: startsWith(github.event.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@master
