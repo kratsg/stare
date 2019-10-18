@@ -44,3 +44,4 @@ This can be passed into any python `requests::Session` via `verify='/path/to/CER
 # Reference
 * http://bhomnick.net/design-pattern-python-api-client/
 * https://packaging.python.org/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/
+  * Thanks to @webknjaz [da900a16](https://github.com/kratsg/stare/commit/da900a1669af8b72fe8fbbf1c83d8d95e412af8e)
