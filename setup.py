@@ -55,6 +55,7 @@ setup(
     include_package_data=True,
     description="python sdk for Glance API",
     long_description=long_description,
+    long_description_content_type='text/markdown',
     url="https://giordonstark.com",
     author="Giordon Stark",
     author_email="gstark@cern.ch",
