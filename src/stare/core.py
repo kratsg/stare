@@ -19,16 +19,15 @@ log = logging.getLogger(__name__)
 class User(object):
     def __init__(
         self,
-        apiKey=settings.GLANCE_API_KEY,
-        audience='#FIXME',
-        jwtOptions={'verify_signature': False},  # FIXME
+        username=settings.STARE_USERNAME,
+        password=settings.STARE_PASSWORD,
+        audience='stare',
+        jwtOptions={},
         save_auth=None,
-        verify=settings.CERN_SSL_CHAIN,
     ):
 
         # session handling (for injection in tests)
         self._session = requests.Session()
-        self._session.verify = verify
         # store last call to authenticate
         self._response = None
         self._status_code = None
@@ -39,7 +38,8 @@ class User(object):
         self._raw_id_token = None
         self._id_token = None
         # initialization configuration
-        self._apiKey = apiKey
+        self._username = username
+        self._password = password
         self._audience = audience
         self._jwtOptions = jwtOptions
         # serialization/persistence
@@ -88,14 +88,14 @@ class User(object):
 
     def _load_jwks(self, force=False):
         if self._jwks is None or force:
-            self._jwks = self._session.get('#FIXME').json()
+            self._jwks = self._session.get(requests.compat.urljoin(settings.STARE_AUTH_URL, 'certs')).json()
 
     def _parse_id_token(self):
         if self._id_token:
-            # self._load_jwks()  # FIXME
+            self._load_jwks()
             self._id_token = jwt.decode(
                 self._id_token,
-                self._jwks,  # FIXME
+                self._jwks,
                 algorithms='RS256',
                 audience=self._audience,
                 options=self._jwtOptions,
@@ -106,14 +106,20 @@ class User(object):
         if self.is_authenticated():
             return True
         # session-less request
-        response = self._session.get(
-            requests.compat.urljoin(settings.SITE_URL, 'auth'),
-            headers={'Api-Key': self._apiKey},
+        response = self._session.post(
+            requests.compat.urljoin(settings.STARE_AUTH_URL, 'token'),
+            data={
+                'username': self._username,
+                'password': self._password,
+                'grant_type': 'password',
+                'scope': 'openid info',
+                'client_id': 'stare',
+            },
         )
         self._response = response.json()
         self._status_code = response.status_code
-        self._access_token = self._response.get('accessToken')
-        self._raw_id_token = self._response.get('accessToken')
+        self._access_token = self._response.get('access_token')
+        self._raw_id_token = self._response.get('id_token')
         self._id_token = self._raw_id_token
 
         # handle parsing the id token
@@ -127,10 +133,6 @@ class User(object):
             self._dump()
 
     @property
-    def apiKey(self):
-        return self._apiKey
-
-    @property
     def access_token(self):
         return self._access_token
 
@@ -140,11 +142,23 @@ class User(object):
 
     @property
     def id(self):
-        return self.id_token.get('userId', '')
+        return self.id_token.get('cern_person_id', '')
+
+    @property
+    def username(self):
+        return self.id_token.get('cern_upn', '')
 
     @property
     def name(self):
-        return self.id_token.get('userLogin', '')
+        return self.id_token.get('name', '')
+
+    @property
+    def email(self):
+        return self.id_token.get('email', '')
+
+    @property
+    def orcid(self):
+        return self.id_token.get('eduperson_orcid', '')
 
     @property
     def permissions(self):
@@ -208,15 +222,13 @@ class Session(requests.Session):
     def __init__(
         self,
         user=None,
-        prefix_url=settings.SITE_URL,
+        prefix_url=settings.STARE_SITE_URL,
         save_auth=None,
-        verify=settings.CERN_SSL_CHAIN,
     ):
         super(Session, self).__init__()
         self.user = user if user else User(save_auth=save_auth)
         self.auth = self._authorize
         self.prefix_url = prefix_url
-        self.verify = verify
         # store last call
         self._response = None
         # add caching

@@ -16,21 +16,28 @@ client = Glance()
 @click.group(context_settings=dict(help_option_names=['-h', '--help']))
 @click.version_option(version=__version__)
 @click.option(
-    '--apiKey',
-    prompt=not (bool(settings.GLANCE_API_KEY)),
-    default=settings.GLANCE_API_KEY,
+    '--username',
+    prompt=not (bool(settings.STARE_USERNAME)),
+    default=settings.STARE_USERNAME,
     show_default=True,
 )
-@click.option('--site-url', default=settings.SITE_URL, show_default=True)
+@click.option(
+    '--password',
+    prompt=not (bool(settings.STARE_PASSWORD)),
+    default=settings.STARE_PASSWORD,
+    show_default=True,
+)
+@click.option('--site-url', default=settings.STARE_SITE_URL, show_default=True)
 @click.option(
     '--save-auth',
     help='Filename to save authenticated user to for persistence between requests',
     default='.auth',
 )
-def stare(apikey, site_url, save_auth):
+def stare(username, password, site_url, save_auth):
     global client
-    os.environ['GLANCE_API_KEY'] = apikey
-    os.environ['SITE_URL'] = site_url
+    os.environ['STARE_USERNAME'] = username
+    os.environ['STARE_PASSWORD'] = password
+    os.environ['STARE_SITE_URL'] = site_url
     client.session.user._save_auth = save_auth
     client.session.user._load()
 
@@ -40,13 +47,11 @@ def authenticate():
     client.session.user.authenticate()
     if client.session.user.is_authenticated():
         click.echo(
-            "You have signed in as {}(id={}). Your token expires in {}s.\n\t- permissions: {}\n\t- egroups: {}\n\t- usergroups: {}".format(
+            "You have signed in as {}(name={}, id={}). Your token expires in {}s.".format(
+                client.session.user.username,
                 client.session.user.name,
                 client.session.user.id,
                 client.session.user.expires_in,
-                client.session.user.permissions,
-                client.session.user.egroups,
-                client.session.user.usergroups,
             )
         )
 
