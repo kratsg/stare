@@ -67,6 +67,7 @@ setup(
         'python-jose',  # for id token decoding
         'attrs',  # for model inflation/deflation
         'python-dotenv',  # for loading env variables
+        'simple-settings',  # for handling settings more easily
     ],
     classifiers=[
         "Development Status :: 1 - Planning",
