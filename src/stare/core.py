@@ -88,7 +88,9 @@ class User(object):
 
     def _load_jwks(self, force=False):
         if self._jwks is None or force:
-            self._jwks = self._session.get(requests.compat.urljoin(settings.STARE_AUTH_URL, 'certs')).json()
+            self._jwks = self._session.get(
+                requests.compat.urljoin(settings.STARE_AUTH_URL, 'certs')
+            ).json()
 
     def _parse_id_token(self):
         if self._id_token:
@@ -224,11 +226,13 @@ class Session(requests.Session):
         user=None,
         prefix_url=settings.STARE_SITE_URL,
         save_auth=None,
+        verify=settings.STARE_CERN_SSL_CHAIN,
     ):
         super(Session, self).__init__()
         self.user = user if user else User(save_auth=save_auth)
         self.auth = self._authorize
         self.prefix_url = prefix_url
+        self.verify = verify
         # store last call
         self._response = None
         # add caching
