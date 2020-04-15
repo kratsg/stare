@@ -183,7 +183,7 @@ class User(object):
 
     @property
     def bearer(self):
-        return self._raw_id_token if self._raw_id_token else ''
+        return self.access_token if self.access_token else ''
 
     def is_authenticated(self):
         return bool(
