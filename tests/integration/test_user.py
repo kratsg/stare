@@ -7,7 +7,8 @@ jwtOptions = {'verify_signature': False, 'verify_iat': False, 'verify_exp': Fals
 
 
 def test_user_create():
-    user = stare.core.User(apiKey='foo')
+    user = stare.core.User(username='foo', password='bar')
+    assert user.subject_token is None
     assert user.access_token is None
     assert user.bearer == ''
     assert user.id_token == {}
@@ -18,11 +19,11 @@ def test_user_create():
 
 
 def test_user_bad_login(caplog):
-    user = stare.core.User(apiKey='foo', jwtOptions=jwtOptions)
+    user = stare.core.User(username='foo', password='bar', jwtOptions=jwtOptions)
     with betamax.Betamax(user._session).use_cassette('test_user.test_user_bad_login'):
         with caplog.at_level(logging.INFO, 'stare'):
             user.authenticate()
-            assert 'Invalid key.' in caplog.text
+            assert 'Invalid user credentials' in caplog.text
         assert user.is_authenticated() == False
         assert user._response
 
