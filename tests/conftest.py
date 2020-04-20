@@ -7,7 +7,10 @@ from betamax_serializers import pretty_json
 
 import pytest
 
-placeholders = {'apiKey': stare.settings.GLANCE_API_KEY}
+placeholders = {
+    'username': stare.settings.STARE_USERNAME,
+    'password': stare.settings.STARE_PASSWORD,
+}
 
 
 def filter_bearer_token(interaction, current_cassette):
@@ -33,7 +36,7 @@ def filter_bearer_token(interaction, current_cassette):
 
 betamax.Betamax.register_serializer(pretty_json.PrettyJSONSerializer)
 with betamax.Betamax.configure() as config:
-    config.cassette_library_dir = stare.settings.CASSETTE_LIBRARY_DIR
+    config.cassette_library_dir = stare.settings.STARE_CASSETTE_LIBRARY_DIR
     config.default_cassette_options['serialize_with'] = 'prettyjson'
     config.before_record(callback=filter_bearer_token)
     for key, value in placeholders.items():
@@ -49,7 +52,7 @@ def auth_user():
         'verify_exp': False,
     }
     with betamax.Betamax(
-        user._session, cassette_library_dir=stare.settings.CASSETTE_LIBRARY_DIR
+        user._session, cassette_library_dir=stare.settings.STARE_CASSETTE_LIBRARY_DIR
     ).use_cassette('test_user.test_user_good_login', record='none') as recorder:
         yield user
 

@@ -39,7 +39,7 @@ def test_session_normalize_url():
     url = 'analyses'
     new_url = session._normalize_url(url)
     assert url != new_url
-    assert new_url.startswith(stare.settings.SITE_URL)
+    assert new_url.startswith(stare.settings.STARE_SITE_URL)
 
 
 # NB: Session.request is delegated through to Session.send

@@ -13,7 +13,7 @@ def recorder_session(auth_user):
     commandline.client.session.user = auth_user
     with betamax.Betamax(
         commandline.client.session,
-        cassette_library_dir=stare.settings.CASSETTE_LIBRARY_DIR,
+        cassette_library_dir=stare.settings.STARE_CASSETTE_LIBRARY_DIR,
     ) as recorder:
         yield recorder
 
