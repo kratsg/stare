@@ -147,7 +147,9 @@ class User(object):
 
         if not self.is_authenticated():
             log.warning(
-                'Authorization failed. Message: {}'.format(self._response['error_description'])
+                'Authorization failed. Message: {}'.format(
+                    self._response['error_description']
+                )
             )
         else:
             self._exchange_token()
