@@ -1,0 +1,79 @@
+{
+  "http_interactions": [
+    {
+      "recorded_at": "2020-04-20T15:56:57",
+      "request": {
+        "body": {
+          "encoding": "utf-8",
+          "string": ""
+        },
+        "headers": {
+          "Accept": [
+            "*/*"
+          ],
+          "Accept-Encoding": [
+            "gzip, deflate"
+          ],
+          "Authorization": [
+            "Bearer <ACCESS_TOKEN>"
+          ],
+          "Connection": [
+            "keep-alive"
+          ],
+          "User-Agent": [
+            "python-requests/2.22.0"
+          ]
+        },
+        "method": "GET",
+        "uri": "https://glance.cern.ch/atlas/analysis/api/publications/HDBS-2018-33"
+      },
+      "response": {
+        "body": {
+          "encoding": null,
+          "string": "{\"publications\":[{\"id\":\"11946\",\"ref_code\":\"HDBS-2018-33\",\"short_title\":\"HBSM hh to bbWW 2015-2018\",\"assignments\":[{\"id\":\"AAkiufAAJAAAJZbAAP\",\"function\":{\"id\":\"coEditor\",\"label\":\"Contact Editor\"},\"group\":{\"id\":\"EDITOR\",\"label\":\"Analysis Team\"},\"member\":{\"id\":\"4541\",\"first_name\":\"Anyes\",\"last_name\":\"Taffard\"}},{\"id\":\"AAkiufAAJAAAJZbAA6\",\"function\":{\"id\":\"coEditor\",\"label\":\"Contact Editor\"},\"group\":{\"id\":\"EDITOR\",\"label\":\"Analysis Team\"},\"member\":{\"id\":\"5399\",\"first_name\":\"Alaettin Serhan\",\"last_name\":\"Mete\"}},{\"id\":\"AAkiufAAJAAAJZbAA7\",\"function\":{\"id\":\"coEditor\",\"label\":\"Contact Editor\"},\"group\":{\"id\":\"EDITOR\",\"label\":\"Analysis Team\"},\"member\":{\"id\":\"8657\",\"first_name\":\"Mats Joakim Robert\",\"last_name\":\"Olsson\"}},{\"id\":\"AAkiufAAJAAAJZbAA8\",\"function\":{\"id\":null,\"label\":\"Member\"},\"group\":{\"id\":\"EDITOR\",\"label\":\"Analysis Team\"},\"member\":{\"id\":\"9981\",\"first_name\":\"Daniel Joseph\",\"last_name\":\"Antrim\"}}],\"code\":\"HDBS-2018-33\"}]}"
+        },
+        "headers": {
+          "Access-Control-Allow-Headers": [
+            "Authorization,content-type"
+          ],
+          "Access-Control-Allow-Methods": [
+            "GET, POST, PUT, DELETE"
+          ],
+          "Access-Control-Allow-Origin": [
+            "*"
+          ],
+          "Connection": [
+            "Keep-Alive"
+          ],
+          "Content-Length": [
+            "935"
+          ],
+          "Content-Type": [
+            "application/json"
+          ],
+          "Date": [
+            "Mon, 20 Apr 2020 15:56:37 GMT"
+          ],
+          "Keep-Alive": [
+            "timeout=5, max=100"
+          ],
+          "Server": [
+            "Apache/2.4.6 (CentOS) OpenSSL/1.0.2k-fips mod_fcgid/2.3.9 PHP/5.4.16"
+          ],
+          "Vary": [
+            "Authorization"
+          ],
+          "X-Powered-By": [
+            "PHP/5.4.16"
+          ]
+        },
+        "status": {
+          "code": 200,
+          "message": "OK"
+        },
+        "url": "https://glance.cern.ch/atlas/analysis/api/publications/HDBS-2018-33"
+      }
+    }
+  ],
+  "recorded_with": "betamax/0.8.1"
+}
