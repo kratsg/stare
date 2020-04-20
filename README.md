@@ -4,6 +4,16 @@
 
 The python wrapper for the Glance API.
 
+## Environment Variables
+
+See [stare/settings/base.py](src/stare/settings/base.py) for all environment variables that can be set. All environment variables for this package are prefixed with `STARE`. As of now, there are:
+
+* `STARE_USERNAME`: CERN account username
+* `STARE_PASSWORD`: CERN account password
+* `STARE_AUTH_URL`: authentication server
+* `STARE_SITE_URL`: API server
+* `STARE_CASSETTE_LIBRARY_DIR`: for tests, where to store recorded requests/responses
+
 ## CLI Usage
 
 Use `stare --help` for the various options provided.
@@ -12,12 +22,12 @@ Use `stare --help` for the various options provided.
 
 ```
 import stare
-client = stare.Glance()
+glance = stare.Glance()
 
-# list of analyses as dict
-analyses = client.analyses['analyses']
-# list of papers as dict
-papers = client.papers['papers']
+# get publication information of a publication
+pub_info = glance.publication('HDBS-2018-33')
+# get publications for a given activity/reference code (see table below)
+pubs = glance.publications(activity_id=26, reference_code='HIGG')
 ```
 
 ## Activity IDs
