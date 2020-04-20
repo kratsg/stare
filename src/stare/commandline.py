@@ -38,31 +38,48 @@ def stare(username, password, site_url, save_auth):
     os.environ['STARE_USERNAME'] = username
     os.environ['STARE_PASSWORD'] = password
     os.environ['STARE_SITE_URL'] = site_url
-    client.session.user._save_auth = save_auth
-    client.session.user._load()
+    client.user._save_auth = save_auth
+    client.user._load()
 
 
 @stare.command()
 def authenticate():
-    client.session.user.authenticate()
-    if client.session.user.is_authenticated():
+    client.user.authenticate()
+    if client.user.is_authenticated():
         click.echo(
             "You have signed in as {}(name={}, id={}). Your token expires in {}s.".format(
-                client.session.user.username,
-                client.session.user.name,
-                client.session.user.id,
-                client.session.user.expires_in,
+                client.user.username,
+                client.user.name,
+                client.user.id,
+                client.user.expires_in,
             )
         )
 
 
 @stare.command()
-def list_analyses():
-    click.echo(json.dumps(client.analyses, indent=2))
+@click.option(
+    '--activity-id',
+    default=36,
+    help='Identification from activities endpoint in SCAB Nominations system.',
+)
+@click.option(
+    '--reference-code',
+    default='SUSY',
+    help='Code from activities endpoint in SCAB Nominations system.',
+)
+def search_publications(activity_id, reference_code):
+    click.echo(
+        json.dumps(
+            client.publications(activity_id=activity_id, reference_code=reference_code),
+            indent=2,
+        )
+    )
     sys.exit(0)
 
 
 @stare.command()
-def list_papers():
-    click.echo(json.dumps(client.papers, indent=2))
+@click.argument('glance-id')
+def publication(glance_id):
+    """List publication information for GLANCE-ID."""
+    click.echo(json.dumps(client.publication(glance_id), indent=2))
     sys.exit(0)
