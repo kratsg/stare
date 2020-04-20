@@ -221,18 +221,11 @@ class Session(requests.Session):
     }
     SUCCESS_STATUSES = {codes['created'], codes['ok']}
 
-    def __init__(
-        self,
-        user=None,
-        prefix_url=settings.STARE_SITE_URL,
-        save_auth=None,
-        verify=settings.STARE_CERN_SSL_CHAIN,
-    ):
+    def __init__(self, user=None, prefix_url=settings.STARE_SITE_URL, save_auth=None):
         super(Session, self).__init__()
         self.user = user if user else User(save_auth=save_auth)
         self.auth = self._authorize
         self.prefix_url = prefix_url
-        self.verify = verify
         # store last call
         self._response = None
         # add caching
