@@ -93,7 +93,7 @@ jobs:
         github.event.action == 'closed' && github.event.pull_request.merged
       uses: ad-m/github-push-action@v0.5.0
       with:
-        github_token: ${{ secrets.GITHUB_PAT }}
+        github_token: ${{ secrets.GH_PAT }}
     - name: Comment that something failed
       if: failure()
       uses: actions/github-script@0.3.0
