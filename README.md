@@ -20,6 +20,23 @@ analyses = client.analyses['analyses']
 papers = client.papers['papers']
 ```
 
+## Activity IDs
+
+Activity IDs are currently in a different API project (under SCAB Nominations) which SUSY conveners have access to. For now, this is a partial list to make it easier.
+
+|ID |CODE|NAME                  |
+|---|----|----------------------|
+|36 |SUSY|SUSY                  |
+|37 |BGF |Background forum      |
+|38 |CDM |Common Dark Matter    |
+|39 |TGSK|3rd generation squarks|
+|40 |EW  |EW                    |
+|41 |ISG |InclSqGl              |
+|42 |RPVL|RPVLL                 |
+|43 |RVEW|SUSY Review           |
+|199|STPR|Strong production     |
+|200|RUN2|Run2 Summaries        |
+
 ## SSL
 
 In order to get SSL handshakes working (certificate verification), one needs to make sure we add/trust the CERN Certification Authorities (CA) for both the Root and the Grid CAs. Specifically, we rely on the Root CA to sign/issue the Grid CA. The Grid CA is what's relied on for the SSL chain. To make this happen, we'll need both PEM for each CA combined into a single `CERN_chain.pem` file which is bundled up with this package.
