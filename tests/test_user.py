@@ -9,6 +9,7 @@ _name = 'Test User'
 _response = 'A response'
 _status_code = 200
 _access_token = '4cce$$T0k3n'
+_subject_token = 'subj3cTt0k3n'
 _raw_id_token = 'R4w1DT0k3n'
 
 
@@ -18,9 +19,10 @@ def user_temp(tmpdir):
     assert temp.isfile() == False
 
     u = stare.core.User(save_auth=temp.strpath)
-    u._id_token = {'exp': time.time() + 3600, 'userLogin': _name}
+    u._id_token = {'exp': time.time() + 3600, 'name': _name}
     u._response = _response
     u._status_code = _status_code
+    u._subject_token = _subject_token
     u._access_token = _access_token
     u._raw_id_token = _raw_id_token
     return u, temp
@@ -59,6 +61,7 @@ def test_user_serialization(user_temp, caplog):
     assert session.user._session
     assert session.user._response == _response
     assert session.user._status_code == _status_code
+    assert session.user._subject_token == _subject_token
     assert session.user._access_token == _access_token
     assert session.user._raw_id_token == _raw_id_token
 

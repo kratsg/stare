@@ -1,14 +1,14 @@
 import logging
 import requests
 from requests.status_codes import codes
-from cachecontrol import CacheControlAdapter
-from cachecontrol.caches.file_cache import FileCache
+import cachecontrol.caches.file_cache
+from cachecontrol import CacheControlAdapter, CacheController
+from cachecontrol.heuristics import ExpiresAfter
 
 from jose import jwt
 import time
 import os
 import pickle  # nosec
-import copy
 
 from .settings import settings
 from . import exceptions
@@ -19,27 +19,28 @@ log = logging.getLogger(__name__)
 class User(object):
     def __init__(
         self,
-        apiKey=settings.GLANCE_API_KEY,
-        audience='#FIXME',
-        jwtOptions={'verify_signature': False},  # FIXME
+        username=settings.STARE_USERNAME,
+        password=settings.STARE_PASSWORD,
+        audience='stare',
+        jwtOptions={},
         save_auth=None,
-        verify=settings.CERN_SSL_CHAIN,
     ):
 
         # session handling (for injection in tests)
         self._session = requests.Session()
-        self._session.verify = verify
         # store last call to authenticate
         self._response = None
         self._status_code = None
         # store jwks for validation/verification
         self._jwks = None
         # store information after authorization occurs
+        self._subject_token = None
         self._access_token = None
         self._raw_id_token = None
         self._id_token = None
         # initialization configuration
-        self._apiKey = apiKey
+        self._username = username
+        self._password = password
         self._audience = audience
         self._jwtOptions = jwtOptions
         # serialization/persistence
@@ -88,32 +89,57 @@ class User(object):
 
     def _load_jwks(self, force=False):
         if self._jwks is None or force:
-            self._jwks = self._session.get('#FIXME').json()
+            self._jwks = self._session.get(
+                requests.compat.urljoin(settings.STARE_AUTH_URL, 'certs')
+            ).json()
 
     def _parse_id_token(self):
         if self._id_token:
-            # self._load_jwks()  # FIXME
+            self._load_jwks()
             self._id_token = jwt.decode(
                 self._id_token,
-                self._jwks,  # FIXME
+                self._jwks,
                 algorithms='RS256',
                 audience=self._audience,
                 options=self._jwtOptions,
             )
+
+    def _exchange_token(self):
+        # should only be called from within authenticate
+        response = self._session.post(
+            requests.compat.urljoin(settings.STARE_AUTH_URL, 'token'),
+            data={
+                'client_id': 'stare',
+                'audience': 'atlas-analysis-api',
+                'subject_token': self._subject_token,
+                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+                'requested_token_type': 'urn:ietf:params:oauth:token-type:access_token',
+            },
+        )
+        if response.status_code != 200:
+            raise exceptions.ExchangeFailure(response)
+        self._access_token = response.json()['access_token']
 
     def authenticate(self):
         # if not expired, do nothing
         if self.is_authenticated():
             return True
         # session-less request
-        response = self._session.get(
-            requests.compat.urljoin(settings.SITE_URL, 'auth'),
-            headers={'Api-Key': self._apiKey},
+        response = self._session.post(
+            requests.compat.urljoin(settings.STARE_AUTH_URL, 'token'),
+            data={
+                'username': self._username,
+                'password': self._password,
+                'grant_type': 'password',
+                'scope': 'openid info',
+                'client_id': 'stare',
+            },
         )
+
         self._response = response.json()
         self._status_code = response.status_code
-        self._access_token = self._response.get('accessToken')
-        self._raw_id_token = self._response.get('accessToken')
+        self._subject_token = self._response.get('access_token')
+        self._raw_id_token = self._response.get('id_token')
         self._id_token = self._raw_id_token
 
         # handle parsing the id token
@@ -121,14 +147,17 @@ class User(object):
 
         if not self.is_authenticated():
             log.warning(
-                'Authorization failed. Message: {}'.format(self._response['message'])
+                'Authorization failed. Message: {}'.format(
+                    self._response['error_description']
+                )
             )
         else:
+            self._exchange_token()
             self._dump()
 
     @property
-    def apiKey(self):
-        return self._apiKey
+    def subject_token(self):
+        return self._subject_token
 
     @property
     def access_token(self):
@@ -140,11 +169,23 @@ class User(object):
 
     @property
     def id(self):
-        return self.id_token.get('userId', '')
+        return self.id_token.get('cern_person_id', '')
+
+    @property
+    def username(self):
+        return self.id_token.get('cern_upn', '')
 
     @property
     def name(self):
-        return self.id_token.get('userLogin', '')
+        return self.id_token.get('name', '')
+
+    @property
+    def email(self):
+        return self.id_token.get('email', '')
+
+    @property
+    def orcid(self):
+        return self.id_token.get('eduperson_orcid', '')
 
     @property
     def permissions(self):
@@ -169,12 +210,12 @@ class User(object):
 
     @property
     def bearer(self):
-        return self._raw_id_token if self._raw_id_token else ''
+        return self.access_token if self.access_token else ''
 
     def is_authenticated(self):
         return bool(
             self._status_code == codes['ok']
-            and self._access_token
+            and self._subject_token
             and self._raw_id_token
         )
 
@@ -208,21 +249,36 @@ class Session(requests.Session):
     def __init__(
         self,
         user=None,
-        prefix_url=settings.SITE_URL,
+        prefix_url=settings.STARE_SITE_URL,
         save_auth=None,
-        verify=settings.CERN_SSL_CHAIN,
+        cache=cachecontrol.caches.file_cache.FileCache('.webcache'),
+        expires_after=None,
     ):
+        """
+          user (stare.core.User): A user object. Create one if not specified.
+          prefix_url (str): The prefix url to use for all requests.
+          save_auth (str): A file path to where to save authentication information.
+          cache (str): A CacheControl.caches object for cache (default: cachecontrol.caches.file_cache.FileCache)
+          expires_after (dict): The arguments are the same as the datetime.timedelta object. This will override or add the Expires header and override or set the Cache-Control header to public.
+        """
         super(Session, self).__init__()
         self.user = user if user else User(save_auth=save_auth)
         self.auth = self._authorize
         self.prefix_url = prefix_url
-        self.verify = verify
         # store last call
         self._response = None
-        # add caching
-        super(Session, self).mount(
-            self.prefix_url, CacheControlAdapter(cache=FileCache('.webcache'))
-        )
+
+        cache_options = {'controller_class': CacheController}
+        if cache:
+            cache_options.update(dict(cache=cache))
+        # handle expirations for cache
+        if expires_after and isinstance(expires_after, dict):
+            cache_options.update(dict(heuristic=ExpiresAfter(**expires_after)))
+        if cache_options:
+            # add caching
+            super(Session, self).mount(
+                self.prefix_url, CacheControlAdapter(**cache_options)
+            )
 
     def _authorize(self, req):
         self.user.authenticate()
@@ -230,38 +286,31 @@ class Session(requests.Session):
         return req
 
     def _normalize_url(self, url):
-        if self.prefix_url not in url:
-            return requests.compat.urljoin(self.prefix_url, url)
-        return url
+        return requests.compat.urljoin(self.prefix_url, url)
 
-    def _handle_response(self, response):
+    def _check_response(self, response):
+        if response.status_code in self.STATUS_EXCEPTIONS:
+            raise self.STATUS_EXCEPTIONS[response.status_code](response)
+
+        try:
+            response.raise_for_status()
+        except:
+            raise exceptions.UnhandledResponse(response)
+
+    def prepare_request(self, request):
+        request.url = self._normalize_url(request.url)
+        return super(Session, self).prepare_request(request)
+
+    def send(self, request, **kwargs):
+        response = super(Session, self).send(request, **kwargs)
         self._response = response
         log.debug(
             'Response: {} ({} bytes)'.format(
                 response.status_code, response.headers.get('content-length')
             )
         )
-        if response.status_code in self.STATUS_EXCEPTIONS:
-            raise self.STATUS_EXCEPTIONS[response.status_code](response)
-
-        if response.status_code in self.SUCCESS_STATUSES:
-            if response.headers.get('content-length') == '0':
-                return ''
-            try:
-                return response.json()
-            except ValueError:
-                raise exceptions.BadJSON(response)
-        else:
-            raise exceptions.UnhandledResponse(response)
-
-    def prepare_request(self, request):
-        request = copy.deepcopy(request)
-        request.url = self._normalize_url(request.url)
-        return super(Session, self).prepare_request(request)
-
-    def send(self, request, **kwargs):
-        response = super(Session, self).send(request, **kwargs)
-        return self._handle_response(response)
+        self._check_response(response)
+        return response
 
     def request(self, method, url, *args, **kwargs):
         url = self._normalize_url(url)

@@ -10,17 +10,17 @@ from stare import commandline
 
 @pytest.fixture(scope='module')
 def recorder_session(auth_user):
-    commandline.client.session.user = auth_user
+    commandline.client.user = auth_user
     with betamax.Betamax(
-        commandline.client.session,
-        cassette_library_dir=stare.settings.CASSETTE_LIBRARY_DIR,
+        commandline.client,
+        cassette_library_dir=stare.settings.STARE_CASSETTE_LIBRARY_DIR,
     ) as recorder:
         yield recorder
 
 
 def test_commandline():
-    assert commandline.client.session
-    assert commandline.client.session.user
+    assert commandline.client
+    assert commandline.client.user
 
 
 def test_version():
@@ -42,17 +42,20 @@ def test_authenticate(recorder_session):
     assert 'You have signed in as' in result.output
 
 
-def test_list_analyses(recorder_session):
-    recorder_session.use_cassette('test_analysis.test_get', record='none')
+def test_search_publications(recorder_session):
+    recorder_session.use_cassette('test_publications.test_search', record='none')
     runner = CliRunner()
-    result = runner.invoke(commandline.stare, ['list-analyses'])
+    result = runner.invoke(
+        commandline.stare,
+        ['search-publications', '--activity-id', 26, '--reference-code', 'HIGG'],
+    )
     assert result.exit_code == 0
     assert result.output
 
 
-def test_list_papers(recorder_session):
-    recorder_session.use_cassette('test_paper.test_get', record='none')
+def test_publication(recorder_session):
+    recorder_session.use_cassette('test_publications.test_get', record='none')
     runner = CliRunner()
-    result = runner.invoke(commandline.stare, ['list-papers'])
+    result = runner.invoke(commandline.stare, ['publication', 'HDBS-2018-33'])
     assert result.exit_code == 0
     assert result.output

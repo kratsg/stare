@@ -1,7 +1,75 @@
 {
   "http_interactions": [
     {
-      "recorded_at": "2019-08-27T18:30:32",
+      "recorded_at": "2020-04-20T15:56:03",
+      "request": {
+        "body": {
+          "encoding": "utf-8",
+          "string": "username=<USERNAME>&password=<PASSWORD>&grant_type=password&scope=openid+info&client_id=stare"
+        },
+        "headers": {
+          "Accept": [
+            "*/*"
+          ],
+          "Accept-Encoding": [
+            "gzip, deflate"
+          ],
+          "Connection": [
+            "keep-alive"
+          ],
+          "Content-Length": [
+            "94"
+          ],
+          "Content-Type": [
+            "application/x-www-form-urlencoded"
+          ],
+          "User-Agent": [
+            "python-requests/2.22.0"
+          ]
+        },
+        "method": "POST",
+        "uri": "https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/token"
+      },
+      "response": {
+        "body": {
+          "encoding": null,
+          "string": "{\"access_token\":\"eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJWYUQzRDBQUm5QVzB5MXpBLTBieVIxZkhsSFVqalNFZzAxNngyY3JjaHljIn0.eyJqdGkiOiJiZmM0ZWY3ZS0wZGE4LTQzZDItYTI1My1jNDhlYzZiZGYzMDYiLCJleHAiOjE1ODczOTkzNjIsIm5iZiI6MCwiaWF0IjoxNTg3Mzk4MTYyLCJpc3MiOiJodHRwczovL2F1dGguY2Vybi5jaC9hdXRoL3JlYWxtcy9jZXJuIiwiYXVkIjoic3RhcmUiLCJzdWIiOiI3NTcxZDFhMS01NWI2LTQwMGItYmYwMi1hYjA0N2JlMTM3MGIiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJzdGFyZSIsImF1dGhfdGltZSI6MCwic2Vzc2lvbl9zdGF0ZSI6IjE3NTQxYTAwLWVkZjMtNGQ2Yi1hZjY5LTg1YTVlYzg4NDlhMSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiaHR0cDovL2xvY2FsaG9zdDozMDAwIl0sInNjb3BlIjoib3BlbmlkIG9pZGMtY2Vybi1wcm9maWxlIG9pZGMtZW1haWwgb2lkYy1jZXJuLWxvZ2luLWluZm8gb2lkYy1jbGllbnQtaWQiLCJzdWIiOiJnc3RhcmsiLCJjZXJuX3BlcnNvbl9pZCI6NzU2MTgyLCJuYW1lIjoiR2lvcmRvbiBIb2x0c2JlcmcgU3RhcmsiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJnc3RhcmsiLCJnaXZlbl9uYW1lIjoiR2lvcmRvbiBIb2x0c2JlcmciLCJmYW1pbHlfbmFtZSI6IlN0YXJrIiwiZW1haWwiOiJnaW9yZG9uLmhvbHRzYmVyZy5zdGFya0BjZXJuLmNoIiwiZWR1cGVyc29uX29yY2lkIjoiMDAwMC0wMDAxLTY2MTYtMzQzMyIsImNlcm5fdXBuIjoiZ3N0YXJrIn0.gtVWzNyNxcYJ-EFrLT5Am0KA6T_8jNroNqTaSurEUnneba_kolipjilkhI691siiNSr8taXI0n0MMPMnonfjMeqfZpojbrzNcL0YS4hagf6tw6UdDqcNXjZLobTFObr36djlcwLYREePs2ZyE37z-EgORTrzsyH4wQnE-jx-mH8CsTorwjc4P12Snox-E-RiHikR7wKL9Jwg8Fz-J_NoRBK8rM_tVHKlYdn6m1rmYcNacJI-CwqwnH0z7nuuFNZ06AN1mNAxhkP0U1V7krsAn8utB7pV3ZISyIU_kafGABcgY2YmYfkYl79s6zbf5f84WUrAIWpPTYsMgOYanddgkw\",\"expires_in\":1199,\"refresh_expires_in\":7200,\"refresh_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJjOTRlMjcwYi05YjkxLTQyYWQtOWM0MS1lYmVlODIzY2JlNzQifQ.eyJqdGkiOiI0YzllZDRmYi02YTI3LTQyMjUtOTZjMi0wZTVkNGRkOTNmMDYiLCJleHAiOjE1ODc0MDUzNjMsIm5iZiI6MCwiaWF0IjoxNTg3Mzk4MTYzLCJpc3MiOiJodHRwczovL2F1dGguY2Vybi5jaC9hdXRoL3JlYWxtcy9jZXJuIiwiYXVkIjoiaHR0cHM6Ly9hdXRoLmNlcm4uY2gvYXV0aC9yZWFsbXMvY2VybiIsInN1YiI6Ijc1NzFkMWExLTU1YjYtNDAwYi1iZjAyLWFiMDQ3YmUxMzcwYiIsInR5cCI6IlJlZnJlc2giLCJhenAiOiJzdGFyZSIsImF1dGhfdGltZSI6MCwic2Vzc2lvbl9zdGF0ZSI6IjE3NTQxYTAwLWVkZjMtNGQ2Yi1hZjY5LTg1YTVlYzg4NDlhMSIsInNjb3BlIjoib3BlbmlkIG9pZGMtY2Vybi1wcm9maWxlIG9pZGMtZW1haWwgb2lkYy1jZXJuLWxvZ2luLWluZm8gb2lkYy1jbGllbnQtaWQifQ.mX0M5y1gaKCPReM419qhWIgFdEnBlHKwUISd6wzlo_M\",\"token_type\":\"bearer\",\"id_token\":\"eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJWYUQzRDBQUm5QVzB5MXpBLTBieVIxZkhsSFVqalNFZzAxNngyY3JjaHljIn0.eyJqdGkiOiI4NWQ1N2EzZC01ODU3LTQ1OTUtYmMwZS0zMDA3MWZlODg5YzgiLCJleHAiOjE1ODczOTkzNjIsIm5iZiI6MCwiaWF0IjoxNTg3Mzk4MTYzLCJpc3MiOiJodHRwczovL2F1dGguY2Vybi5jaC9hdXRoL3JlYWxtcy9jZXJuIiwiYXVkIjoic3RhcmUiLCJzdWIiOiI3NTcxZDFhMS01NWI2LTQwMGItYmYwMi1hYjA0N2JlMTM3MGIiLCJ0eXAiOiJJRCIsImF6cCI6InN0YXJlIiwiYXV0aF90aW1lIjowLCJzZXNzaW9uX3N0YXRlIjoiMTc1NDFhMDAtZWRmMy00ZDZiLWFmNjktODVhNWVjODg0OWExIiwiYWNyIjoiMSIsInN1YiI6ImdzdGFyayIsImNlcm5fcGVyc29uX2lkIjo3NTYxODIsIm5hbWUiOiJHaW9yZG9uIEhvbHRzYmVyZyBTdGFyayIsInByZWZlcnJlZF91c2VybmFtZSI6ImdzdGFyayIsImdpdmVuX25hbWUiOiJHaW9yZG9uIEhvbHRzYmVyZyIsImZhbWlseV9uYW1lIjoiU3RhcmsiLCJlbWFpbCI6Imdpb3Jkb24uaG9sdHNiZXJnLnN0YXJrQGNlcm4uY2giLCJlZHVwZXJzb25fb3JjaWQiOiIwMDAwLTAwMDEtNjYxNi0zNDMzIiwiY2Vybl91cG4iOiJnc3RhcmsifQ.eBjEcVVfn4YREgvi8KxPQIKCq-T1q7OdHZbD0cqQFFx-vXfrCO5ZpFtf8AcRh1uwL_OQmAEV705cK9_pacSrRJ_9RUriRKYnVHITUjsjA1Reu1R2pBDXmdMkgHBSVDFxbTDFDWtyDUrYZiWLZsDI4Mgx6Q_oXYzfMjmFHxfx3Q-w4iFOWBmdkIle6n5OH_Vr5igKlpIFuZiZYl1NmqAE5o6Rp1xR5m24JtvU9R-GX2lExX3YQii5fT26Yoc_Kg1NQIFvvWmi3VDA5UKKXYwiJND66YF3Wu1AgsbnY7Bc8-tzz1RLNhRAEOGv1-tYjS5ieVIT8HpaceSeBqoZAFFGzw\",\"not-before-policy\":0,\"session_state\":\"17541a00-edf3-4d6b-af69-85a5ec8849a1\",\"scope\":\"openid oidc-cern-profile oidc-email oidc-cern-login-info oidc-client-id\"}"
+        },
+        "headers": {
+          "Cache-Control": [
+            "no-store"
+          ],
+          "Connection": [
+            "keep-alive"
+          ],
+          "Content-Length": [
+            "3533"
+          ],
+          "Content-Type": [
+            "application/json"
+          ],
+          "Date": [
+            "Mon, 20 Apr 2020 15:56:03 GMT"
+          ],
+          "Pragma": [
+            "no-cache"
+          ],
+          "Server": [
+            "nginx/1.16.1"
+          ],
+          "Set-Cookie": [
+            "KC_RESTART=; Version=1; Expires=Thu, 01-Jan-1970 00:00:10 GMT; Max-Age=0; Path=/auth/realms/cern/; Secure; HttpOnly"
+          ]
+        },
+        "status": {
+          "code": 200,
+          "message": "OK"
+        },
+        "url": "https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/token"
+      }
+    },
+    {
+      "recorded_at": "2020-04-20T15:56:03",
       "request": {
         "body": {
           "encoding": "utf-8",
@@ -14,9 +82,6 @@
           "Accept-Encoding": [
             "gzip, deflate"
           ],
-          "Api-Key": [
-            "<APIKEY>"
-          ],
           "Connection": [
             "keep-alive"
           ],
@@ -25,69 +90,106 @@
           ]
         },
         "method": "GET",
-        "uri": "https://glance-stage.cern.ch/release/frapi/atlas/analysis/api/public/auth"
+        "uri": "https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/certs"
       },
       "response": {
         "body": {
-          "base64_string": "H4sIAAAAAAAAAy2O306DMBxG34UHWGhx03knW9x+zJZMCrTcGCkohTKIdfyp8d1F4+WX8+XkfDmvUpbGsK4pL869U86BW/IHFarglKCzetoFVX6QvxtiC4iqYLtaTkjiZI7S8wLAghpVwamWzTRkWF+h7pTgz0Zw8im9xJYRGLj4Wraolx7tc7y2UPc5tI9XkU5ribUF7RpodVXsYENYjGndWLIXlizujFfj4pwoEzhkxCU1mZcwnXnBUHD/z8Wj/4a2mHMvGeUMmxSh7QqKvQjHu1P1Zm6PBxKn7JhN7/4gb1z9EXaRyyKfpNyql9j5/gEdUMN6DwEAAA==",
-          "encoding": "UTF-8",
-          "string": ""
+          "encoding": null,
+          "string": "{\"keys\":[{\"kid\":\"VaD3D0PRnPW0y1zA-0byR1fHlHUjjSEg016x2crchyc\",\"kty\":\"RSA\",\"alg\":\"RS256\",\"use\":\"sig\",\"n\":\"r-9vOpduBX8bAYRW9XKDboLdKH9vKGJHnVZjehLG55Z7isJOdfd6128q7UIaFFdLcDe0IpiwMGlV1Cyomj_pRZFsUyY7A2tXsdO0jP8_0GPzq9mcrhnzmJzDWzJRmGnN4Glo_cdhPCOyPpR-CjBrELLGSqNYdQUMm1YYEt_bVZ1hJedjMT7dSrSn0Cq8NuL6Lg_r5QUAddbs2sz69hBVjLL_kOttuLFl9ynX9MYfRpynA-zkm2XQTdjTu5ShGxfOVh3krpNfX1KjRqCRyqK4pu4HmhKoIEGmVv3QpyFHHvPdru69hx0VPRXYaSQ8iCuQeSgXSFHVtpc_XZHlJzKhww\",\"e\":\"AQAB\",\"x5c\":[\"MIIClzCCAX8CBgFtcfCHkTANBgkqhkiG9w0BAQsFADAPMQ0wCwYDVQQDDARjZXJuMB4XDTE5MDkyNzA4NTU1MVoXDTI5MDkyNzA4NTczMVowDzENMAsGA1UEAwwEY2VybjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAK/vbzqXbgV/GwGEVvVyg26C3Sh/byhiR51WY3oSxueWe4rCTnX3etdvKu1CGhRXS3A3tCKYsDBpVdQsqJo/6UWRbFMmOwNrV7HTtIz/P9Bj86vZnK4Z85icw1syUZhpzeBpaP3HYTwjsj6UfgowaxCyxkqjWHUFDJtWGBLf21WdYSXnYzE+3Uq0p9AqvDbi+i4P6+UFAHXW7NrM+vYQVYyy/5DrbbixZfcp1/TGH0acpwPs5Jtl0E3Y07uUoRsXzlYd5K6TX19So0agkcqiuKbuB5oSqCBBplb90KchRx7z3a7uvYcdFT0V2GkkPIgrkHkoF0hR1baXP12R5ScyocMCAwEAATANBgkqhkiG9w0BAQsFAAOCAQEAAcnQU/FTkupPPBlubjqiFB4IPzkM00L1WBYRkbHJ91PhRCEvSFhdy2zNTrylBBMAbe6Yw5YC1MYSJ+pJoo4MzkhmiZpdspFH4ewGm3J8xt6PDN8FkPwD9tcuZuHB62DogHkQRsJ5bZlBbjUYXoquHkGsMcbCMO7a6T+4/G3FX5sicITVdGraSW+PQeBPhKijTEy35HX+Vt89qPg/x28FAUzE06oGunhaYDScGxY4JSDyiOa3W+D/ZHpD1SSDkniE/AWXzM4m+EgpHfjoukO+j8XDxoNN+c4hNkY3U3sj1A0vT+/vN31F09SWYEHY3DaNTERv9SYfqZdbrNVHhf1n3w==\"],\"x5t\":\"ziv7F1qZDqHnkoYG4WWwOM1P1Eo\",\"x5t#S256\":\"xxflM25rffV_CTyAaABPz1YNVGZ7LmCZvzTs9f0NHT8\"}]}"
         },
         "headers": {
-          "Access-Control-Allow-Headers": [
-            "API-KEY, Authorization"
-          ],
-          "Access-Control-Allow-Methods": [
-            "GET, POST, PUT, DELETE"
-          ],
-          "Access-Control-Allow-Origin": [
-            "*"
-          ],
           "Cache-Control": [
-            "private"
-          ],
-          "Connection": [
-            "Keep-Alive"
-          ],
-          "Content-Encoding": [
-            "gzip"
-          ],
-          "Content-Length": [
-            "250"
-          ],
-          "Content-Type": [
-            "text/html; charset=UTF-8"
-          ],
-          "Date": [
-            "Tue, 27 Aug 2019 18:30:31 GMT"
-          ],
-          "Expires": [
-            "Thu, 19 Nov 1981 08:52:00 GMT"
-          ],
-          "Keep-Alive": [
-            "timeout=5, max=100"
-          ],
-          "Pragma": [
             "no-cache"
           ],
+          "Connection": [
+            "keep-alive"
+          ],
+          "Content-Length": [
+            "1458"
+          ],
+          "Content-Type": [
+            "application/json"
+          ],
+          "Date": [
+            "Mon, 20 Apr 2020 15:56:03 GMT"
+          ],
           "Server": [
-            "Apache/2.4.6 (CentOS) OpenSSL/1.0.2k-fips mod_fcgid/2.3.9 PHP/5.4.16"
-          ],
-          "Set-Cookie": [
-            "PHPSESSID=4uh1okl7dfm7p02soik5bkrc23; path=/"
-          ],
-          "Vary": [
-            "Accept-Encoding,User-Agent"
-          ],
-          "X-Powered-By": [
-            "PHP/5.4.16"
+            "nginx/1.16.1"
           ]
         },
         "status": {
           "code": 200,
           "message": "OK"
         },
-        "url": "https://glance-stage.cern.ch/release/frapi/atlas/analysis/api/public/auth"
+        "url": "https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/certs"
+      }
+    },
+    {
+      "recorded_at": "2020-04-20T15:56:03",
+      "request": {
+        "body": {
+          "encoding": "utf-8",
+          "string": "client_id=stare&audience=atlas-analysis-api&subject_token=eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJWYUQzRDBQUm5QVzB5MXpBLTBieVIxZkhsSFVqalNFZzAxNngyY3JjaHljIn0.eyJqdGkiOiJiZmM0ZWY3ZS0wZGE4LTQzZDItYTI1My1jNDhlYzZiZGYzMDYiLCJleHAiOjE1ODczOTkzNjIsIm5iZiI6MCwiaWF0IjoxNTg3Mzk4MTYyLCJpc3MiOiJodHRwczovL2F1dGguY2Vybi5jaC9hdXRoL3JlYWxtcy9jZXJuIiwiYXVkIjoic3RhcmUiLCJzdWIiOiI3NTcxZDFhMS01NWI2LTQwMGItYmYwMi1hYjA0N2JlMTM3MGIiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJzdGFyZSIsImF1dGhfdGltZSI6MCwic2Vzc2lvbl9zdGF0ZSI6IjE3NTQxYTAwLWVkZjMtNGQ2Yi1hZjY5LTg1YTVlYzg4NDlhMSIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiaHR0cDovL2xvY2FsaG9zdDozMDAwIl0sInNjb3BlIjoib3BlbmlkIG9pZGMtY2Vybi1wcm9maWxlIG9pZGMtZW1haWwgb2lkYy1jZXJuLWxvZ2luLWluZm8gb2lkYy1jbGllbnQtaWQiLCJzdWIiOiJnc3RhcmsiLCJjZXJuX3BlcnNvbl9pZCI6NzU2MTgyLCJuYW1lIjoiR2lvcmRvbiBIb2x0c2JlcmcgU3RhcmsiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJnc3RhcmsiLCJnaXZlbl9uYW1lIjoiR2lvcmRvbiBIb2x0c2JlcmciLCJmYW1pbHlfbmFtZSI6IlN0YXJrIiwiZW1haWwiOiJnaW9yZG9uLmhvbHRzYmVyZy5zdGFya0BjZXJuLmNoIiwiZWR1cGVyc29uX29yY2lkIjoiMDAwMC0wMDAxLTY2MTYtMzQzMyIsImNlcm5fdXBuIjoiZ3N0YXJrIn0.gtVWzNyNxcYJ-EFrLT5Am0KA6T_8jNroNqTaSurEUnneba_kolipjilkhI691siiNSr8taXI0n0MMPMnonfjMeqfZpojbrzNcL0YS4hagf6tw6UdDqcNXjZLobTFObr36djlcwLYREePs2ZyE37z-EgORTrzsyH4wQnE-jx-mH8CsTorwjc4P12Snox-E-RiHikR7wKL9Jwg8Fz-J_NoRBK8rM_tVHKlYdn6m1rmYcNacJI-CwqwnH0z7nuuFNZ06AN1mNAxhkP0U1V7krsAn8utB7pV3ZISyIU_kafGABcgY2YmYfkYl79s6zbf5f84WUrAIWpPTYsMgOYanddgkw&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&requested_token_type=urn%3Aietf%3Aparams%3Aoauth%3Atoken-type%3Aaccess_token"
+        },
+        "headers": {
+          "Accept": [
+            "*/*"
+          ],
+          "Accept-Encoding": [
+            "gzip, deflate"
+          ],
+          "Connection": [
+            "keep-alive"
+          ],
+          "Content-Length": [
+            "1574"
+          ],
+          "Content-Type": [
+            "application/x-www-form-urlencoded"
+          ],
+          "User-Agent": [
+            "python-requests/2.22.0"
+          ]
+        },
+        "method": "POST",
+        "uri": "https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/token"
+      },
+      "response": {
+        "body": {
+          "encoding": null,
+          "string": "{\"access_token\":\"eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJWYUQzRDBQUm5QVzB5MXpBLTBieVIxZkhsSFVqalNFZzAxNngyY3JjaHljIn0.eyJqdGkiOiIwM2RkODg2NC04NmUwLTQ2N2YtOWVhMy00ZjJkOTk5MjUzNTAiLCJleHAiOjE1ODczOTkzNjMsIm5iZiI6MCwiaWF0IjoxNTg3Mzk4MTYzLCJpc3MiOiJodHRwczovL2F1dGguY2Vybi5jaC9hdXRoL3JlYWxtcy9jZXJuIiwiYXVkIjoiYXRsYXMtYW5hbHlzaXMtYXBpIiwic3ViIjoiNzU3MWQxYTEtNTViNi00MDBiLWJmMDItYWIwNDdiZTEzNzBiIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoic3RhcmUiLCJhdXRoX3RpbWUiOjAsInNlc3Npb25fc3RhdGUiOiIxNzU0MWEwMC1lZGYzLTRkNmItYWY2OS04NWE1ZWM4ODQ5YTEiLCJhY3IiOiIxIiwiYWxsb3dlZC1vcmlnaW5zIjpbImh0dHBzOi8vZ2xhbmNlLmNlcm4uY2giXSwic2NvcGUiOiJvaWRjLWNlcm4tcHJvZmlsZSBvaWRjLWVtYWlsIG9pZGMtY2Vybi1sb2dpbi1pbmZvIG9pZGMtY2xpZW50LWlkIiwic3ViIjoiZ3N0YXJrIiwiY2Vybl9wZXJzb25faWQiOjc1NjE4MiwibmFtZSI6Ikdpb3Jkb24gSG9sdHNiZXJnIFN0YXJrIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiZ3N0YXJrIiwiZ2l2ZW5fbmFtZSI6Ikdpb3Jkb24gSG9sdHNiZXJnIiwiZmFtaWx5X25hbWUiOiJTdGFyayIsImVtYWlsIjoiZ2lvcmRvbi5ob2x0c2Jlcmcuc3RhcmtAY2Vybi5jaCIsImVkdXBlcnNvbl9vcmNpZCI6IjAwMDAtMDAwMS02NjE2LTM0MzMiLCJjZXJuX3VwbiI6ImdzdGFyayJ9.Oxs9GEN5PTlzFPlcaeDtgWCnqG4uwa1Y3GRlV8W9ClXpzUn8Sen1FokeCOZZynLTcdj0MphC9pVmA0H5yGtLvkrtfTRZR_8QFmhdvH5NBSAiUCkUOFvFdQAaDxBQuCL9C_ukQrzYpuxcUNhwCrw4gaPu2VHBetRpV_orRDA8G8WZy_lVmwZlcEbWlpYlkzJfyqFGVIfhO8dL1BUd8938QDBua9W6nlOK6CSSKfgO5jLATuVtMbKYq5t_13R5ya8i8VoP1fFEn5AY6dhMCwRjLwY7J1pmdUPRGbxBy5LhxSPBJPBgSw4LgiT-ZqBic0onecmv0WYgkm-PVlhC7fhrWg\",\"expires_in\":1200,\"refresh_expires_in\":0,\"token_type\":\"bearer\",\"not-before-policy\":0,\"session_state\":\"17541a00-edf3-4d6b-af69-85a5ec8849a1\",\"scope\":\"oidc-cern-profile oidc-email oidc-cern-login-info oidc-client-id\"}"
+        },
+        "headers": {
+          "Cache-Control": [
+            "no-store"
+          ],
+          "Connection": [
+            "keep-alive"
+          ],
+          "Content-Length": [
+            "1613"
+          ],
+          "Content-Type": [
+            "application/json"
+          ],
+          "Date": [
+            "Mon, 20 Apr 2020 15:56:03 GMT"
+          ],
+          "Pragma": [
+            "no-cache"
+          ],
+          "Server": [
+            "nginx/1.16.1"
+          ],
+          "Set-Cookie": [
+            "KC_RESTART=; Version=1; Expires=Thu, 01-Jan-1970 00:00:10 GMT; Max-Age=0; Path=/auth/realms/cern/; Secure; HttpOnly"
+          ]
+        },
+        "status": {
+          "code": 200,
+          "message": "OK"
+        },
+        "url": "https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/token"
       }
     }
   ],

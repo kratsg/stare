@@ -1,11 +1,11 @@
 {
   "http_interactions": [
     {
-      "recorded_at": "2019-08-27T18:30:31",
+      "recorded_at": "2020-04-20T15:48:58",
       "request": {
         "body": {
           "encoding": "utf-8",
-          "string": ""
+          "string": "username=foo&password=bar&grant_type=password&scope=openid+info&client_id=stare"
         },
         "headers": {
           "Accept": [
@@ -14,76 +14,55 @@
           "Accept-Encoding": [
             "gzip, deflate"
           ],
-          "Api-Key": [
-            "foo"
-          ],
           "Connection": [
             "keep-alive"
+          ],
+          "Content-Length": [
+            "79"
+          ],
+          "Content-Type": [
+            "application/x-www-form-urlencoded"
           ],
           "User-Agent": [
             "python-requests/2.22.0"
           ]
         },
-        "method": "GET",
-        "uri": "https://glance-stage.cern.ch/release/frapi/atlas/analysis/api/public/auth"
+        "method": "POST",
+        "uri": "https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/token"
       },
       "response": {
         "body": {
           "encoding": null,
-          "string": "{\"message\":\"Invalid key.\"}"
+          "string": "{\"error\":\"invalid_grant\",\"error_description\":\"Invalid user credentials\"}"
         },
         "headers": {
-          "Access-Control-Allow-Headers": [
-            "API-KEY, Authorization"
-          ],
-          "Access-Control-Allow-Methods": [
-            "GET, POST, PUT, DELETE"
-          ],
-          "Access-Control-Allow-Origin": [
-            "*"
-          ],
           "Cache-Control": [
-            "private"
+            "no-store"
           ],
           "Connection": [
-            "Keep-Alive"
+            "keep-alive"
           ],
           "Content-Length": [
-            "26"
+            "72"
           ],
           "Content-Type": [
             "application/json"
           ],
           "Date": [
-            "Tue, 27 Aug 2019 18:30:30 GMT"
-          ],
-          "Expires": [
-            "Thu, 19 Nov 1981 08:52:00 GMT"
-          ],
-          "Keep-Alive": [
-            "timeout=5, max=100"
+            "Mon, 20 Apr 2020 15:48:58 GMT"
           ],
           "Pragma": [
             "no-cache"
           ],
           "Server": [
-            "Apache/2.4.6 (CentOS) OpenSSL/1.0.2k-fips mod_fcgid/2.3.9 PHP/5.4.16"
-          ],
-          "Set-Cookie": [
-            "PHPSESSID=g167hdf5kqfc8anr0n1uifhi42; path=/"
-          ],
-          "Vary": [
-            "User-Agent"
-          ],
-          "X-Powered-By": [
-            "PHP/5.4.16"
+            "nginx/1.16.1"
           ]
         },
         "status": {
           "code": 401,
           "message": "Unauthorized"
         },
-        "url": "https://glance-stage.cern.ch/release/frapi/atlas/analysis/api/public/auth"
+        "url": "https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/token"
       }
     }
   ],
