@@ -45,6 +45,10 @@ class ResponseException(GlanceDBException):
         super(ResponseException, self).__init__(message)
 
 
+class ExchangeFailure(ResponseException):
+    """Indicate that exchanging the access token failed."""
+
+
 class BadJSON(ResponseException):
     """Indicate the response did not contain valid JSON."""
 
