@@ -18,6 +18,18 @@ class Client(Session):
 
 
 class Glance(Client):
+    def publication(self, glance_id):
+        req = Request('GET', 'publications/{0:s}'.format(glance_id))
+        return self(req)
+
+    def publications(self, activity_id, reference_code):
+        req = Request(
+            'GET',
+            'publications/search',
+            params=dict(activityId=activity_id, referenceCode=reference_code),
+        )
+        return self(req)
+
     @property
     def analyses(self):
         return self(Request('GET', 'analyses'))
