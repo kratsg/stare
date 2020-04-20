@@ -34,6 +34,7 @@ class User(object):
         # store jwks for validation/verification
         self._jwks = None
         # store information after authorization occurs
+        self._subject_token = None
         self._access_token = None
         self._raw_id_token = None
         self._id_token = None
@@ -103,6 +104,22 @@ class User(object):
                 options=self._jwtOptions,
             )
 
+    def _exchange_token(self):
+        # should only be called from within authenticate
+        response = self._session.post(
+            requests.compat.urljoin(settings.STARE_AUTH_URL, 'token'),
+            data={
+                'client_id': 'stare',
+                'audience': 'atlas-analysis-api',
+                'subject_token': self._subject_token,
+                'grant_type': 'urn:ietf:params:oauth:grant-type:token-exchange',
+                'requested_token_type': 'urn:ietf:params:oauth:token-type:access_token',
+            },
+        )
+        if response.status_code != 200:
+            raise exceptions.ExchangeFailure(response)
+        self._access_token = response.json()['access_token']
+
     def authenticate(self):
         # if not expired, do nothing
         if self.is_authenticated():
@@ -120,7 +137,8 @@ class User(object):
         )
         self._response = response.json()
         self._status_code = response.status_code
-        self._access_token = self._response.get('access_token')
+        self._subject_token = self._response.get('access_token')
+        self._exchange_token()
         self._raw_id_token = self._response.get('id_token')
         self._id_token = self._raw_id_token
 
@@ -133,6 +151,10 @@ class User(object):
             )
         else:
             self._dump()
+
+    @property
+    def subject_token(self):
+        return self._subject_token
 
     @property
     def access_token(self):
@@ -190,7 +212,7 @@ class User(object):
     def is_authenticated(self):
         return bool(
             self._status_code == codes['ok']
-            and self._access_token
+            and self._subject_token
             and self._raw_id_token
         )
 
