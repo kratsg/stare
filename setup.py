@@ -26,30 +26,10 @@ with open(
     long_description = readme_md.read()
 
 
-def _is_test_pypi():
-    """
-    Determine if the CI environment has IS_COMMIT_TAGGED defined and
-    set to true (c.f. .github/workflows/publish-package-to-pypi.yml)
-    The use_scm_version kwarg accepts a callable for the local_scheme
-    configuration parameter with argument "version". This can be replaced
-    with a lambda as the desired version structure is {next_version}.dev{distance}
-    c.f. https://github.com/pypa/setuptools_scm/#importing-in-setuppy
-    As the scm versioning is only desired for TestPyPI, for depolyment to PyPI the version
-    controlled through bumpversion is used.
-    """
-    from os import getenv
-
-    return (
-        {'local_scheme': lambda version: ''}
-        if getenv('IS_COMMIT_TAGGED') == 'false'
-        else False
-    )
-
-
 setup(
     name="stare",
     version="0.1.0",
-    use_scm_version=_is_test_pypi(),
+    use_scm_version=lambda: {'local_scheme': lambda version: ''},
     package_dir={"": "src"},
     packages=find_packages(where="src", exclude=["tests"]),
     include_package_data=True,
