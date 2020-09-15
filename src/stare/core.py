@@ -255,11 +255,11 @@ class Session(requests.Session):
         expires_after=None,
     ):
         """
-          user (stare.core.User): A user object. Create one if not specified.
-          prefix_url (str): The prefix url to use for all requests.
-          save_auth (str): A file path to where to save authentication information.
-          cache (str): A CacheControl.caches object for cache (default: cachecontrol.caches.file_cache.FileCache)
-          expires_after (dict): The arguments are the same as the datetime.timedelta object. This will override or add the Expires header and override or set the Cache-Control header to public.
+        user (stare.core.User): A user object. Create one if not specified.
+        prefix_url (str): The prefix url to use for all requests.
+        save_auth (str): A file path to where to save authentication information.
+        cache (str): A CacheControl.caches object for cache (default: cachecontrol.caches.file_cache.FileCache)
+        expires_after (dict): The arguments are the same as the datetime.timedelta object. This will override or add the Expires header and override or set the Cache-Control header to public.
         """
         super(Session, self).__init__()
         self.user = user if user else User(save_auth=save_auth)
