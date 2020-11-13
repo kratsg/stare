@@ -102,6 +102,7 @@ class User(object):
                 algorithms='RS256',
                 audience=self._audience,
                 options=self._jwtOptions,
+                access_token=self._subject_token,
             )
 
     def _exchange_token(self):
@@ -131,7 +132,7 @@ class User(object):
                 'username': self._username,
                 'password': self._password,
                 'grant_type': 'password',
-                'scope': 'openid info',
+                'scope': 'openid',
                 'client_id': 'stare',
             },
         )
