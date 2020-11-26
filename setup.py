@@ -28,7 +28,7 @@ with open(
 
 setup(
     name="stare",
-    version="0.1.1",
+    version="0.1.2",
     use_scm_version=lambda: {'local_scheme': lambda version: ''},
     package_dir={"": "src"},
     packages=find_packages(where="src", exclude=["tests"]),
