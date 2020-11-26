@@ -53,7 +53,7 @@ def auth_user():
     }
     with betamax.Betamax(
         user._session, cassette_library_dir=stare.settings.STARE_CASSETTE_LIBRARY_DIR
-    ).use_cassette('test_user.test_user_good_login', record='none') as recorder:
+    ).use_cassette('test_user.test_user_good_login', record='none'):
         yield user
 
 

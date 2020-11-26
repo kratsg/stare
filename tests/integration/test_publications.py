@@ -1,4 +1,3 @@
-import stare
 import betamax
 
 

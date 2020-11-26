@@ -5,13 +5,17 @@ import requests
 
 def test_urljoin(auth_session):
     assert (
-        auth_session._normalize_url('/resource/') == 'https://atlas-glance.cern.ch/resource/'
+        auth_session._normalize_url('/resource/')
+        == 'https://atlas-glance.cern.ch/resource/'
     )
     assert (
         auth_session._normalize_url('resource/')
         == 'https://atlas-glance.cern.ch/atlas/analysis/api/resource/'
     )
-    assert auth_session._normalize_url('/resource') == 'https://atlas-glance.cern.ch/resource'
+    assert (
+        auth_session._normalize_url('/resource')
+        == 'https://atlas-glance.cern.ch/resource'
+    )
     assert (
         auth_session._normalize_url('resource')
         == 'https://atlas-glance.cern.ch/atlas/analysis/api/resource'
