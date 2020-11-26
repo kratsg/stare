@@ -1,11 +1,11 @@
 {
   "http_interactions": [
     {
-      "recorded_at": "2020-04-20T15:48:58",
+      "recorded_at": "2020-11-26T14:43:01",
       "request": {
         "body": {
           "encoding": "utf-8",
-          "string": "username=foo&password=bar&grant_type=password&scope=openid+info&client_id=stare"
+          "string": "username=foo&password=bar&grant_type=password&scope=openid&client_id=stare"
         },
         "headers": {
           "Accept": [
@@ -18,13 +18,13 @@
             "keep-alive"
           ],
           "Content-Length": [
-            "79"
+            "74"
           ],
           "Content-Type": [
             "application/x-www-form-urlencoded"
           ],
           "User-Agent": [
-            "python-requests/2.22.0"
+            "python-requests/2.25.0"
           ]
         },
         "method": "POST",
@@ -49,13 +49,25 @@
             "application/json"
           ],
           "Date": [
-            "Mon, 20 Apr 2020 15:48:58 GMT"
+            "Thu, 26 Nov 2020 14:43:01 GMT"
           ],
           "Pragma": [
             "no-cache"
           ],
           "Server": [
-            "nginx/1.16.1"
+            "nginx/1.18.0"
+          ],
+          "Strict-Transport-Security": [
+            "max-age=31536000; includeSubDomains"
+          ],
+          "X-Content-Type-Options": [
+            "nosniff"
+          ],
+          "X-Frame-Options": [
+            "SAMEORIGIN"
+          ],
+          "X-XSS-Protection": [
+            "1; mode=block"
           ]
         },
         "status": {
