@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from pydantic import Field
 
-from stare.models.analysis import Analysis  # noqa: TC001
+from stare.models.analysis import Analysis
 from stare.models.common import _Base
+from stare.models.paper import Paper
 
 
 class SearchResult(_Base):
@@ -13,6 +14,16 @@ class SearchResult(_Base):
 
     total_rows: int | None = Field(default=None, alias="totalRows")
     results: list[Analysis] = Field(default_factory=list, alias="results")
+
+
+class PaperSearchResult(_Base):
+    """Top-level response from GET /searchPaper.
+
+    Note: ``numberOfResults`` is returned as a string by the API, not an integer.
+    """
+
+    number_of_results: str | None = Field(default=None, alias="numberOfResults")
+    results: list[Paper] = Field(default_factory=list, alias="results")
 
 
 class PublicationRef(_Base):

@@ -22,7 +22,13 @@ from stare.models.conf_note import ConfNote, ConfNotePhase1
 from stare.models.errors import ApiErrorResponse
 from stare.models.paper import Paper, PaperPhase1, PaperPhase2, SubmissionPhase
 from stare.models.pub_note import PubNote, PubNotePhase1, PubNoteReader
-from stare.models.search import PublicationRef, SearchResult, Trigger, TriggerCategory
+from stare.models.search import (
+    PaperSearchResult,
+    PublicationRef,
+    SearchResult,
+    Trigger,
+    TriggerCategory,
+)
 
 __all__ = [
     "AmiGlanceLink",
@@ -42,6 +48,7 @@ __all__ = [
     "Paper",
     "PaperPhase1",
     "PaperPhase2",
+    "PaperSearchResult",
     "Person",
     "PubNote",
     "PubNotePhase1",

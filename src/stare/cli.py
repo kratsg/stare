@@ -28,6 +28,12 @@ app = typer.Typer(
 auth_app = typer.Typer(help="Authentication commands.")
 app.add_typer(auth_app, name="auth")
 
+analysis_app = typer.Typer(help="Analysis commands (search and get).")
+app.add_typer(analysis_app, name="analysis")
+
+paper_app = typer.Typer(help="Paper commands (search and get).")
+app.add_typer(paper_app, name="paper")
+
 publications_app = typer.Typer(help="Publication search commands.")
 app.add_typer(publications_app, name="publications")
 
@@ -120,12 +126,12 @@ def auth_status() -> None:
 
 
 # ---------------------------------------------------------------------------
-# search
+# analysis search / get
 # ---------------------------------------------------------------------------
 
 
-@app.command()
-def search(
+@analysis_app.command("search")
+def analysis_search(
     query: Annotated[
         str | None, typer.Option("--query", "-q", help="Filter query string")
     ] = None,
@@ -167,22 +173,17 @@ def search(
     table.add_column("Reference Code", style="cyan")
     table.add_column("Status")
     table.add_column("Short Title")
-    for analysis in result.results:
+    for item in result.results:
         table.add_row(
-            analysis.reference_code or "",
-            analysis.status or "",
-            analysis.short_title or "",
+            item.reference_code or "",
+            item.status or "",
+            item.short_title or "",
         )
     console.print(table)
 
 
-# ---------------------------------------------------------------------------
-# analysis
-# ---------------------------------------------------------------------------
-
-
-@app.command()
-def analysis(
+@analysis_app.command("get")
+def analysis_get(
     ref_code: Annotated[str, typer.Argument(help="Analysis reference code")],
     output_json: Annotated[
         bool, typer.Option("--json", help="Output raw JSON")
@@ -208,12 +209,64 @@ def analysis(
 
 
 # ---------------------------------------------------------------------------
-# paper
+# paper search / get
 # ---------------------------------------------------------------------------
 
 
-@app.command()
-def paper(
+@paper_app.command("search")
+def paper_search(
+    query: Annotated[
+        str | None, typer.Option("--query", "-q", help="Filter query string")
+    ] = None,
+    limit: Annotated[
+        int, typer.Option("--limit", "-n", help="Max results to return")
+    ] = 50,
+    offset: Annotated[
+        int, typer.Option("--offset", help="Result offset (pagination)")
+    ] = 0,
+    sort_by: Annotated[
+        str | None, typer.Option("--sort-by", help="Field to sort by")
+    ] = None,
+    sort_desc: Annotated[
+        bool, typer.Option("--sort-desc", help="Sort descending")
+    ] = False,
+    output_json: Annotated[
+        bool, typer.Option("--json", help="Output raw JSON")
+    ] = False,
+) -> None:
+    """Search papers."""
+    g = _make_glance()
+    try:
+        result = g.papers.search(
+            query=query,
+            limit=limit,
+            offset=offset,
+            sort_by=sort_by,
+            sort_desc=sort_desc,
+        )
+    except StareError as exc:
+        err_console.print(f"[red]Error:[/red] {exc}")
+        raise typer.Exit(1) from exc
+
+    if output_json:
+        typer.echo(result.model_dump_json(by_alias=True))
+        return
+
+    table = Table(title=f"Papers ({result.number_of_results} total)")
+    table.add_column("Reference Code", style="cyan")
+    table.add_column("Status")
+    table.add_column("Short Title")
+    for item in result.results:
+        table.add_row(
+            item.reference_code or "",
+            item.status or "",
+            item.short_title or "",
+        )
+    console.print(table)
+
+
+@paper_app.command("get")
+def paper_get(
     ref_code: Annotated[str, typer.Argument(help="Paper reference code")],
     output_json: Annotated[
         bool, typer.Option("--json", help="Output raw JSON")

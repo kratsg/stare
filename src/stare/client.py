@@ -14,6 +14,7 @@ from stare.models import (
     Analysis,
     ConfNote,
     Paper,
+    PaperSearchResult,
     PublicationRef,
     PubNote,
     SearchResult,
@@ -46,7 +47,7 @@ def _raise_for_status(response: httpx.Response) -> None:
         return
     try:
         body: dict[str, Any] = response.json()
-    except Exception:  # noqa: BLE001
+    except ValueError:
         body = {}
     status_code = response.status_code
     title = str(body.get("title", response.reason_phrase or "Error"))
@@ -94,7 +95,7 @@ class AnalysisResource:
 
 
 class PaperResource:
-    """Accessor for /papers/ endpoint."""
+    """Accessor for /papers/ and /searchPaper endpoints."""
 
     def __init__(self, client: httpx.Client) -> None:
         self._client = client
@@ -104,6 +105,26 @@ class PaperResource:
         response = self._client.get(f"/papers/{ref_code}")
         _raise_for_status(response)
         return Paper.model_validate(response.json())
+
+    def search(
+        self,
+        *,
+        query: str | None = None,
+        offset: int = 0,
+        limit: int = 50,
+        sort_by: str | None = None,
+        sort_desc: bool = False,
+    ) -> PaperSearchResult:
+        """Search papers via GET /searchPaper."""
+        params: dict[str, Any] = {"offset": offset, "limit": limit}
+        if query is not None:
+            params["queryString"] = query
+        if sort_by is not None:
+            params["sortBy"] = sort_by
+            params["sortDesc"] = str(sort_desc).lower()
+        response = self._client.get("/searchPaper", params=params)
+        _raise_for_status(response)
+        return PaperSearchResult.model_validate(response.json())
 
 
 class ConfNoteResource:

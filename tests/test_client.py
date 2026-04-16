@@ -15,6 +15,7 @@ from stare.models import (
     Analysis,
     ConfNote,
     Paper,
+    PaperSearchResult,
     PublicationRef,
     PubNote,
     SearchResult,
@@ -48,6 +49,11 @@ SAMPLE_PAPER = {
     "referenceCode": "HDBS-2024-01",
     "status": "Published",
     "shortTitle": "Test paper",
+}
+
+SAMPLE_PAPER_SEARCH = {
+    "numberOfResults": "1",
+    "results": [SAMPLE_PAPER],
 }
 
 SAMPLE_CONF_NOTE = {
@@ -225,6 +231,53 @@ def test_papers_get_403_raises_forbidden(glance: Glance) -> None:
         rx.get("/papers/X").mock(return_value=httpx.Response(403, json=err))
         with pytest.raises(ForbiddenError):
             glance.papers.get("X")
+
+
+# ---------------------------------------------------------------------------
+# PaperResource.search
+# ---------------------------------------------------------------------------
+
+
+def test_papers_search_returns_paper_search_result(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchPaper").mock(
+            return_value=httpx.Response(200, json=SAMPLE_PAPER_SEARCH)
+        )
+        result = glance.papers.search()
+
+    assert isinstance(result, PaperSearchResult)
+    assert result.number_of_results == "1"
+    assert len(result.results) == 1
+    assert isinstance(result.results[0], Paper)
+    assert result.results[0].reference_code == "HDBS-2024-01"
+
+
+def test_papers_search_passes_query_params(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchPaper").mock(
+            return_value=httpx.Response(
+                200, json={"numberOfResults": "0", "results": []}
+            )
+        )
+        glance.papers.search(query='"referenceCode" = "X"', limit=10, offset=5)
+        params = dict(rx.calls[0].request.url.params)
+    assert params["queryString"] == '"referenceCode" = "X"'
+    assert params["limit"] == "10"
+    assert params["offset"] == "5"
+
+
+def test_papers_search_omits_none_params(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchPaper").mock(
+            return_value=httpx.Response(
+                200, json={"numberOfResults": "0", "results": []}
+            )
+        )
+        glance.papers.search()
+        params = dict(rx.calls[0].request.url.params)
+    assert "queryString" not in params
+    assert "sortBy" not in params
+    assert "sortDesc" not in params
 
 
 # ---------------------------------------------------------------------------

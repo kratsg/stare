@@ -14,6 +14,7 @@ from stare.models import (
     Analysis,
     ConfNote,
     Paper,
+    PaperSearchResult,
     PublicationRef,
     PubNote,
     SearchResult,
@@ -71,6 +72,19 @@ SAMPLE_SEARCH = SearchResult.model_validate(
     }
 )
 
+SAMPLE_PAPER_SEARCH = PaperSearchResult.model_validate(
+    {
+        "numberOfResults": "1",
+        "results": [
+            {
+                "referenceCode": "HDBS-2024-01",
+                "status": "Published",
+                "shortTitle": "Test paper",
+            }
+        ],
+    }
+)
+
 SAMPLE_PUBLICATIONS = [
     PublicationRef.model_validate({"referenceCode": "HDBS-2024-01", "type": "Paper"}),
 ]
@@ -87,6 +101,7 @@ def _mock_glance(**overrides: object) -> MagicMock:
     g = MagicMock()
     g.analyses.search.return_value = SAMPLE_SEARCH
     g.analyses.get.return_value = SAMPLE_ANALYSIS
+    g.papers.search.return_value = SAMPLE_PAPER_SEARCH
     g.papers.get.return_value = SAMPLE_PAPER
     g.conf_notes.get.return_value = SAMPLE_CONF_NOTE
     g.pub_notes.get.return_value = SAMPLE_PUB_NOTE
@@ -160,87 +175,126 @@ def test_auth_status_not_authenticated() -> None:
 
 
 # ---------------------------------------------------------------------------
-# search
+# analysis search
 # ---------------------------------------------------------------------------
 
 
-def test_search_default() -> None:
+def test_analysis_search_default() -> None:
     with patch("stare.cli._make_glance", return_value=_mock_glance()):
-        result = runner.invoke(app, ["search"])
+        result = runner.invoke(app, ["analysis", "search"])
     assert result.exit_code == 0
     assert "ANA-TEST-2024-01" in result.output
 
 
-def test_search_with_query() -> None:
+def test_analysis_search_with_query() -> None:
     g = _mock_glance()
     with patch("stare.cli._make_glance", return_value=g):
-        result = runner.invoke(app, ["search", "--query", "test"])
+        result = runner.invoke(app, ["analysis", "search", "--query", "test"])
     assert result.exit_code == 0
     g.analyses.search.assert_called_once()
     call_kwargs = g.analyses.search.call_args.kwargs
     assert call_kwargs["query"] == "test"
 
 
-def test_search_json_output() -> None:
+def test_analysis_search_json_output() -> None:
     with patch("stare.cli._make_glance", return_value=_mock_glance()):
-        result = runner.invoke(app, ["search", "--json"])
+        result = runner.invoke(app, ["analysis", "search", "--json"])
     assert result.exit_code == 0
     data = json.loads(result.output)
     assert "totalRows" in data or "total_rows" in data
 
 
-def test_search_with_limit_and_offset() -> None:
+def test_analysis_search_with_limit_and_offset() -> None:
     g = _mock_glance()
     with patch("stare.cli._make_glance", return_value=g):
-        runner.invoke(app, ["search", "--limit", "10", "--offset", "5"])
+        runner.invoke(app, ["analysis", "search", "--limit", "10", "--offset", "5"])
     call_kwargs = g.analyses.search.call_args.kwargs
     assert call_kwargs["limit"] == 10
     assert call_kwargs["offset"] == 5
 
 
 # ---------------------------------------------------------------------------
-# analysis
+# analysis get
 # ---------------------------------------------------------------------------
 
 
-def test_analysis_command() -> None:
+def test_analysis_get_command() -> None:
     with patch("stare.cli._make_glance", return_value=_mock_glance()):
-        result = runner.invoke(app, ["analysis", "ANA-TEST-2024-01"])
+        result = runner.invoke(app, ["analysis", "get", "ANA-TEST-2024-01"])
     assert result.exit_code == 0
     assert "ANA-TEST-2024-01" in result.output
 
 
-def test_analysis_json_output() -> None:
+def test_analysis_get_json_output() -> None:
     with patch("stare.cli._make_glance", return_value=_mock_glance()):
-        result = runner.invoke(app, ["analysis", "ANA-TEST-2024-01", "--json"])
+        result = runner.invoke(app, ["analysis", "get", "ANA-TEST-2024-01", "--json"])
     assert result.exit_code == 0
     data = json.loads(result.output)
     assert data.get("referenceCode") == "ANA-TEST-2024-01"
 
 
-def test_analysis_not_found() -> None:
+def test_analysis_get_not_found() -> None:
     g = _mock_glance()
     g.analyses.get.side_effect = NotFoundError(404, "Not Found", "No such analysis")
     with patch("stare.cli._make_glance", return_value=g):
-        result = runner.invoke(app, ["analysis", "MISSING"])
+        result = runner.invoke(app, ["analysis", "get", "MISSING"])
     assert result.exit_code != 0
 
 
 # ---------------------------------------------------------------------------
-# paper
+# paper search
 # ---------------------------------------------------------------------------
 
 
-def test_paper_command() -> None:
+def test_paper_search_default() -> None:
     with patch("stare.cli._make_glance", return_value=_mock_glance()):
-        result = runner.invoke(app, ["paper", "HDBS-2024-01"])
+        result = runner.invoke(app, ["paper", "search"])
     assert result.exit_code == 0
     assert "HDBS-2024-01" in result.output
 
 
-def test_paper_json_output() -> None:
+def test_paper_search_with_query() -> None:
+    g = _mock_glance()
+    with patch("stare.cli._make_glance", return_value=g):
+        result = runner.invoke(app, ["paper", "search", "--query", "test"])
+    assert result.exit_code == 0
+    g.papers.search.assert_called_once()
+    call_kwargs = g.papers.search.call_args.kwargs
+    assert call_kwargs["query"] == "test"
+
+
+def test_paper_search_json_output() -> None:
     with patch("stare.cli._make_glance", return_value=_mock_glance()):
-        result = runner.invoke(app, ["paper", "HDBS-2024-01", "--json"])
+        result = runner.invoke(app, ["paper", "search", "--json"])
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    assert "numberOfResults" in data or "number_of_results" in data
+
+
+def test_paper_search_with_limit_and_offset() -> None:
+    g = _mock_glance()
+    with patch("stare.cli._make_glance", return_value=g):
+        runner.invoke(app, ["paper", "search", "--limit", "10", "--offset", "5"])
+    call_kwargs = g.papers.search.call_args.kwargs
+    assert call_kwargs["limit"] == 10
+    assert call_kwargs["offset"] == 5
+
+
+# ---------------------------------------------------------------------------
+# paper get
+# ---------------------------------------------------------------------------
+
+
+def test_paper_get_command() -> None:
+    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+        result = runner.invoke(app, ["paper", "get", "HDBS-2024-01"])
+    assert result.exit_code == 0
+    assert "HDBS-2024-01" in result.output
+
+
+def test_paper_get_json_output() -> None:
+    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+        result = runner.invoke(app, ["paper", "get", "HDBS-2024-01", "--json"])
     assert result.exit_code == 0
     data = json.loads(result.output)
     assert data.get("referenceCode") == "HDBS-2024-01"

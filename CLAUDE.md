@@ -31,7 +31,7 @@ src/stare/
     ├── paper.py       # Paper, PaperPhase1, PaperPhase2, SubmissionPhase
     ├── conf_note.py   # ConfNote, ConfNotePhase1
     ├── pub_note.py    # PubNote, PubNotePhase1
-    ├── search.py      # SearchResult, PublicationRef, Trigger
+    ├── search.py      # SearchResult, PaperSearchResult, PublicationRef, Trigger
     └── errors.py      # ApiErrorResponse
 tests/
 ├── conftest.py                  # fixtures: mock_token_manager, mock_glance, etc.
@@ -53,8 +53,11 @@ from stare import Glance
 
 g = Glance()
 
-# Currently live (GET /searchAnalysis)
+# Currently live: GET /searchAnalysis
 result = g.analyses.search(query='"referenceCode" = "ANA-HION-2018-01"')
+
+# Currently live: GET /searchPaper
+paper_result = g.papers.search(query='"referenceCode" = "HDBS-2018-33"')
 
 # Planned endpoints (available once the API rolls them out)
 analysis = g.analyses.get("ANA-HION-2018-01")
@@ -228,6 +231,7 @@ in most OS trust stores.
 | Endpoint                    | Status  | Resource accessor         |
 | --------------------------- | ------- | ------------------------- |
 | `GET /searchAnalysis`       | Live    | `g.analyses.search()`     |
+| `GET /searchPaper`          | Live    | `g.papers.search()`       |
 | `GET /analyses/{ref_code}`  | Planned | `g.analyses.get()`        |
 | `GET /papers/{ref_code}`    | Planned | `g.papers.get()`          |
 | `GET /confnotes/{ref_code}` | Planned | `g.conf_notes.get()`      |
@@ -236,3 +240,22 @@ in most OS trust stores.
 | `GET /groups`               | Planned | `g.groups.list()`         |
 | `GET /subgroups`            | Planned | `g.subgroups.list()`      |
 | `GET /triggers/search`      | Planned | `g.triggers.search()`     |
+
+## CLI structure
+
+Analysis and paper commands are sub-apps with `search` and `get` subcommands:
+
+```bash
+stare analysis search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json]
+stare analysis get REF_CODE [--json]
+stare paper search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json]
+stare paper get REF_CODE [--json]
+```
+
+CONF notes and PUB notes have only `get` (no search endpoint exists yet) and
+remain flat top-level commands:
+
+```bash
+stare conf-note TEMP_REF_CODE [--json]
+stare pub-note TEMP_REF_CODE [--json]
+```

@@ -35,12 +35,19 @@ refreshed automatically.
 
 ```bash
 # Search analyses
-stare search --query '"referenceCode" = "ANA-HION-2018-01"'
-stare search -q '"keywords" contain "Higgs"' --limit 20
+stare analysis search --query '"referenceCode" = "ANA-HION-2018-01"'
+stare analysis search -q '"keywords" contain "Higgs"' --limit 20
+
+# Search papers
+stare paper search --query '"referenceCode" = "HDBS-2018-33"'
 
 # Get individual resources (once endpoints go live)
-stare analysis ANA-HION-2018-01
-stare paper HDBS-2018-33
+stare analysis get ANA-HION-2018-01
+stare paper get HDBS-2018-33
+
+# CONF notes / PUB notes
+stare conf-note ATLAS-CONF-2024-001
+stare pub-note ATL-PHYS-PUB-2024-001
 
 # List metadata
 stare groups
@@ -66,6 +73,12 @@ result = g.analyses.search(query='"referenceCode" = "ANA-HION-2018-01"')
 print(f"Found {result.total_rows} analyses")
 for analysis in result.results:
     print(analysis.reference_code, analysis.short_title)
+
+# Search papers (currently live)
+paper_result = g.papers.search(query='"referenceCode" = "HDBS-2018-33"')
+print(f"Found {paper_result.number_of_results} papers")
+for paper in paper_result.results:
+    print(paper.reference_code, paper.short_title)
 
 # Individual resource lookups (available as API endpoints go live)
 analysis = g.analyses.get("ANA-HION-2018-01")

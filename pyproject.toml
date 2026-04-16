@@ -162,9 +162,19 @@ ignore = [
   "PYI034",   # Use Self for __enter__ return — requires typing_extensions on 3.10
 ]
 
+[tool.ruff.lint.flake8-type-checking]
+# Pydantic evaluates field annotations at runtime; keep imports out of TYPE_CHECKING blocks.
+# _Base is the project-level base model (inherits pydantic.BaseModel) — listed explicitly
+# because ruff does not follow transitive inheritance chains across modules.
+runtime-evaluated-base-classes = ["pydantic.BaseModel", "stare.models.common._Base"]
+
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["T20"]
 
+
+[tool.codespell]
+# PEM certificate files contain base64 that can trigger false-positive spell checks.
+skip = "*.pem"
 
 [tool.pylint]
 py-version = "3.10"
