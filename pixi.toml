@@ -58,6 +58,8 @@ test-all = { cmd = "pytest --cov=stare", description = "Run all tests with cover
 zensical = "*"
 lychee = "*"
 pydocstyle = "*"
+mkdocstrings = ">=0.26"
+mkdocstrings-python = ">=1.12"
 
 [feature.docs.tasks]
 docs-build = { cmd = "zensical build", description = "Build documentation (static)", inputs = ["src/", "docs/", "zensical.toml"], outputs = ["site"] }

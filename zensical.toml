@@ -1,19 +1,18 @@
 # Read more: https://zensical.org/docs/setup/basics
 
 [project]
-site_name = "rucio-mcp"
-site_description = "MCP Server for rucio"
+site_name = "stare"
+site_description = "Python library and CLI for the CERN ATLAS Glance/Fence API"
 site_author = "Giordon Stark"
 copyright = """
-Copyright &copy; 2026 The authors
+Copyright &copy; 2026 Giordon Stark
 """
 
 nav = [
   { "Home" = "index.md" },
   { "Getting started" = "getting-started.md" },
   { "Configuration" = "configuration.md" },
-  { "Tools" = "tools.md" },
-  { "ATLAS nomenclature" = "atlas-nomenclature.md" },
+  { "API reference" = "api.md" },
   { "Contributing" = "contributing.md" },
 ]
 
@@ -50,7 +49,24 @@ toggle.name = "Switch to light mode"
 
 [[project.extra.social]]
 icon = "fontawesome/brands/github"
-link = "https://github.com/kratsg/rucio-mcp"
+link = "https://github.com/kratsg/stare"
+
+# mkdocstrings plugin for API reference generation
+[project.plugins.mkdocstrings.config]
+default_handler = "python"
+
+[project.plugins.mkdocstrings.config.handlers.python.options]
+show_source = false
+show_if_no_docstring = false
+show_root_heading = true
+show_root_full_path = false
+show_symbol_type_heading = true
+show_symbol_type_toc = true
+heading_level = 2
+members_order = "source"
+separate_signature = true
+show_signature_annotations = true
+signature_crossrefs = true
 
 # All default markdown extensions are reproduced here to add snippets support.
 # Emoji generator/index resolved from zensical.extensions.emoji (not material).
