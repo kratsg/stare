@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import base64
 import contextlib
+import json
 import queue
 import secrets
 import threading
@@ -16,7 +18,7 @@ from urllib.parse import parse_qs, urlencode, urlparse
 import httpx
 from authlib.oauth2.rfc7636 import create_s256_code_challenge
 from platformdirs import user_data_dir
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -25,6 +27,51 @@ from stare.exceptions import AuthenticationError, TokenExpiredError
 from stare.settings import StareSettings
 
 _DEFAULT_TOKEN_PATH = Path(user_data_dir("stare")) / "tokens.json"
+
+
+class JwtClaims(BaseModel):
+    """Decoded JWT payload claims from CERN Keycloak.
+
+    ``extra="allow"`` preserves any claims not listed here so nothing is
+    silently dropped when displaying or passing the object around.
+    """
+
+    model_config = ConfigDict(populate_by_name=True, extra="allow")
+
+    sub: str | None = None
+    preferred_username: str | None = None
+    name: str | None = None
+    email: str | None = None
+    exp: int | None = None
+    iat: int | None = None
+
+
+class TokenInfo(BaseModel):
+    """Token metadata and decoded JWT claims returned by :meth:`TokenManager.get_token_info`."""
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    is_expired: bool
+    expires_at: int
+    claims: JwtClaims
+
+
+def _decode_jwt_payload(token: str) -> JwtClaims:
+    """Decode a JWT payload section without verifying the signature.
+
+    Returns an empty :class:`JwtClaims` on any parse failure so callers can
+    always access fields safely.
+    """
+    try:
+        payload_b64 = token.split(".")[1]
+        # JWT uses base64url without padding; re-add it before decoding.
+        payload_b64 += "=" * (4 - len(payload_b64) % 4)
+        payload = json.loads(base64.urlsafe_b64decode(payload_b64))
+        if isinstance(payload, dict):
+            return JwtClaims.model_validate(payload)
+    except (IndexError, ValueError):
+        pass
+    return JwtClaims()
 
 
 class _OAuthTokenResponse(BaseModel):
@@ -253,3 +300,23 @@ class TokenManager:
             token = _StoredToken.model_validate_json(self._token_path.read_text())
             return not token.is_expired
         return False
+
+    def get_token_info(self) -> TokenInfo | None:
+        """Return token metadata and decoded JWT claims, or None if not stored.
+
+        The JWT payload is decoded without signature verification — suitable
+        only for display purposes, not security decisions.
+        """
+        if not self._token_path.exists():
+            return None
+        with contextlib.suppress(Exception):
+            token = _StoredToken.model_validate_json(self._token_path.read_text())
+            # Prefer id_token (contains identity claims); fall back to access_token.
+            jwt_to_decode = token.id_token or token.access_token
+            claims = _decode_jwt_payload(jwt_to_decode)
+            return TokenInfo(
+                is_expired=token.is_expired,
+                expires_at=token.expires_at,
+                claims=claims,
+            )
+        return None

@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 from typer.testing import CliRunner
 
 from stare import __version__
+from stare.auth import JwtClaims, TokenInfo
 from stare.cli import app
 from stare.exceptions import AuthenticationError, NotFoundError
 from stare.models import (
@@ -130,28 +131,28 @@ def test_version_command() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_login_command_calls_token_manager() -> None:
+def test_auth_login_command_calls_token_manager() -> None:
     mock_tm = MagicMock()
     mock_tm.login.return_value = None
     with patch("stare.cli._make_token_manager", return_value=mock_tm):
-        result = runner.invoke(app, ["login"])
+        result = runner.invoke(app, ["auth", "login"])
     assert result.exit_code == 0
     mock_tm.login.assert_called_once()
 
 
-def test_login_shows_error_on_failure() -> None:
+def test_auth_login_shows_error_on_failure() -> None:
     mock_tm = MagicMock()
     mock_tm.login.side_effect = AuthenticationError("Auth failed")
     with patch("stare.cli._make_token_manager", return_value=mock_tm):
-        result = runner.invoke(app, ["login"])
+        result = runner.invoke(app, ["auth", "login"])
     assert result.exit_code != 0
     assert "Auth failed" in result.output
 
 
-def test_logout_command_calls_token_manager() -> None:
+def test_auth_logout_command_calls_token_manager() -> None:
     mock_tm = MagicMock()
     with patch("stare.cli._make_token_manager", return_value=mock_tm):
-        result = runner.invoke(app, ["logout"])
+        result = runner.invoke(app, ["auth", "logout"])
     assert result.exit_code == 0
     mock_tm.logout.assert_called_once()
 
@@ -172,6 +173,46 @@ def test_auth_status_not_authenticated() -> None:
         result = runner.invoke(app, ["auth", "status"])
     assert result.exit_code == 0
     assert "not authenticated" in result.output.lower()
+
+
+def test_auth_info_shows_claims() -> None:
+    mock_tm = MagicMock()
+    mock_tm.get_token_info.return_value = TokenInfo(
+        is_expired=False,
+        expires_at=int(__import__("time").time()) + 3600,
+        claims=JwtClaims(
+            preferred_username="kratsg",
+            name="Giordon Stark",
+            email="kratsg@cern.ch",
+            sub="abc123",
+        ),
+    )
+    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "info"])
+    assert result.exit_code == 0
+    assert "kratsg" in result.output
+    assert "Giordon Stark" in result.output
+
+
+def test_auth_info_unauthenticated() -> None:
+    mock_tm = MagicMock()
+    mock_tm.get_token_info.return_value = None
+    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "info"])
+    assert result.exit_code != 0
+
+
+def test_auth_info_shows_expired_when_token_expired() -> None:
+    mock_tm = MagicMock()
+    mock_tm.get_token_info.return_value = TokenInfo(
+        is_expired=True,
+        expires_at=int(__import__("time").time()) - 3600,
+        claims=JwtClaims(preferred_username="kratsg"),
+    )
+    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "info"])
+    assert result.exit_code == 0
+    assert "expired" in result.output.lower()
 
 
 # ---------------------------------------------------------------------------

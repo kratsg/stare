@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import json
+import logging
+import time
+from datetime import datetime, timezone
 from typing import Annotated
 
 import typer
@@ -42,7 +45,17 @@ app.add_typer(triggers_app, name="triggers")
 
 
 def _make_settings() -> StareSettings:
-    return StareSettings()
+    settings = StareSettings()
+    if settings.verbose:
+        _configure_verbose_logging()
+    return settings
+
+
+def _configure_verbose_logging() -> None:
+    """Enable DEBUG-level request/response logging for httpx and httpcore."""
+    logging.basicConfig(level=logging.DEBUG)
+    for name in ("httpx", "httpcore"):
+        logging.getLogger(name).setLevel(logging.DEBUG)
 
 
 def _make_token_manager() -> TokenManager:
@@ -50,7 +63,7 @@ def _make_token_manager() -> TokenManager:
 
 
 def _make_glance() -> Glance:
-    return Glance()
+    return Glance(settings=_make_settings())
 
 
 # ---------------------------------------------------------------------------
@@ -65,12 +78,12 @@ def version() -> None:
 
 
 # ---------------------------------------------------------------------------
-# login / logout / auth status
+# auth login / logout / status / info
 # ---------------------------------------------------------------------------
 
 
-@app.command()
-def login() -> None:
+@auth_app.command("login")
+def auth_login() -> None:
     """Authenticate with CERN SSO using OAuth2 PKCE."""
     tm = _make_token_manager()
 
@@ -105,8 +118,8 @@ def login() -> None:
     console.print("\n[green]✓[/green] Authenticated successfully.")
 
 
-@app.command()
-def logout() -> None:
+@auth_app.command("logout")
+def auth_logout() -> None:
     """Remove stored authentication tokens."""
     tm = _make_token_manager()
     tm.logout()
@@ -115,14 +128,59 @@ def logout() -> None:
 
 @auth_app.command("status")
 def auth_status() -> None:
-    """Show current authentication status."""
+    """Show current authentication status (quick check)."""
     tm = _make_token_manager()
     if tm.is_authenticated():
         console.print("[green]Authenticated[/green]")
     else:
         console.print(
-            "Not authenticated. Run [bold]stare login[/bold] to authenticate."
+            "Not authenticated. Run [bold]stare auth login[/bold] to authenticate."
         )
+
+
+@auth_app.command("info")
+def auth_info() -> None:
+    """Show detailed token information and decoded JWT claims."""
+    tm = _make_token_manager()
+    info = tm.get_token_info()
+
+    if info is None:
+        err_console.print(
+            "Not authenticated. Run [bold]stare auth login[/bold] to authenticate."
+        )
+        raise typer.Exit(1)
+
+    exp: int = info.expires_at
+    now = int(time.time())
+    is_expired: bool = info.is_expired
+    claims = info.claims
+
+    expires_dt = datetime.fromtimestamp(exp, tz=timezone.utc)
+    if not is_expired:
+        remaining = exp - now
+        mins, secs = divmod(remaining, 60)
+        expiry_label = f"[green]valid[/green] — expires in {mins}m {secs}s ({expires_dt.strftime('%Y-%m-%d %H:%M:%S %Z')})"
+    else:
+        expiry_label = (
+            f"[red]expired[/red] ({expires_dt.strftime('%Y-%m-%d %H:%M:%S %Z')})"
+        )
+
+    table = Table(show_header=False, box=None, padding=(0, 1))
+    table.add_column(style="dim")
+    table.add_column()
+    table.add_row("Token", expiry_label)
+
+    for api_key, label in [
+        ("preferred_username", "Username"),
+        ("name", "Name"),
+        ("email", "Email"),
+        ("sub", "Subject"),
+    ]:
+        val = getattr(claims, api_key, None)
+        if val:
+            table.add_row(label, str(val))
+
+    console.print(Panel(table, title="[bold]Auth Info[/bold]", border_style="blue"))
 
 
 # ---------------------------------------------------------------------------

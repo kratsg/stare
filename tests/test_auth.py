@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import contextlib
 import json
 import threading
@@ -15,13 +16,139 @@ import httpx
 import pytest
 import respx
 
-from stare.auth import TokenManager
+from stare.auth import JwtClaims, TokenInfo, TokenManager, _decode_jwt_payload
 from stare.exceptions import AuthenticationError, TokenExpiredError
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
     from pathlib import Path
 
     from stare.settings import StareSettings
+
+
+def _make_jwt(payload: Mapping[str, object]) -> str:
+    """Build a minimal JWT with the given payload (signature is a fake placeholder)."""
+    header_b64 = base64.urlsafe_b64encode(b'{"alg":"RS256"}').rstrip(b"=").decode()
+    payload_b64 = (
+        base64.urlsafe_b64encode(json.dumps(payload).encode()).rstrip(b"=").decode()
+    )
+    return f"{header_b64}.{payload_b64}.fakesig"
+
+
+# ---------------------------------------------------------------------------
+# _decode_jwt_payload
+# ---------------------------------------------------------------------------
+
+
+def test_decode_jwt_payload_returns_known_claims() -> None:
+    payload = {
+        "sub": "abc123",
+        "preferred_username": "kratsg",
+        "name": "Test User",
+        "email": "test@cern.ch",
+        "exp": 9999999999,
+        "iat": 1000000000,
+    }
+    claims = _decode_jwt_payload(_make_jwt(payload))
+    assert isinstance(claims, JwtClaims)
+    assert claims.sub == "abc123"
+    assert claims.preferred_username == "kratsg"
+    assert claims.name == "Test User"
+    assert claims.email == "test@cern.ch"
+    assert claims.exp == 9999999999
+    assert claims.iat == 1000000000
+
+
+def test_decode_jwt_payload_preserves_extra_claims() -> None:
+    payload = {"sub": "abc", "custom_claim": "custom_value"}
+    claims = _decode_jwt_payload(_make_jwt(payload))
+    assert claims.sub == "abc"
+    assert getattr(claims, "custom_claim", None) == "custom_value"
+
+
+def test_decode_jwt_payload_returns_empty_on_missing_dot() -> None:
+    # No dots → IndexError on [1] → returns empty JwtClaims
+    claims = _decode_jwt_payload("invalid-jwt")
+    assert isinstance(claims, JwtClaims)
+    assert claims.sub is None
+    assert claims.preferred_username is None
+
+
+def test_decode_jwt_payload_returns_empty_on_non_json_payload() -> None:
+    # Middle segment decodes to non-JSON bytes
+    bad = "header." + base64.urlsafe_b64encode(b"not-json").decode() + ".sig"
+    claims = _decode_jwt_payload(bad)
+    assert isinstance(claims, JwtClaims)
+    assert claims.sub is None
+
+
+# ---------------------------------------------------------------------------
+# get_token_info
+# ---------------------------------------------------------------------------
+
+
+def test_get_token_info_returns_none_when_no_file(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+    assert manager.get_token_info() is None
+
+
+def test_get_token_info_returns_token_info(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    payload = {"sub": "abc123", "preferred_username": "kratsg"}
+    stored = {
+        "access_token": "at",
+        "id_token": _make_jwt(payload),
+        "token_type": "Bearer",
+        "expires_at": int(time.time()) + 3600,
+    }
+    tmp_token_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_token_path.write_text(json.dumps(stored))
+    manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+    info = manager.get_token_info()
+    assert info is not None
+    assert isinstance(info, TokenInfo)
+    assert info.is_expired is False
+    assert info.claims.sub == "abc123"
+    assert info.claims.preferred_username == "kratsg"
+
+
+def test_get_token_info_prefers_id_token_over_access_token(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    stored = {
+        "access_token": _make_jwt({"sub": "from-access"}),
+        "id_token": _make_jwt({"sub": "from-id", "preferred_username": "kratsg"}),
+        "token_type": "Bearer",
+        "expires_at": int(time.time()) + 3600,
+    }
+    tmp_token_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_token_path.write_text(json.dumps(stored))
+    manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+    info = manager.get_token_info()
+    assert info is not None
+    assert info.claims.sub == "from-id"
+
+
+def test_get_token_info_falls_back_to_access_token(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    stored = {
+        "access_token": _make_jwt(
+            {"sub": "from-access", "preferred_username": "kratsg"}
+        ),
+        "token_type": "Bearer",
+        "expires_at": int(time.time()) + 3600,
+    }
+    tmp_token_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_token_path.write_text(json.dumps(stored))
+    manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+    info = manager.get_token_info()
+    assert info is not None
+    assert info.claims.sub == "from-access"
+
 
 # ---------------------------------------------------------------------------
 # logout

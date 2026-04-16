@@ -1,9 +1,9 @@
 # Feedback on the ATLAS Glance/Fence API design
 
-This document collects concrete issues and suggestions for the Glance team
-based on the experience of writing `stare` — a Python client and CLI for the
-analysis/documents API.  The goal is to make the API easier to consume from
-any language, not just Python.
+This document collects concrete issues and suggestions for the Glance team based
+on the experience of writing `stare` — a Python client and CLI for the
+analysis/documents API. The goal is to make the API easier to consume from any
+language, not just Python.
 
 ---
 
@@ -22,12 +22,13 @@ any language, not just Python.
 ```
 
 Two problems:
+
 - Different field names (`totalRows` vs `numberOfResults`) for the same concept.
 - Different types: `totalRows` is an integer, `numberOfResults` is a **string**.
 
 **Suggestion:** Use the same field name and type across all search endpoints.
-`totalRows: integer` (or `total: integer`) is cleaner for client-side
-pagination math.
+`totalRows: integer` (or `total: integer`) is cleaner for client-side pagination
+math.
 
 ---
 
@@ -49,10 +50,10 @@ leadingGroup:
   type: string
 ```
 
-A field with the same name and purpose should have the same type everywhere.
-If an analysis can have multiple leading groups, papers probably can too.  If
-only one is ever returned for a paper, use a single-element array (not a bare
-string) so client code doesn't need a conditional.
+A field with the same name and purpose should have the same type everywhere. If
+an analysis can have multiple leading groups, papers probably can too. If only
+one is ever returned for a paper, use a single-element array (not a bare string)
+so client code doesn't need a conditional.
 
 ---
 
@@ -68,8 +69,8 @@ analysisTeam:
         type: string
 ```
 
-If this is a yes/no flag it should be `type: boolean` so clients don't have
-to guess whether `"true"`, `"1"`, `"yes"`, or `"True"` is what comes back.
+If this is a yes/no flag it should be `type: boolean` so clients don't have to
+guess whether `"true"`, `"1"`, `"yes"`, or `"True"` is what comes back.
 
 ---
 
@@ -77,8 +78,8 @@ to guess whether `"true"`, `"1"`, `"yes"`, or `"True"` is what comes back.
 
 The `queryString` parameter is described as:
 
-> Supports operators such as `contain`, `not-contain`, `=`, and `!=` over
-> the available searchable properties (e.g. `creationDate`, `referenceCode`,
+> Supports operators such as `contain`, `not-contain`, `=`, and `!=` over the
+> available searchable properties (e.g. `creationDate`, `referenceCode`,
 > `keywords`).
 
 For a client library to expose this usefully, we need:
@@ -92,33 +93,33 @@ For a client library to expose this usefully, we need:
   keys differ too).
 
 **Suggestion:** Add a `/searchAnalysis/schema` (or similar) endpoint that
-returns the list of filterable fields and their types, and/or expand the
-OpenAPI description with a full grammar example.
+returns the list of filterable fields and their types, and/or expand the OpenAPI
+description with a full grammar example.
 
 ---
 
 ## 5. No `/searchConfNote` or `/searchPubNote`
 
-There are search endpoints for analyses and papers but not for CONF notes or
-PUB notes.  Users who want to list "all CONF notes from HDBS in 2024" have
-no direct path; they must use `/publications/search` (which returns minimal
-data) and then fetch each record individually.
+There are search endpoints for analyses and papers but not for CONF notes or PUB
+notes. Users who want to list "all CONF notes from HDBS in 2024" have no direct
+path; they must use `/publications/search` (which returns minimal data) and then
+fetch each record individually.
 
-**Suggestion:** Add `GET /searchConfNote` and `GET /searchPubNote` with the
-same DSL filter support as the existing search endpoints.
+**Suggestion:** Add `GET /searchConfNote` and `GET /searchPubNote` with the same
+DSL filter support as the existing search endpoints.
 
 ---
 
 ## 6. No direct `GET /{resource}/{id}` in the OpenAPI spec
 
 The OpenAPI spec (`api.yml`) only documents `/searchAnalysis` and
-`/searchPaper`.  The individual-record endpoints (`/analyses/{ref_code}`,
+`/searchPaper`. The individual-record endpoints (`/analyses/{ref_code}`,
 `/papers/{ref_code}`, `/confnotes/{temp_ref_code}`, `/pubnotes/{temp_ref_code}`)
 are implemented in `stare` based on the Confluence spec but are not in
 `api.yml`.
 
-**Suggestion:** Add all individual-record GET endpoints to the OpenAPI spec
-so they are discoverable via `/docs/api.yml`.
+**Suggestion:** Add all individual-record GET endpoints to the OpenAPI spec so
+they are discoverable via `/docs/api.yml`.
 
 ---
 
@@ -128,7 +129,7 @@ In analysis metadata:
 
 ```yaml
 metadata:
-  collisions:   # plural
+  collisions: # plural
     type: array
 ```
 
@@ -136,11 +137,11 @@ In paper metadata:
 
 ```yaml
 metadata:
-  collision:    # singular
+  collision: # singular
     type: array
 ```
 
-Same concept, different key names.  Pick one (prefer plural for an array).
+Same concept, different key names. Pick one (prefer plural for an array).
 
 ---
 
@@ -166,7 +167,7 @@ relatedAnalysis:
     referenceCode: string
 ```
 
-If a paper can only be related to one analysis, the object form is fine — but
-it would be cleaner to use an array even for single items, so client code is
-uniform.  The field name asymmetry (`relatedPublications` vs `relatedAnalysis`)
+If a paper can only be related to one analysis, the object form is fine — but it
+would be cleaner to use an array even for single items, so client code is
+uniform. The field name asymmetry (`relatedPublications` vs `relatedAnalysis`)
 is also confusing.

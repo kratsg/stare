@@ -19,3 +19,5 @@ class StareSettings(BaseSettings):
     scopes: str = "openid"
     # Must match the redirect URI registered with the CERN Keycloak client.
     callback_port: int = 8182
+    # Set STARE_VERBOSE=1 to enable DEBUG-level httpx/httpcore request logging.
+    verbose: bool = False
