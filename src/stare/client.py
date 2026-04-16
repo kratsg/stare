@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
+import ssl
+from importlib.resources import as_file, files
 from typing import TYPE_CHECKING, Any
 
 import httpx
-
-if TYPE_CHECKING:
-    import types
 
 from stare.auth import TokenManager
 from stare.exceptions import ApiError, ForbiddenError, NotFoundError, UnauthorizedError
@@ -21,6 +20,24 @@ from stare.models import (
     Trigger,
 )
 from stare.settings import StareSettings
+
+if TYPE_CHECKING:
+    import types
+
+
+def _load_cern_ssl_context() -> ssl.SSLContext:
+    """Create an SSLContext from the bundled CERN CA chain.
+
+    Uses importlib.resources.as_file() so the resource is available as a real
+    filesystem path even inside a zip-archived package. The cert data is loaded
+    into the SSLContext in memory; any extracted temp file is cleaned up on exit.
+    """
+    with as_file(files("stare.data").joinpath("CERN_chain.pem")) as cert_path:
+        return ssl.create_default_context(cafile=str(cert_path))
+
+
+# Built once at import time; shared across all Glance instances.
+_CERN_SSL_CONTEXT: ssl.SSLContext = _load_cern_ssl_context()
 
 
 def _raise_for_status(response: httpx.Response) -> None:
@@ -207,6 +224,7 @@ class Glance:
         self._token = token
         self._http = httpx.Client(
             base_url=self._settings.base_url,
+            verify=_CERN_SSL_CONTEXT,
             event_hooks={"request": [self._inject_auth]},
         )
         self.analyses = AnalysisResource(self._http)

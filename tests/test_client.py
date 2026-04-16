@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from importlib.resources import as_file, files
 from typing import TYPE_CHECKING
 
 import httpx
@@ -77,6 +78,17 @@ SAMPLE_TRIGGERS = [
 def glance(test_settings: StareSettings) -> Glance:
     """Glance instance using a fixed token (no real auth)."""
     return Glance(settings=test_settings, token="fake-token")
+
+
+# ---------------------------------------------------------------------------
+# CERN cert bundle
+# ---------------------------------------------------------------------------
+
+
+def test_cern_cert_bundle_is_file() -> None:
+    with as_file(files("stare.data").joinpath("CERN_chain.pem")) as p:
+        assert p.is_file(), f"Expected cert bundle at {p}"
+        assert "BEGIN CERTIFICATE" in p.read_text()
 
 
 # ---------------------------------------------------------------------------

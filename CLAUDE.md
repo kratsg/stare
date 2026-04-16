@@ -187,6 +187,42 @@ pixi run test
 All model tests parse from the fixture JSON in `tests/fixtures/` — update those
 fixtures to reflect any new/changed fields before running.
 
+## SSL certificate bundle (`src/stare/data/CERN_chain.pem`)
+
+The bundled `CERN_chain.pem` is used as the `verify=` argument for every
+`httpx.Client` that talks to `atlas-glance.cern.ch`. It contains two PEM
+certificates concatenated: the **CERN Grid CA** (intermediate) and the **CERN
+Root Certification Authority 2** (root). Both are needed because
+atlas-glance.cern.ch presents a certificate signed by the Grid CA, which is not
+in most OS trust stores.
+
+### Regenerating the bundle (maintainer task)
+
+1. Download from [CERN CA Files](https://cafiles.cern.ch/cafiles/):
+   - **CERN Root Certification Authority 2** — download as DER (`.crt`)
+   - **CERN Grid Certification Authority** — download as PEM (`.pem`)
+
+2. Convert the Root CA DER to PEM:
+
+   ```bash
+   openssl x509 -in CERN_ROOT_CA_2.crt -inform der -outform pem -out CERN_ROOT_CA_2.pem
+   ```
+
+3. Concatenate (Grid CA first, Root CA second):
+
+   ```bash
+   cat CERN_GRID_CA.pem CERN_ROOT_CA_2.pem > src/stare/data/CERN_chain.pem
+   ```
+
+4. Verify the bundle:
+
+   ```bash
+   openssl verify -CAfile src/stare/data/CERN_chain.pem src/stare/data/CERN_chain.pem
+   ```
+
+5. Commit `src/stare/data/CERN_chain.pem`. The file is tracked in git because it
+   is bundled with the wheel and loaded at runtime via `importlib.resources`.
+
 ## API endpoints
 
 | Endpoint                    | Status  | Resource accessor         |
