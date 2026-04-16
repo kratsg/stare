@@ -2,9 +2,47 @@
 
 from __future__ import annotations
 
-from pydantic import ConfigDict
+import time
+
+from pydantic import BaseModel, ConfigDict
 
 from stare.models.common import _Base
+
+
+class _OAuthTokenResponse(BaseModel):
+    """Raw OAuth2 token endpoint response from CERN Keycloak."""
+
+    access_token: str
+    refresh_token: str | None = None
+    token_type: str = "Bearer"
+    expires_in: int = 3600
+    id_token: str | None = None
+
+
+class _StoredToken(BaseModel):
+    """Token data persisted to disk after a successful login or refresh."""
+
+    access_token: str
+    refresh_token: str | None = None
+    token_type: str = "Bearer"
+    expires_at: int = 0
+    id_token: str | None = None
+
+    @classmethod
+    def from_response(cls, resp: _OAuthTokenResponse) -> _StoredToken:
+        """Build a stored token from an OAuth response, computing expires_at."""
+        return cls(
+            access_token=resp.access_token,
+            refresh_token=resp.refresh_token,
+            token_type=resp.token_type,
+            expires_at=int(time.time()) + resp.expires_in,
+            id_token=resp.id_token,
+        )
+
+    @property
+    def is_expired(self) -> bool:
+        """True if the token has expired or expires within 60 seconds."""
+        return self.expires_at < int(time.time()) + 60
 
 
 class JwtClaims(_Base):

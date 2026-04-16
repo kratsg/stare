@@ -9,7 +9,6 @@ import json
 import queue
 import secrets
 import threading
-import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
@@ -18,13 +17,12 @@ from urllib.parse import parse_qs, urlencode, urlparse
 
 import httpx
 from platformdirs import user_data_dir
-from pydantic import BaseModel
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 from stare.exceptions import AuthenticationError, TokenExpiredError
-from stare.models.auth import JwtClaims, TokenInfo
+from stare.models.auth import JwtClaims, TokenInfo, _OAuthTokenResponse, _StoredToken
 from stare.settings import StareSettings
 
 _DEFAULT_TOKEN_PATH = Path(user_data_dir("stare")) / "tokens.json"
@@ -52,42 +50,6 @@ def _decode_jwt_payload(token: str) -> JwtClaims:
     except (IndexError, ValueError):
         pass
     return JwtClaims()
-
-
-class _OAuthTokenResponse(BaseModel):
-    """Raw OAuth2 token endpoint response from CERN Keycloak."""
-
-    access_token: str
-    refresh_token: str | None = None
-    token_type: str = "Bearer"
-    expires_in: int = 3600
-    id_token: str | None = None
-
-
-class _StoredToken(BaseModel):
-    """Token data persisted to disk after a successful login or refresh."""
-
-    access_token: str
-    refresh_token: str | None = None
-    token_type: str = "Bearer"
-    expires_at: int = 0
-    id_token: str | None = None
-
-    @classmethod
-    def from_response(cls, resp: _OAuthTokenResponse) -> _StoredToken:
-        """Build a stored token from an OAuth response, computing expires_at."""
-        return cls(
-            access_token=resp.access_token,
-            refresh_token=resp.refresh_token,
-            token_type=resp.token_type,
-            expires_at=int(time.time()) + resp.expires_in,
-            id_token=resp.id_token,
-        )
-
-    @property
-    def is_expired(self) -> bool:
-        """True if the token has expired or expires within 60 seconds."""
-        return self.expires_at < int(time.time()) + 60
 
 
 class TokenManager:
