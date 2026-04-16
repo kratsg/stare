@@ -135,17 +135,17 @@ result = g.analyses.search()
 
 ## Current API endpoint availability
 
-| Endpoint | Status |
-|---|---|
-| `GET /searchAnalysis` | **Live** |
-| `GET /analyses/{ref_code}` | Planned |
-| `GET /papers/{ref_code}` | Planned |
-| `GET /confnotes/{ref_code}` | Planned |
-| `GET /pubnotes/{ref_code}` | Planned |
-| `GET /publications/search` | Planned |
-| `GET /groups` | Planned |
-| `GET /subgroups` | Planned |
-| `GET /triggers/search` | Planned |
+| Endpoint                    | Status   |
+| --------------------------- | -------- |
+| `GET /searchAnalysis`       | **Live** |
+| `GET /analyses/{ref_code}`  | Planned  |
+| `GET /papers/{ref_code}`    | Planned  |
+| `GET /confnotes/{ref_code}` | Planned  |
+| `GET /pubnotes/{ref_code}`  | Planned  |
+| `GET /publications/search`  | Planned  |
+| `GET /groups`               | Planned  |
+| `GET /subgroups`            | Planned  |
+| `GET /triggers/search`      | Planned  |
 
 The client exposes the full API surface today; planned endpoints will return a
 `NotFoundError` until the server rolls them out.

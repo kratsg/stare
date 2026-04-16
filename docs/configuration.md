@@ -10,13 +10,13 @@ All settings come from `StareSettings`, which reads environment variables with
 the `STARE_` prefix. Override any default by setting the corresponding variable
 before running `stare` or importing the library.
 
-| Variable | Default | Description |
-|---|---|---|
-| `STARE_BASE_URL` | `https://atlas-glance.cern.ch/atlas/analysis/api` | Glance/Fence API base URL |
-| `STARE_AUTH_URL` | `https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/auth` | Keycloak authorization endpoint |
-| `STARE_TOKEN_URL` | `https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/token` | Keycloak token endpoint |
-| `STARE_CLIENT_ID` | `stare` | OAuth2 client identifier |
-| `STARE_SCOPES` | `openid` | Space-separated OAuth2 scopes |
+| Variable          | Default                                                               | Description                     |
+| ----------------- | --------------------------------------------------------------------- | ------------------------------- |
+| `STARE_BASE_URL`  | `https://atlas-glance.cern.ch/atlas/analysis/api`                     | Glance/Fence API base URL       |
+| `STARE_AUTH_URL`  | `https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/auth`  | Keycloak authorization endpoint |
+| `STARE_TOKEN_URL` | `https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/token` | Keycloak token endpoint         |
+| `STARE_CLIENT_ID` | `stare`                                                               | OAuth2 client identifier        |
+| `STARE_SCOPES`    | `openid`                                                              | Space-separated OAuth2 scopes   |
 
 ## Using a custom settings object
 
@@ -38,11 +38,11 @@ g = Glance(settings=settings)
 
 Tokens are stored as JSON in the platform user data directory:
 
-| Platform | Path |
-|---|---|
-| Linux | `~/.local/share/stare/tokens.json` |
-| macOS | `~/Library/Application Support/stare/tokens.json` |
-| Windows | `%APPDATA%\stare\tokens.json` |
+| Platform | Path                                              |
+| -------- | ------------------------------------------------- |
+| Linux    | `~/.local/share/stare/tokens.json`                |
+| macOS    | `~/Library/Application Support/stare/tokens.json` |
+| Windows  | `%APPDATA%\stare\tokens.json`                     |
 
 The file contains the access token, refresh token, and expiry timestamp. It is
 read and written by `TokenManager` and is never sent to any server other than

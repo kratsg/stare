@@ -60,7 +60,9 @@ class TestApiError:
         assert isinstance(err, ApiError)
 
     def test_unauthorized_error(self) -> None:
-        err = UnauthorizedError(status_code=401, title="Unauthorized", detail="Token invalid")
+        err = UnauthorizedError(
+            status_code=401, title="Unauthorized", detail="Token invalid"
+        )
         assert isinstance(err, ApiError)
 
 
@@ -70,5 +72,6 @@ class TestAuthenticationErrors:
         assert "expired" in str(err).lower()
 
     def test_authentication_error_raised_as_stare_error(self) -> None:
+        msg = "auth failed"
         with pytest.raises(StareError):
-            raise AuthenticationError("auth failed")
+            raise AuthenticationError(msg)

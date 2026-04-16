@@ -5,14 +5,13 @@ from __future__ import annotations
 from pydantic import Field
 
 from stare.models.common import (
-    _Base,
     Documentation,
     EditorialBoardMember,
     Groups,
     Metadata,
-    Person,
     RelatedPublication,
     TeamMember,
+    _Base,
 )
 
 
@@ -68,14 +67,10 @@ class ConfNote(_Base):
     full_title: str | None = Field(default=None, alias="fullTitle")
     groups: Groups | None = Field(default=None, alias="groups")
     documentation: Documentation | None = Field(default=None, alias="documentation")
-    analysis_team: list[TeamMember] | None = Field(
-        default=None, alias="analysisTeam"
-    )
+    analysis_team: list[TeamMember] | None = Field(default=None, alias="analysisTeam")
     metadata: Metadata | None = Field(default=None, alias="metadata")
     associated_analysis: RelatedPublication | None = Field(
         default=None, alias="associatedAnalysis"
     )
-    superseded_by: RelatedPublication | None = Field(
-        default=None, alias="supersededBy"
-    )
+    superseded_by: RelatedPublication | None = Field(default=None, alias="supersededBy")
     phase1: ConfNotePhase1 | None = Field(default=None, alias="phase1")

@@ -58,28 +58,29 @@ result = g.analyses.search(query='"referenceCode" = "ANA-HION-2018-01"')
 
 # Planned endpoints (available once the API rolls them out)
 analysis = g.analyses.get("ANA-HION-2018-01")
-paper     = g.papers.get("HDBS-2018-33")
-groups    = g.groups.list()
+paper = g.papers.get("HDBS-2018-33")
+groups = g.groups.list()
 ```
 
 ## Settings
 
 All defaults are in `StareSettings`. Override via environment variables:
 
-| Env var | Default |
-|---|---|
-| `STARE_BASE_URL` | `https://atlas-glance.cern.ch/atlas/analysis/api` |
-| `STARE_AUTH_URL` | `https://auth.cern.ch/…/openid-connect/auth` |
-| `STARE_TOKEN_URL` | `https://auth.cern.ch/…/openid-connect/token` |
-| `STARE_CLIENT_ID` | `stare` |
-| `STARE_SCOPES` | `openid` |
+| Env var           | Default                                           |
+| ----------------- | ------------------------------------------------- |
+| `STARE_BASE_URL`  | `https://atlas-glance.cern.ch/atlas/analysis/api` |
+| `STARE_AUTH_URL`  | `https://auth.cern.ch/…/openid-connect/auth`      |
+| `STARE_TOKEN_URL` | `https://auth.cern.ch/…/openid-connect/token`     |
+| `STARE_CLIENT_ID` | `stare`                                           |
+| `STARE_SCOPES`    | `openid`                                          |
 
 ## Auth flow (PKCE)
 
 1. `stare login` spins up a local server on a random port, opens the browser
 2. User authenticates with CERN SSO
 3. Keycloak redirects to `http://localhost:{port}/callback`
-4. Tokens are stored as JSON in `platformdirs.user_data_dir("stare")/tokens.json`
+4. Tokens are stored as JSON in
+   `platformdirs.user_data_dir("stare")/tokens.json`
 5. Subsequent requests auto-refresh the access token using the refresh token
 
 ## Build and test commands
@@ -103,6 +104,7 @@ stare login            # authenticate with CERN SSO
 ## Model conventions
 
 All pydantic models use:
+
 - `model_config = ConfigDict(populate_by_name=True)` — allows both alias and
   Python-name access
 - `Field(alias="camelCase")` — maps API JSON keys to Python snake_case names
@@ -118,9 +120,10 @@ All pydantic models use:
 
 ## Regenerating and translating the client scaffolding
 
-When the OpenAPI spec at `https://atlas-glance.cern.ch/atlas/analysis/api/docs/api.yml`
-is updated (new endpoints, new fields, schema changes), regenerate the reference
-scaffolding and then manually translate the relevant parts into `src/stare/`.
+When the OpenAPI spec at
+`https://atlas-glance.cern.ch/atlas/analysis/api/docs/api.yml` is updated (new
+endpoints, new fields, schema changes), regenerate the reference scaffolding and
+then manually translate the relevant parts into `src/stare/`.
 
 ### Step 1 — Regenerate
 
@@ -137,6 +140,7 @@ uvx openapi-python-client generate \
 ### Step 2 — What gets generated
 
 `_generated/atlas_analysis_and_documents_api_client/` will contain:
+
 - `models/` — `attrs`-based classes with `to_dict` / `from_dict`, one file per
   schema object (verbosely named e.g.
   `search_analysis_response_results_item_phase_0_approval_meeting_item.py`)
@@ -150,15 +154,15 @@ uvx openapi-python-client generate \
 The generated code is a useful reference, not production code. Apply these
 transformations:
 
-| Generated pattern | stare pattern |
-|---|---|
-| `attrs` `@_attrs_define` model | `pydantic.BaseModel` subclass |
-| `Unset` sentinel for optional fields | `None` default (`field: str \| None = None`) |
-| Verbose names (`SearchAnalysisResponseResultsItemPhase0ApprovalMeetingItem`) | Short domain names (`Meeting`, `Phase0`, `Analysis`) |
-| `Field(alias="camelCaseKey")` absent | Add `Field(alias="camelCaseKey")` with `ConfigDict(populate_by_name=True)` |
-| `from_dict` / `to_dict` class methods | Replaced by pydantic `model_validate` / `model_dump` |
-| `api/analysis/search_analysis.py` functions | `AnalysisResource.search()` method in `client.py` |
-| Error types omitted (cross-file `$ref`) | Add manually from `models/errors.py` using the known schema |
+| Generated pattern                                                            | stare pattern                                                              |
+| ---------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `attrs` `@_attrs_define` model                                               | `pydantic.BaseModel` subclass                                              |
+| `Unset` sentinel for optional fields                                         | `None` default (`field: str \| None = None`)                               |
+| Verbose names (`SearchAnalysisResponseResultsItemPhase0ApprovalMeetingItem`) | Short domain names (`Meeting`, `Phase0`, `Analysis`)                       |
+| `Field(alias="camelCaseKey")` absent                                         | Add `Field(alias="camelCaseKey")` with `ConfigDict(populate_by_name=True)` |
+| `from_dict` / `to_dict` class methods                                        | Replaced by pydantic `model_validate` / `model_dump`                       |
+| `api/analysis/search_analysis.py` functions                                  | `AnalysisResource.search()` method in `client.py`                          |
+| Error types omitted (cross-file `$ref`)                                      | Add manually from `models/errors.py` using the known schema                |
 
 ### Step 4 — What to look for on each regen
 
@@ -183,14 +187,14 @@ fixtures to reflect any new/changed fields before running.
 
 ## API endpoints
 
-| Endpoint | Status | Resource accessor |
-|---|---|---|
-| `GET /searchAnalysis` | Live | `g.analyses.search()` |
-| `GET /analyses/{ref_code}` | Planned | `g.analyses.get()` |
-| `GET /papers/{ref_code}` | Planned | `g.papers.get()` |
-| `GET /confnotes/{ref_code}` | Planned | `g.conf_notes.get()` |
-| `GET /pubnotes/{ref_code}` | Planned | `g.pub_notes.get()` |
-| `GET /publications/search` | Planned | `g.publications.search()` |
-| `GET /groups` | Planned | `g.groups.list()` |
-| `GET /subgroups` | Planned | `g.subgroups.list()` |
-| `GET /triggers/search` | Planned | `g.triggers.search()` |
+| Endpoint                    | Status  | Resource accessor         |
+| --------------------------- | ------- | ------------------------- |
+| `GET /searchAnalysis`       | Live    | `g.analyses.search()`     |
+| `GET /analyses/{ref_code}`  | Planned | `g.analyses.get()`        |
+| `GET /papers/{ref_code}`    | Planned | `g.papers.get()`          |
+| `GET /confnotes/{ref_code}` | Planned | `g.conf_notes.get()`      |
+| `GET /pubnotes/{ref_code}`  | Planned | `g.pub_notes.get()`       |
+| `GET /publications/search`  | Planned | `g.publications.search()` |
+| `GET /groups`               | Planned | `g.groups.list()`         |
+| `GET /subgroups`            | Planned | `g.subgroups.list()`      |
+| `GET /triggers/search`      | Planned | `g.triggers.search()`     |

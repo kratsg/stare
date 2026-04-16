@@ -11,9 +11,7 @@ class StareSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="STARE_")
 
     base_url: str = "https://atlas-glance.cern.ch/atlas/analysis/api"
-    auth_url: str = (
-        "https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/auth"
-    )
+    auth_url: str = "https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/auth"
     token_url: str = (
         "https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/token"
     )

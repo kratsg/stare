@@ -5,12 +5,12 @@ from __future__ import annotations
 from pydantic import Field
 
 from stare.models.common import (
-    _Base,
     Documentation,
     Groups,
     Metadata,
     RelatedPublication,
     TeamMember,
+    _Base,
 )
 
 
@@ -40,12 +40,8 @@ class PubNotePhase1(_Base):
     date_of_atlas_circulation: str | None = Field(
         default=None, alias="dateOfAtlasCirculation"
     )
-    proceed_to_sign_off_on: str | None = Field(
-        default=None, alias="proceedToSignOffOn"
-    )
-    first_reader_sign_off: str | None = Field(
-        default=None, alias="firstReaderSignOff"
-    )
+    proceed_to_sign_off_on: str | None = Field(default=None, alias="proceedToSignOffOn")
+    first_reader_sign_off: str | None = Field(default=None, alias="firstReaderSignOff")
     second_reader_sign_off: str | None = Field(
         default=None, alias="secondReaderSignOff"
     )
@@ -67,14 +63,10 @@ class PubNote(_Base):
     full_title: str | None = Field(default=None, alias="fullTitle")
     groups: Groups | None = Field(default=None, alias="groups")
     documentation: Documentation | None = Field(default=None, alias="documentation")
-    analysis_team: list[TeamMember] | None = Field(
-        default=None, alias="analysisTeam"
-    )
+    analysis_team: list[TeamMember] | None = Field(default=None, alias="analysisTeam")
     metadata: Metadata | None = Field(default=None, alias="metadata")
     associated_analysis: RelatedPublication | None = Field(
         default=None, alias="associatedAnalysis"
     )
-    superseded_by: RelatedPublication | None = Field(
-        default=None, alias="supersededBy"
-    )
+    superseded_by: RelatedPublication | None = Field(default=None, alias="supersededBy")
     phase1: PubNotePhase1 | None = Field(default=None, alias="phase1")

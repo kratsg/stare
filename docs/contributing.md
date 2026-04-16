@@ -12,8 +12,8 @@ User <--typer/CLI--> stare <--HTTPS (httpx)--> ATLAS Glance API
                        +--browser + local server--> CERN Keycloak (PKCE)
 ```
 
-The library uses **httpx** for HTTP, **authlib** for OAuth2 PKCE,
-**pydantic** for all data models, and **typer + rich** for the CLI.
+The library uses **httpx** for HTTP, **authlib** for OAuth2 PKCE, **pydantic**
+for all data models, and **typer + rich** for the CLI.
 
 ## Development setup
 
@@ -65,6 +65,7 @@ Example:
 ```python
 from pydantic import BaseModel, ConfigDict, Field
 
+
 class MyModel(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
@@ -76,8 +77,8 @@ class MyModel(BaseModel):
 
 When the OpenAPI spec at
 `https://atlas-glance.cern.ch/atlas/analysis/api/docs/api.yml` is updated,
-regenerate the reference scaffolding and translate the relevant parts
-into `src/stare/`.
+regenerate the reference scaffolding and translate the relevant parts into
+`src/stare/`.
 
 ```bash
 uvx openapi-python-client generate \
@@ -94,14 +95,14 @@ domain names (`Phase0`), and add `Field(alias=...)` for camelCase keys.
 
 Tests live in `tests/`. The test layout mirrors the source:
 
-| File | Tests |
-|---|---|
-| `tests/test_settings.py` | `StareSettings` env-var overrides |
-| `tests/test_exceptions.py` | Exception hierarchy and `ApiError` fields |
-| `tests/test_models.py` | Pydantic model parsing from fixture JSON |
-| `tests/test_auth.py` | `TokenManager` login/logout/refresh |
-| `tests/test_client.py` | `Glance` client + resource accessors (respx mocks) |
-| `tests/test_cli.py` | typer CLI via `CliRunner` |
+| File                             | Tests                                                              |
+| -------------------------------- | ------------------------------------------------------------------ |
+| `tests/test_settings.py`         | `StareSettings` env-var overrides                                  |
+| `tests/test_exceptions.py`       | Exception hierarchy and `ApiError` fields                          |
+| `tests/test_models.py`           | Pydantic model parsing from fixture JSON                           |
+| `tests/test_auth.py`             | `TokenManager` login/logout/refresh                                |
+| `tests/test_client.py`           | `Glance` client + resource accessors (respx mocks)                 |
+| `tests/test_cli.py`              | typer CLI via `CliRunner`                                          |
 | `tests/integration/test_live.py` | Live CERN endpoints (requires `stare login`, run with `--runslow`) |
 
 Key fixtures in `tests/conftest.py`:

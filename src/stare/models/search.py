@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pydantic import Field
 
+from stare.models.analysis import Analysis  # noqa: TC001
 from stare.models.common import _Base
-from stare.models.analysis import Analysis
 
 
 class SearchResult(_Base):

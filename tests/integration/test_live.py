@@ -23,6 +23,7 @@ def test_search_analyses_returns_results() -> None:
     with Glance() as g:
         result = g.analyses.search(limit=5)
     assert isinstance(result, SearchResult)
+    assert result.total_rows is not None
     assert result.total_rows > 0
     assert len(result.results) > 0
 
@@ -34,6 +35,7 @@ def test_search_analyses_by_reference_code() -> None:
         result = g.analyses.search(
             query='"referenceCode" = "ANA-HION-2018-01"', limit=1
         )
+    assert result.total_rows is not None
     assert result.total_rows >= 1
     assert any(a.reference_code == "ANA-HION-2018-01" for a in result.results)
 
