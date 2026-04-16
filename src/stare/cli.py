@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import json
-import sys
-from typing import Annotated, Optional
+from typing import Annotated
 
 import typer
 from rich.console import Console
@@ -91,7 +90,9 @@ def auth_status() -> None:
     if tm.is_authenticated():
         console.print("[green]Authenticated[/green]")
     else:
-        console.print("Not authenticated. Run [bold]stare login[/bold] to authenticate.")
+        console.print(
+            "Not authenticated. Run [bold]stare login[/bold] to authenticate."
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -101,12 +102,24 @@ def auth_status() -> None:
 
 @app.command()
 def search(
-    query: Annotated[Optional[str], typer.Option("--query", "-q", help="Filter query string")] = None,
-    limit: Annotated[int, typer.Option("--limit", "-n", help="Max results to return")] = 50,
-    offset: Annotated[int, typer.Option("--offset", help="Result offset (pagination)")] = 0,
-    sort_by: Annotated[Optional[str], typer.Option("--sort-by", help="Field to sort by")] = None,
-    sort_desc: Annotated[bool, typer.Option("--sort-desc", help="Sort descending")] = False,
-    output_json: Annotated[bool, typer.Option("--json", help="Output raw JSON")] = False,
+    query: Annotated[
+        str | None, typer.Option("--query", "-q", help="Filter query string")
+    ] = None,
+    limit: Annotated[
+        int, typer.Option("--limit", "-n", help="Max results to return")
+    ] = 50,
+    offset: Annotated[
+        int, typer.Option("--offset", help="Result offset (pagination)")
+    ] = 0,
+    sort_by: Annotated[
+        str | None, typer.Option("--sort-by", help="Field to sort by")
+    ] = None,
+    sort_desc: Annotated[
+        bool, typer.Option("--sort-desc", help="Sort descending")
+    ] = False,
+    output_json: Annotated[
+        bool, typer.Option("--json", help="Output raw JSON")
+    ] = False,
 ) -> None:
     """Search analyses."""
     g = _make_glance()
@@ -147,7 +160,9 @@ def search(
 @app.command()
 def analysis(
     ref_code: Annotated[str, typer.Argument(help="Analysis reference code")],
-    output_json: Annotated[bool, typer.Option("--json", help="Output raw JSON")] = False,
+    output_json: Annotated[
+        bool, typer.Option("--json", help="Output raw JSON")
+    ] = False,
 ) -> None:
     """Fetch a single analysis by reference code."""
     g = _make_glance()
@@ -161,7 +176,9 @@ def analysis(
         typer.echo(result.model_dump_json(by_alias=True))
         return
 
-    console.print(f"[bold cyan]{result.reference_code}[/bold cyan]  {result.status or ''}")
+    console.print(
+        f"[bold cyan]{result.reference_code}[/bold cyan]  {result.status or ''}"
+    )
     if result.short_title:
         console.print(result.short_title)
 
@@ -174,7 +191,9 @@ def analysis(
 @app.command()
 def paper(
     ref_code: Annotated[str, typer.Argument(help="Paper reference code")],
-    output_json: Annotated[bool, typer.Option("--json", help="Output raw JSON")] = False,
+    output_json: Annotated[
+        bool, typer.Option("--json", help="Output raw JSON")
+    ] = False,
 ) -> None:
     """Fetch a single paper by reference code."""
     g = _make_glance()
@@ -188,7 +207,9 @@ def paper(
         typer.echo(result.model_dump_json(by_alias=True))
         return
 
-    console.print(f"[bold cyan]{result.reference_code}[/bold cyan]  {result.status or ''}")
+    console.print(
+        f"[bold cyan]{result.reference_code}[/bold cyan]  {result.status or ''}"
+    )
     if result.short_title:
         console.print(result.short_title)
 
@@ -201,7 +222,9 @@ def paper(
 @app.command(name="conf-note")
 def conf_note(
     ref_code: Annotated[str, typer.Argument(help="CONF note temporary reference code")],
-    output_json: Annotated[bool, typer.Option("--json", help="Output raw JSON")] = False,
+    output_json: Annotated[
+        bool, typer.Option("--json", help="Output raw JSON")
+    ] = False,
 ) -> None:
     """Fetch a single CONF note by temporary reference code."""
     g = _make_glance()
@@ -215,7 +238,9 @@ def conf_note(
         typer.echo(result.model_dump_json(by_alias=True))
         return
 
-    console.print(f"[bold cyan]{result.temp_reference_code}[/bold cyan]  {result.status or ''}")
+    console.print(
+        f"[bold cyan]{result.temp_reference_code}[/bold cyan]  {result.status or ''}"
+    )
     if result.short_title:
         console.print(result.short_title)
 
@@ -228,7 +253,9 @@ def conf_note(
 @app.command(name="pub-note")
 def pub_note(
     ref_code: Annotated[str, typer.Argument(help="PUB note temporary reference code")],
-    output_json: Annotated[bool, typer.Option("--json", help="Output raw JSON")] = False,
+    output_json: Annotated[
+        bool, typer.Option("--json", help="Output raw JSON")
+    ] = False,
 ) -> None:
     """Fetch a single PUB note by temporary reference code."""
     g = _make_glance()
@@ -242,7 +269,9 @@ def pub_note(
         typer.echo(result.model_dump_json(by_alias=True))
         return
 
-    console.print(f"[bold cyan]{result.temp_reference_code}[/bold cyan]  {result.status or ''}")
+    console.print(
+        f"[bold cyan]{result.temp_reference_code}[/bold cyan]  {result.status or ''}"
+    )
     if result.short_title:
         console.print(result.short_title)
 
@@ -254,12 +283,25 @@ def pub_note(
 
 @publications_app.command("search")
 def publications_search(
-    reference_code: Annotated[Optional[list[str]], typer.Option("--ref", help="Filter by reference code")] = None,
-    type_: Annotated[Optional[list[str]], typer.Option("--type", help="Filter by type (Paper, ConfNote, PubNote)")] = None,
-    leading_group: Annotated[Optional[list[str]], typer.Option("--group", help="Filter by leading group")] = None,
-    subgroup: Annotated[Optional[list[str]], typer.Option("--subgroup", help="Filter by subgroup")] = None,
-    status: Annotated[Optional[list[str]], typer.Option("--status", help="Filter by status")] = None,
-    output_json: Annotated[bool, typer.Option("--json", help="Output raw JSON")] = False,
+    reference_code: Annotated[
+        list[str] | None, typer.Option("--ref", help="Filter by reference code")
+    ] = None,
+    type_: Annotated[
+        list[str] | None,
+        typer.Option("--type", help="Filter by type (Paper, ConfNote, PubNote)"),
+    ] = None,
+    leading_group: Annotated[
+        list[str] | None, typer.Option("--group", help="Filter by leading group")
+    ] = None,
+    subgroup: Annotated[
+        list[str] | None, typer.Option("--subgroup", help="Filter by subgroup")
+    ] = None,
+    status: Annotated[
+        list[str] | None, typer.Option("--status", help="Filter by status")
+    ] = None,
+    output_json: Annotated[
+        bool, typer.Option("--json", help="Output raw JSON")
+    ] = False,
 ) -> None:
     """Search across all publication types."""
     g = _make_glance()
@@ -294,7 +336,9 @@ def publications_search(
 
 @app.command()
 def groups(
-    output_json: Annotated[bool, typer.Option("--json", help="Output raw JSON")] = False,
+    output_json: Annotated[
+        bool, typer.Option("--json", help="Output raw JSON")
+    ] = False,
 ) -> None:
     """List all leading groups."""
     g = _make_glance()
@@ -314,7 +358,9 @@ def groups(
 
 @app.command()
 def subgroups(
-    output_json: Annotated[bool, typer.Option("--json", help="Output raw JSON")] = False,
+    output_json: Annotated[
+        bool, typer.Option("--json", help="Output raw JSON")
+    ] = False,
 ) -> None:
     """List all subgroups."""
     g = _make_glance()
@@ -339,9 +385,15 @@ def subgroups(
 
 @triggers_app.command("search")
 def triggers_search(
-    category: Annotated[Optional[list[str]], typer.Option("--category", help="Filter by trigger category")] = None,
-    year: Annotated[Optional[list[str]], typer.Option("--year", help="Filter by year")] = None,
-    output_json: Annotated[bool, typer.Option("--json", help="Output raw JSON")] = False,
+    category: Annotated[
+        list[str] | None, typer.Option("--category", help="Filter by trigger category")
+    ] = None,
+    year: Annotated[
+        list[str] | None, typer.Option("--year", help="Filter by year")
+    ] = None,
+    output_json: Annotated[
+        bool, typer.Option("--json", help="Output raw JSON")
+    ] = False,
 ) -> None:
     """Search triggers."""
     g = _make_glance()
