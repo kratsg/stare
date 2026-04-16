@@ -7,6 +7,7 @@ from typing import Annotated
 
 import typer
 from rich.console import Console
+from rich.panel import Panel
 from rich.table import Table
 
 from stare import __version__
@@ -66,13 +67,36 @@ def version() -> None:
 def login() -> None:
     """Authenticate with CERN SSO using OAuth2 PKCE."""
     tm = _make_token_manager()
+
+    def _on_url_ready(url: str) -> None:
+        console.print(
+            Panel(
+                f"[dim]If your browser did not open, copy this URL:[/dim]\n\n"
+                f"[bold cyan]{url}[/bold cyan]",
+                title="[bold]CERN SSO Authentication[/bold]",
+                border_style="blue",
+                padding=(1, 2),
+            )
+        )
+        console.print("[dim]Opening browser...[/dim]")
+
+    def _get_manual_code() -> str | None:
+        console.print()
+        console.print(
+            "[dim]If the redirect did not complete automatically, find the[/dim]\n"
+            "[dim][bold]code=[/bold] value in the redirect URL and paste it below.[/dim]\n"
+            "[dim](Press Enter to keep waiting for the automatic redirect.)[/dim]"
+        )
+        raw = typer.prompt("Authorization code", default="", show_default=False)
+        return raw.strip() or None
+
     try:
-        console.print("Opening browser for CERN SSO authentication...")
-        tm.login()
-        console.print("[green]✓[/green] Authentication successful.")
+        tm.login(on_url_ready=_on_url_ready, get_manual_code=_get_manual_code)
     except StareError as exc:
         err_console.print(f"[red]Error:[/red] {exc}")
         raise typer.Exit(1) from exc
+
+    console.print("\n[green]✓[/green] Authenticated successfully.")
 
 
 @app.command()

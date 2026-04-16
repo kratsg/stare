@@ -291,3 +291,73 @@ def test_login_opens_browser_with_pkce_params(
     assert "code_challenge" in params
     assert "state" in params
     assert "redirect_uri" in params
+
+
+def test_login_calls_on_url_ready_callback(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    captured_url: dict[str, str] = {}
+    ready_urls: list[str] = []
+
+    def _fake_browser(url: str) -> bool:
+        captured_url["url"] = url
+        return True
+
+    def _on_url_ready(url: str) -> None:
+        ready_urls.append(url)
+
+    new_tokens = {
+        "access_token": "cb-access",
+        "refresh_token": "cb-refresh",
+        "token_type": "Bearer",
+        "expires_in": 3600,
+    }
+
+    callback_thread = _make_callback_thread(captured_url)
+
+    with respx.mock:
+        respx.post(test_settings.token_url).mock(
+            return_value=httpx.Response(200, json=new_tokens)
+        )
+        with patch("stare.auth.webbrowser.open", side_effect=_fake_browser):
+            manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+            manager.login(on_url_ready=_on_url_ready)
+
+    callback_thread.join(timeout=5.0)
+
+    assert len(ready_urls) == 1
+    assert test_settings.auth_url in ready_urls[0]
+    assert "code_challenge" in ready_urls[0]
+
+
+def test_login_uses_manual_code_fallback(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    """get_manual_code() is used when the browser redirect doesn't arrive."""
+
+    def _fake_browser(_url: str) -> bool:
+        return True  # pretend to open; no callback will be sent
+
+    def _get_manual_code() -> str | None:
+        time.sleep(0.05)  # small delay simulating user typing
+        return "manual-auth-code"
+
+    new_tokens = {
+        "access_token": "manual-access",
+        "refresh_token": "manual-refresh",
+        "token_type": "Bearer",
+        "expires_in": 3600,
+    }
+
+    with respx.mock:
+        respx.post(test_settings.token_url).mock(
+            return_value=httpx.Response(200, json=new_tokens)
+        )
+        with patch("stare.auth.webbrowser.open", side_effect=_fake_browser):
+            manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+            manager.login(get_manual_code=_get_manual_code)
+
+    assert tmp_token_path.exists()
+    stored = json.loads(tmp_token_path.read_text())
+    assert stored["access_token"] == "manual-access"
+    assert stored["refresh_token"] == "manual-refresh"

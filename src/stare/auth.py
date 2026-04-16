@@ -3,17 +3,23 @@
 from __future__ import annotations
 
 import contextlib
+import queue
 import secrets
+import threading
 import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
+from typing import TYPE_CHECKING
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import httpx
 from authlib.oauth2.rfc7636 import create_s256_code_challenge
 from platformdirs import user_data_dir
 from pydantic import BaseModel
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 from stare.exceptions import AuthenticationError, TokenExpiredError
 from stare.settings import StareSettings
@@ -73,14 +79,27 @@ class TokenManager:
         """Path to the stored token JSON file."""
         return self._token_path
 
-    def login(self) -> None:
-        """Start PKCE browser flow; blocks until redirect received."""
+    def login(
+        self,
+        *,
+        on_url_ready: Callable[[str], None] | None = None,
+        get_manual_code: Callable[[], str | None] | None = None,
+    ) -> None:
+        """Start PKCE browser flow; blocks until redirect received or manual code entered.
+
+        Args:
+            on_url_ready: Called with the authorization URL before the browser
+                is opened — use this to display the URL to the user.
+            get_manual_code: Called in a background thread to obtain a fallback
+                authorization code (e.g. via user input) when the browser
+                redirect cannot reach the local callback server.
+        """
         code_verifier = secrets.token_urlsafe(64)
         code_challenge = create_s256_code_challenge(code_verifier)
         state = secrets.token_urlsafe(16)
 
-        # Start local HTTP server on an OS-assigned port
         received: dict[str, str] = {}
+        code_queue: queue.Queue[str] = queue.Queue(maxsize=1)
 
         class _CallbackHandler(BaseHTTPRequestHandler):
             def do_GET(self) -> None:
@@ -92,11 +111,14 @@ class TokenManager:
                 self.send_header("Content-Type", "text/plain")
                 self.end_headers()
                 self.wfile.write(b"Authentication complete. You can close this window.")
+                with contextlib.suppress(queue.Full):
+                    code_queue.put_nowait(received["code"])
 
             def log_message(self, *args: object) -> None:  # suppress server logs
                 pass
 
         server = HTTPServer(("127.0.0.1", 0), _CallbackHandler)
+        server.timeout = 125.0  # slightly longer than the queue timeout below
         port = server.server_address[1]
         redirect_uri = f"http://localhost:{port}/callback"
 
@@ -111,17 +133,46 @@ class TokenManager:
         }
         auth_url = f"{self._settings.auth_url}?{urlencode(auth_params)}"
 
-        webbrowser.open(auth_url)
-        server.handle_request()
-        server.server_close()
+        # Start callback server in a background thread
+        def _serve() -> None:
+            with contextlib.suppress(OSError):
+                server.handle_request()
 
-        if received.get("state") != state:
+        threading.Thread(target=_serve, daemon=True).start()
+
+        # Notify caller so it can display the URL before opening the browser
+        if on_url_ready is not None:
+            on_url_ready(auth_url)
+
+        webbrowser.open(auth_url)
+
+        # Optionally accept a manual code in a parallel background thread
+        if get_manual_code is not None:
+
+            def _input_thread() -> None:
+                code = get_manual_code()
+                if code:
+                    with contextlib.suppress(queue.Full):
+                        code_queue.put_nowait(code)
+
+            threading.Thread(target=_input_thread, daemon=True).start()
+
+        # Block until the first code arrives (server callback or manual entry)
+        try:
+            code = code_queue.get(timeout=120)
+        except queue.Empty as err:
+            msg = "Authentication timed out (120 seconds). Run `stare login` again."
+            raise AuthenticationError(msg) from err
+        finally:
+            server.server_close()
+
+        # Validate state only when it was received from the server callback
+        if received.get("state") and received["state"] != state:
             msg = "State mismatch in OAuth callback — possible CSRF attack."
             raise AuthenticationError(msg)
 
-        code = received.get("code", "")
         if not code:
-            msg = "No authorization code received in callback."
+            msg = "No authorization code received."
             raise AuthenticationError(msg)
 
         with httpx.Client() as client:
