@@ -90,7 +90,6 @@ pixi run test-slow     # all tests including live integration (requires stare lo
 pixi run lint          # pre-commit + pylint
 pixi run build         # build sdist + wheel
 pixi run build-check   # verify the built distributions with twine
-pixi run generate-client  # regenerate giordon/ scaffolding from OpenAPI spec
 ```
 
 ## Development setup
