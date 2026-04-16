@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from stare.models.analysis import Analysis, AnalysisPhase0
+from stare.models.auth import JwtClaims, TokenInfo
 from stare.models.common import (
     AmiGlanceLink,
     AnalysisContact,
@@ -43,6 +44,7 @@ __all__ = [
     "EditorialBoardMember",
     "Groups",
     "InternalDocument",
+    "JwtClaims",
     "Meeting",
     "Metadata",
     "Paper",
@@ -59,6 +61,7 @@ __all__ = [
     "SearchResult",
     "SubmissionPhase",
     "TeamMember",
+    "TokenInfo",
     "Trigger",
     "TriggerCategory",
 ]

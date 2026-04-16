@@ -8,7 +8,6 @@ from unittest.mock import MagicMock, patch
 from typer.testing import CliRunner
 
 from stare import __version__
-from stare.auth import JwtClaims, TokenInfo
 from stare.cli import app
 from stare.exceptions import AuthenticationError, NotFoundError
 from stare.models import (
@@ -21,6 +20,7 @@ from stare.models import (
     SearchResult,
     Trigger,
 )
+from stare.models.auth import JwtClaims, TokenInfo
 
 runner = CliRunner()
 

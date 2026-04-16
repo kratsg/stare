@@ -16,8 +16,9 @@ import httpx
 import pytest
 import respx
 
-from stare.auth import JwtClaims, TokenInfo, TokenManager, _decode_jwt_payload
+from stare.auth import TokenManager, _decode_jwt_payload
 from stare.exceptions import AuthenticationError, TokenExpiredError
+from stare.models.auth import JwtClaims, TokenInfo
 
 if TYPE_CHECKING:
     from collections.abc import Mapping

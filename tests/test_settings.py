@@ -34,7 +34,10 @@ class TestStareSettingsDefaults:
         s = StareSettings()
         assert "auth.cern.ch" in s.token_url
 
-    def test_default_ca_bundle_is_sectigo(self) -> None:
+    def test_default_ca_bundle_is_sectigo(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.delenv("STARE_CA_BUNDLE", raising=False)
         s = StareSettings()
         assert s.ca_bundle == "Sectigo"
 
