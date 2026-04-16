@@ -11,7 +11,10 @@ if TYPE_CHECKING:
 
 
 class TestStareSettingsDefaults:
-    def test_default_base_url(self) -> None:
+    # pixi.toml sets STARE_BASE_URL to the staging endpoint in the activation
+    # environment; monkeypatch removes it so we can test the compiled default.
+    def test_default_base_url(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.delenv("STARE_BASE_URL", raising=False)
         s = StareSettings()
         assert s.base_url == "https://atlas-glance.cern.ch/atlas/analysis/api"
 
@@ -30,6 +33,10 @@ class TestStareSettingsDefaults:
     def test_default_token_url_contains_cern(self) -> None:
         s = StareSettings()
         assert "auth.cern.ch" in s.token_url
+
+    def test_default_ca_bundle_is_sectigo(self) -> None:
+        s = StareSettings()
+        assert s.ca_bundle == "Sectigo"
 
 
 class TestStareSettingsEnvOverrides:
@@ -51,3 +58,8 @@ class TestStareSettingsEnvOverrides:
     def test_direct_constructor_override(self) -> None:
         s = StareSettings(base_url="https://override.example.com")
         assert s.base_url == "https://override.example.com"
+
+    def test_ca_bundle_override_to_cern(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("STARE_CA_BUNDLE", "CERN")
+        s = StareSettings()
+        assert s.ca_bundle == "CERN"

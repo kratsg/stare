@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -21,3 +23,8 @@ class StareSettings(BaseSettings):
     callback_port: int = 8182
     # Set STARE_VERBOSE=1 to enable DEBUG-level httpx/httpcore request logging.
     verbose: bool = False
+    # CA bundle to use for TLS verification. "Sectigo" is for the production
+    # endpoint (atlas-glance.cern.ch); "CERN" is for the staging/dev endpoint
+    # (glance-staging01.cern.ch) which still uses the CERN Grid CA.
+    # Set STARE_CA_BUNDLE=CERN when pointing STARE_BASE_URL at staging.
+    ca_bundle: Literal["Sectigo", "CERN"] = "Sectigo"

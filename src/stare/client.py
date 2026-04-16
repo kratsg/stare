@@ -26,21 +26,24 @@ if TYPE_CHECKING:
     import types
 
 
-def _load_ssl_context() -> ssl.SSLContext:
-    """Create an SSLContext from the bundled CA chain.
+_BUNDLE_FILE: dict[str, str] = {
+    "Sectigo": "Sectigo_chain.pem",
+    "CERN": "CERN_chain.pem",
+}
 
-    atlas-glance.cern.ch uses a certificate issued by Sectigo but does not
-    include the Sectigo intermediate CA in its TLS handshake. The bundle in
-    stare.data provides the missing intermediate so Python can build the full
-    chain. Uses as_file() so the resource is available as a real filesystem
-    path even inside a zip-archived wheel.
+
+def _load_ssl_context(ca_bundle: str) -> ssl.SSLContext:
+    """Create an SSLContext from a bundled CA chain.
+
+    Neither the production endpoint (atlas-glance.cern.ch, Sectigo cert) nor
+    the staging endpoint (glance-staging01.cern.ch, CERN Grid CA cert) sends
+    the full chain in the TLS handshake. The named bundle in stare.data
+    provides the missing CA(s) so Python can build the chain. Uses as_file()
+    so the resource is available as a real filesystem path inside a wheel.
     """
-    with as_file(files("stare.data").joinpath("CERN_chain.pem")) as cert_path:
+    filename = _BUNDLE_FILE.get(ca_bundle, f"{ca_bundle}_chain.pem")
+    with as_file(files("stare.data").joinpath(filename)) as cert_path:
         return ssl.create_default_context(cafile=str(cert_path))
-
-
-# Built once at import time; shared across all Glance instances.
-_SSL_CONTEXT: ssl.SSLContext = _load_ssl_context()
 
 
 def _raise_for_status(response: httpx.Response) -> None:
@@ -247,7 +250,7 @@ class Glance:
         self._token = token
         self._http = httpx.Client(
             base_url=self._settings.base_url,
-            verify=_SSL_CONTEXT,
+            verify=_load_ssl_context(self._settings.ca_bundle),
             event_hooks={"request": [self._inject_auth]},
         )
         self.analyses = AnalysisResource(self._http)
