@@ -17,3 +17,5 @@ class StareSettings(BaseSettings):
     )
     client_id: str = "stare"
     scopes: str = "openid"
+    # Must match the redirect URI registered with the CERN Keycloak client.
+    callback_port: int = 8182

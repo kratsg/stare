@@ -66,19 +66,21 @@ groups = g.groups.list()
 
 All defaults are in `StareSettings`. Override via environment variables:
 
-| Env var           | Default                                           |
-| ----------------- | ------------------------------------------------- |
-| `STARE_BASE_URL`  | `https://atlas-glance.cern.ch/atlas/analysis/api` |
-| `STARE_AUTH_URL`  | `https://auth.cern.ch/…/openid-connect/auth`      |
-| `STARE_TOKEN_URL` | `https://auth.cern.ch/…/openid-connect/token`     |
-| `STARE_CLIENT_ID` | `stare`                                           |
-| `STARE_SCOPES`    | `openid`                                          |
+| Env var               | Default                                           |
+| --------------------- | ------------------------------------------------- |
+| `STARE_BASE_URL`      | `https://atlas-glance.cern.ch/atlas/analysis/api` |
+| `STARE_AUTH_URL`      | `https://auth.cern.ch/…/openid-connect/auth`      |
+| `STARE_TOKEN_URL`     | `https://auth.cern.ch/…/openid-connect/token`     |
+| `STARE_CLIENT_ID`     | `stare`                                           |
+| `STARE_SCOPES`        | `openid`                                          |
+| `STARE_CALLBACK_PORT` | `8182`                                            |
 
 ## Auth flow (PKCE)
 
-1. `stare login` spins up a local server on a random port, opens the browser
+1. `stare login` spins up a local server on port 8182 (fixed, registered with
+   CERN Keycloak), opens the browser
 2. User authenticates with CERN SSO
-3. Keycloak redirects to `http://localhost:{port}/callback`
+3. Keycloak redirects to `http://localhost:8182/callback`
 4. Tokens are stored as JSON in
    `platformdirs.user_data_dir("stare")/tokens.json`
 5. Subsequent requests auto-refresh the access token using the refresh token

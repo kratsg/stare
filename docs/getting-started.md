@@ -32,6 +32,11 @@ are stored in your platform's user data directory
 `~/Library/Application Support/stare/tokens.json` on macOS) and refreshed
 automatically on subsequent requests.
 
+The login callback listens on `http://localhost:8182/callback` — this port is
+registered with the CERN Keycloak client. If port 8182 is already in use on your
+machine, set `STARE_CALLBACK_PORT` to a free port and contact the maintainers to
+register the new redirect URI.
+
 Check your auth status at any time:
 
 ```bash

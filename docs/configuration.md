@@ -10,13 +10,14 @@ All settings come from `StareSettings`, which reads environment variables with
 the `STARE_` prefix. Override any default by setting the corresponding variable
 before running `stare` or importing the library.
 
-| Variable          | Default                                                               | Description                     |
-| ----------------- | --------------------------------------------------------------------- | ------------------------------- |
-| `STARE_BASE_URL`  | `https://atlas-glance.cern.ch/atlas/analysis/api`                     | Glance/Fence API base URL       |
-| `STARE_AUTH_URL`  | `https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/auth`  | Keycloak authorization endpoint |
-| `STARE_TOKEN_URL` | `https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/token` | Keycloak token endpoint         |
-| `STARE_CLIENT_ID` | `stare`                                                               | OAuth2 client identifier        |
-| `STARE_SCOPES`    | `openid`                                                              | Space-separated OAuth2 scopes   |
+| Variable              | Default                                                               | Description                                                           |
+| --------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `STARE_BASE_URL`      | `https://atlas-glance.cern.ch/atlas/analysis/api`                     | Glance/Fence API base URL                                             |
+| `STARE_AUTH_URL`      | `https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/auth`  | Keycloak authorization endpoint                                       |
+| `STARE_TOKEN_URL`     | `https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/token` | Keycloak token endpoint                                               |
+| `STARE_CLIENT_ID`     | `stare`                                                               | OAuth2 client identifier                                              |
+| `STARE_SCOPES`        | `openid`                                                              | Space-separated OAuth2 scopes                                         |
+| `STARE_CALLBACK_PORT` | `8182`                                                                | Local port for the PKCE redirect callback; must match Keycloak config |
 
 ## Using a custom settings object
 

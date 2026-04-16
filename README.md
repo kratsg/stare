@@ -90,12 +90,13 @@ g = Glance(token="your-access-token")
 
 Override defaults via environment variables:
 
-| Variable          | Default                                           |
-| ----------------- | ------------------------------------------------- |
-| `STARE_BASE_URL`  | `https://atlas-glance.cern.ch/atlas/analysis/api` |
-| `STARE_CLIENT_ID` | `stare`                                           |
-| `STARE_AUTH_URL`  | CERN Keycloak auth endpoint                       |
-| `STARE_TOKEN_URL` | CERN Keycloak token endpoint                      |
+| Variable              | Default                                           |
+| --------------------- | ------------------------------------------------- |
+| `STARE_BASE_URL`      | `https://atlas-glance.cern.ch/atlas/analysis/api` |
+| `STARE_CLIENT_ID`     | `stare`                                           |
+| `STARE_AUTH_URL`      | CERN Keycloak auth endpoint                       |
+| `STARE_TOKEN_URL`     | CERN Keycloak token endpoint                      |
+| `STARE_CALLBACK_PORT` | `8182` (must match Keycloak registration)         |
 
 ## Development
 

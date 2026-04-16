@@ -163,7 +163,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["T20", "TC001", "TC002", "TC003"]
+"tests/**" = ["T20"]
 
 
 [tool.pylint]

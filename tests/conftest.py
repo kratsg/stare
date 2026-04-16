@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import json
 import time
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 from stare.auth import TokenManager
 from stare.settings import StareSettings
@@ -40,6 +43,7 @@ def test_settings() -> StareSettings:
         token_url="https://auth.example.com/token",
         client_id="test-client",
         scopes="openid",
+        callback_port=18182,
     )
 
 

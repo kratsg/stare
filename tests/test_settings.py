@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
-import pytest
+from typing import TYPE_CHECKING
 
 from stare.settings import StareSettings
+
+if TYPE_CHECKING:
+    import pytest
 
 
 class TestStareSettingsDefaults:

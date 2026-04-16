@@ -117,10 +117,19 @@ class TokenManager:
             def log_message(self, *args: object) -> None:  # suppress server logs
                 pass
 
-        server = HTTPServer(("127.0.0.1", 0), _CallbackHandler)
+        try:
+            server = HTTPServer(
+                ("127.0.0.1", self._settings.callback_port), _CallbackHandler
+            )
+        except OSError as exc:
+            msg = (
+                f"Port {self._settings.callback_port} is already in use. "
+                f"Set STARE_CALLBACK_PORT to a free port and register that "
+                f"redirect URI with the Keycloak client, then run `stare login` again."
+            )
+            raise AuthenticationError(msg) from exc
         server.timeout = 125.0  # slightly longer than the queue timeout below
-        port = server.server_address[1]
-        redirect_uri = f"http://localhost:{port}/callback"
+        redirect_uri = f"http://localhost:{self._settings.callback_port}/callback"
 
         auth_params = {
             "response_type": "code",

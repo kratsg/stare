@@ -7,7 +7,7 @@ import json
 import threading
 import time
 import urllib.request
-from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
@@ -17,7 +17,11 @@ import respx
 
 from stare.auth import TokenManager
 from stare.exceptions import AuthenticationError, TokenExpiredError
-from stare.settings import StareSettings
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from stare.settings import StareSettings
 
 # ---------------------------------------------------------------------------
 # logout

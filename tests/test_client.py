@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import httpx
 import pytest
 import respx
@@ -17,7 +19,9 @@ from stare.models import (
     SearchResult,
     Trigger,
 )
-from stare.settings import StareSettings
+
+if TYPE_CHECKING:
+    from stare.settings import StareSettings
 
 # ---------------------------------------------------------------------------
 # Fixtures / helpers
