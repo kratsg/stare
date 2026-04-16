@@ -1,16 +1,183 @@
 [build-system]
-# Minimum requirements for the build system to execute.
-requires = ["wheel", "setuptools>=30.3.0", "attrs>=17.1", "setuptools_scm"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling>=1.26", "hatch-vcs"]
+build-backend = "hatchling.build"
 
-[tool.black]
-line-length = 88
-skip-string-normalization = true
-include = '\.pyi?$'
-exclude = '''
-/(
-    \.git
-  | build
-  | .*py
-)/
-'''
+[project]
+name = "stare"
+authors = [
+  { name = "Giordon Stark", email = "kratsg@gmail.com" },
+]
+description = "Python library and CLI for the CERN ATLAS Glance/Fence API"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+classifiers = [
+  "Development Status :: 1 - Planning",
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering",
+  "Typing :: Typed",
+]
+dynamic = ["version"]
+dependencies = [
+  "httpx>=0.27",
+  "authlib>=1.3",
+  "pydantic>=2",
+  "pydantic-settings>=2",
+  "typer[all]>=0.12",
+  "rich>=13",
+  "platformdirs>=4",
+]
+
+[project.scripts]
+stare = "stare.cli:app"
+
+[project.urls]
+Documentation = "https://stare.readthedocs.io/"
+Homepage = "https://github.com/kratsg/stare"
+"Bug Tracker" = "https://github.com/kratsg/stare/issues"
+Discussions = "https://github.com/kratsg/stare/discussions"
+Changelog = "https://github.com/kratsg/stare/releases"
+
+
+[dependency-groups]
+test = [
+  "pytest>=9",
+  "pytest-cov>=7",
+  "respx>=0.21",
+]
+dev = [
+  { include-group = "test" },
+]
+docs = [
+  "zensical>=0.0.20",
+]
+
+
+[tool.hatch]
+version.path = "src/stare/__init__.py"
+
+[tool.hatch.envs.default]
+dependency-groups = ["dev"]
+
+[tool.hatch.envs.hatch-test]
+dependency-groups = ["test"]
+env-vars.PYTHONWARNDEFAULTENCODING = "1"
+
+
+[tool.pytest.ini_options]
+minversion = "9.0"
+addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config"]
+filterwarnings = [
+  "error",
+]
+log_level = "INFO"
+testpaths = [
+  "tests",
+]
+markers = [
+  "slow: marks tests as slow (skipped by default, use --runslow to run)",
+]
+
+
+[tool.coverage]
+run.source = ["stare"]
+report.exclude_also = [
+  '\.\.\.',
+  'if typing.TYPE_CHECKING:',
+]
+
+[tool.mypy]
+files = ["src", "tests"]
+python_version = "3.10"
+warn_unused_configs = true
+strict = true
+enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+warn_unreachable = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+[[tool.mypy.overrides]]
+module = "stare.*"
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+[[tool.mypy.overrides]]
+module = ["respx", "respx.*", "authlib", "authlib.*"]
+ignore_missing_imports = true
+
+
+[tool.ruff]
+show-fixes = true
+
+[tool.ruff.lint]
+extend-select = [
+  "ARG",    # flake8-unused-arguments
+  "B",      # flake8-bugbear
+  "BLE",    # flake8-blind-except
+  "C4",     # flake8-comprehensions
+  "DTZ",    # flake8-datetimez
+  "EM",     # flake8-errmsg
+  "EXE",    # flake8-executable
+  "FA",     # flake8-future-annotations
+  "FLY",    # flynt
+  "FURB",   # refurb
+  "G",      # flake8-logging-format
+  "I",      # isort
+  "ICN",    # flake8-import-conventions
+  "ISC",    # flake8-implicit-str-concat
+  "LOG",    # flake8-logging
+  "PERF",   # perflint
+  "PGH",    # pygrep-hooks
+  "PIE",    # flake8-pie
+  "PL",     # pylint
+  "PT",     # flake8-pytest-style
+  "PTH",    # flake8-use-pathlib
+  "PYI",    # flake8-pyi
+  "Q",      # flake8-quotes
+  "RET",    # flake8-return
+  "RSE",    # flake8-raise
+  "RUF",    # Ruff-specific
+  "SIM",    # flake8-simplify
+  "SLOT",   # flake8-slots
+  "T10",    # flake8-debugger
+  "T20",    # flake8-print
+  "TC",     # flake8-type-checking
+  "TRY",    # tryceratops
+  "UP",     # pyupgrade
+  "YTT",    # flake8-2020
+]
+ignore = [
+  "PLR09",    # Too many <...>
+  "PLR2004",  # Magic value used in comparison
+  "PYI034",   # Use Self for __enter__ return — requires typing_extensions on 3.10
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["T20", "TC001", "TC002", "TC003"]
+
+
+[tool.pylint]
+py-version = "3.10"
+ignore-paths = [".*/_version.py"]
+reports.output-format = "colorized"
+similarities.ignore-imports = "yes"
+messages_control.disable = [
+  "broad-exception-caught",
+  "design",
+  "duplicate-code",
+  "fixme",
+  "line-too-long",
+  "missing-module-docstring",
+  "missing-function-docstring",
+  "wrong-import-position",
+]

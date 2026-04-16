@@ -1,68 +1,73 @@
-import attr
+"""Analysis resource models."""
+
+from __future__ import annotations
+
+from typing import Any
+
+from pydantic import Field
+
+from stare.models.common import (
+    AmiGlanceLink,
+    AnalysisContact,
+    Documentation,
+    EditorialBoardMember,
+    Groups,
+    Meeting,
+    Metadata,
+    RelatedPublication,
+    TeamMember,
+    _Base,
+)
 
 
-def make_phase0(data):
-    return Phase0(
-        id=data['id'],
-        start_date=data['start_date'],
-        state=data['state'],
-        main_physics_aim=data['main_physics_aim'],
-        dataset_used=data['dataset_used'],
-        model_tested=data['model_tested'],
-        methods=data['methods'],
-        editorial_board_formed_date=data['editorial_board_formed_date'],
-        group_pre_sign_off_date=data['group_pre_sign_off_date'],
-        ana_coord_target_date_comment=data['ana_coord_target_date_comment'],
+class AnalysisPhase0(_Base):
+    """Phase 0 lifecycle metadata for an analysis."""
+
+    state: str | None = Field(default=None, alias="state")
+    start_date: str | None = Field(default=None, alias="startDate")
+    main_physics_aim: str | None = Field(default=None, alias="mainPhysicsAim")
+    dataset_used: str | None = Field(default=None, alias="datasetUsed")
+    model_tested: str | None = Field(default=None, alias="modelTested")
+    methods: str | None = Field(default=None, alias="methods")
+    editorial_board_formed_on: str | None = Field(
+        default=None, alias="editorialBoardFormedOn"
+    )
+    pgc_or_sgc_sign_off_date: str | None = Field(
+        default=None, alias="pgcOrSgcSignOffDate"
+    )
+    analysis_contacts: list[AnalysisContact] | None = Field(
+        default=None, alias="analysisContacts"
+    )
+    editorial_board: list[EditorialBoardMember] | None = Field(
+        default=None, alias="editorialBoard"
+    )
+    eoi_meeting: list[Meeting] | None = Field(default=None, alias="eoiMeeting")
+    editorial_board_request_meeting: list[Meeting] | None = Field(
+        default=None, alias="editorialBoardRequestMeeting"
+    )
+    pre_approval_meeting: list[Meeting] | None = Field(
+        default=None, alias="preApprovalMeeting"
+    )
+    approval_meeting: list[Meeting] | None = Field(
+        default=None, alias="approvalMeeting"
     )
 
 
-def make_analysis(data):
-    return Analysis(
-        id=data['id'],
-        short_title=data['short_title'],
-        full_title=data['full_title'],
-        pub_short_title=data['pub_short_title'],
-        creation_date=data['creation_date'],
-        status=data['status'],
-        deletion_request=data['deletion_request'],
-        deletion_reason=data['deletion_reason'],
-        deletion=data['deletion'],
-        phase_0=make_phase0(data['phase_0']) if 'phase_0' in data else None,
+class Analysis(_Base):
+    """A single ATLAS analysis record."""
+
+    reference_code: str | None = Field(default=None, alias="referenceCode")
+    creation_date: str | None = Field(default=None, alias="creationDate")
+    status: str | None = Field(default=None, alias="status")
+    short_title: str | None = Field(default=None, alias="shortTitle")
+    public_short_title: str | None = Field(default=None, alias="publicShortTitle")
+    groups: Groups | None = Field(default=None, alias="groups")
+    ami_glance: list[AmiGlanceLink] | None = Field(default=None, alias="amiGlance")
+    documentation: Documentation | None = Field(default=None, alias="documentation")
+    analysis_team: list[TeamMember] | None = Field(default=None, alias="analysisTeam")
+    metadata: Metadata | None = Field(default=None, alias="metadata")
+    related_publications: list[RelatedPublication] | None = Field(
+        default=None, alias="relatedPublications"
     )
-
-
-def make_analysis_list(data):
-    return AnalysisList(analyses=list(map(make_analysis, data)))
-
-
-@attr.s
-class Phase0(object):
-    id = attr.ib()
-    start_date = attr.ib()
-    state = attr.ib()
-    main_physics_aim = attr.ib()
-    dataset_used = attr.ib()
-    model_tested = attr.ib()
-    methods = attr.ib()
-    editorial_board_formed_date = attr.ib()
-    group_pre_sign_off_date = attr.ib()
-    ana_coord_target_date_comment = attr.ib()
-
-
-@attr.s
-class Analysis(object):
-    id = attr.ib()
-    short_title = attr.ib()
-    full_title = attr.ib()
-    pub_short_title = attr.ib()
-    creation_date = attr.ib()
-    status = attr.ib()
-    deletion_request = attr.ib()
-    deletion_reason = attr.ib()
-    deletion = attr.ib()
-    phase_0 = attr.ib()
-
-
-@attr.s
-class AnalysisList(object):
-    analyses = attr.ib(type=list)
+    phase0: AnalysisPhase0 | None = Field(default=None, alias="phase0")
+    extra_metadata: dict[str, Any] | None = Field(default=None, alias="extraMetadata")

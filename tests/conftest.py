@@ -1,68 +1,79 @@
-import socket
-from sys import platform
-import stare
+"""Shared pytest fixtures for stare tests."""
 
-import betamax
-from betamax_serializers import pretty_json
+from __future__ import annotations
+
+import json
+import time
+from pathlib import Path
 
 import pytest
 
-placeholders = {
-    'username': stare.settings.STARE_USERNAME,
-    'password': stare.settings.STARE_PASSWORD,
-}
+from stare.auth import TokenManager
+from stare.settings import StareSettings
 
 
-def filter_bearer_token(interaction, current_cassette):
-    # Exit early if the request did not return 200 OK because that's the
-    # only time we want to look for Authorization-Token headers
-    if interaction.data['response']['status']['code'] != 200:
-        return
-
-    headers = interaction.data['request']['headers']
-    token = headers.get('Authorization')
-    # If there was no token header in the request, exit
-    if token is None:
-        return
-
-    # Otherwise, create a new placeholder so that when cassette is saved,
-    # Betamax will replace the token with our placeholder.
-    current_cassette.placeholders.append(
-        betamax.cassette.cassette.Placeholder(
-            placeholder='Bearer <ACCESS_TOKEN>', replace=token[0]
-        )
+def pytest_addoption(parser: pytest.Parser) -> None:
+    parser.addoption(
+        "--runslow",
+        action="store_true",
+        default=False,
+        help="Run slow integration tests that require live CERN auth",
     )
 
 
-betamax.Betamax.register_serializer(pretty_json.PrettyJSONSerializer)
-with betamax.Betamax.configure() as config:
-    config.cassette_library_dir = stare.settings.STARE_CASSETTE_LIBRARY_DIR
-    config.default_cassette_options['serialize_with'] = 'prettyjson'
-    config.before_record(callback=filter_bearer_token)
-    for key, value in placeholders.items():
-        config.define_cassette_placeholder('<{}>'.format(key.upper()), replace=value)
+def pytest_collection_modifyitems(
+    config: pytest.Config, items: list[pytest.Item]
+) -> None:
+    if not config.getoption("--runslow"):
+        skip_slow = pytest.mark.skip(reason="Pass --runslow to run")
+        for item in items:
+            if "slow" in item.keywords:
+                item.add_marker(skip_slow)
 
 
-@pytest.fixture(scope='session')
-def auth_user():
-    user = stare.core.User()
-    user._jwtOptions = {
-        'verify_signature': False,
-        'verify_iat': False,
-        'verify_exp': False,
+@pytest.fixture
+def test_settings() -> StareSettings:
+    """StareSettings pointing at a test base URL."""
+    return StareSettings(
+        base_url="https://test-glance.example.com/api",
+        auth_url="https://auth.example.com/auth",
+        token_url="https://auth.example.com/token",
+        client_id="test-client",
+        scopes="openid",
+    )
+
+
+@pytest.fixture
+def tmp_token_path(tmp_path: Path) -> Path:
+    """Temporary path for token storage (file not yet created)."""
+    return tmp_path / "tokens.json"
+
+
+@pytest.fixture
+def valid_token_data() -> dict[str, object]:
+    """A valid (non-expired) token payload dict."""
+    return {
+        "access_token": "test-access-token",
+        "refresh_token": "test-refresh-token",
+        "token_type": "Bearer",
+        "expires_at": int(time.time()) + 3600,
+        "id_token": "test-id-token",
     }
-    with betamax.Betamax(
-        user._session, cassette_library_dir=stare.settings.STARE_CASSETTE_LIBRARY_DIR
-    ).use_cassette('test_user.test_user_good_login', record='none'):
-        yield user
 
 
-@pytest.fixture(scope='module')
-def auth_session(auth_user):
-    yield stare.core.Session(user=auth_user)
+@pytest.fixture
+def stored_token_path(
+    tmp_token_path: Path, valid_token_data: dict[str, object]
+) -> Path:
+    """Token path pre-populated with a valid non-expired token."""
+    tmp_token_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_token_path.write_text(json.dumps(valid_token_data))
+    return tmp_token_path
 
 
-# Temporarily work around issue with gethostbyname on OS X
-#  - see https://betamax.readthedocs.io/en/latest/long_term_usage.html#known-issues
-if platform == 'darwin':
-    socket.gethostbyname = lambda x: '127.0.0.1'
+@pytest.fixture
+def mock_token_manager(
+    stored_token_path: Path, test_settings: StareSettings
+) -> TokenManager:
+    """TokenManager backed by a pre-stored valid token (no real auth flow)."""
+    return TokenManager(settings=test_settings, token_path=stored_token_path)
