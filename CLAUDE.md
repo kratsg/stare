@@ -192,39 +192,53 @@ fixtures to reflect any new/changed fields before running.
 
 ## SSL certificate bundle (`src/stare/data/CERN_chain.pem`)
 
-The bundled `CERN_chain.pem` is used as the `verify=` argument for every
-`httpx.Client` that talks to `atlas-glance.cern.ch`. It contains two PEM
-certificates concatenated: the **CERN Grid CA** (intermediate) and the **CERN
-Root Certification Authority 2** (root). Both are needed because
-atlas-glance.cern.ch presents a certificate signed by the Grid CA, which is not
-in most OS trust stores.
+The bundled `CERN_chain.pem` is passed as `verify=` to every `httpx.Client` that
+talks to `atlas-glance.cern.ch`. It is needed because the server does not
+include its intermediate CA in the TLS handshake (a server-side misconfiguration
+that Python's SSL layer cannot work around on its own).
+
+**Current bundle contents (as of 2026-04):**
+
+- **Sectigo Public Server Authentication CA OV R36** (intermediate, ~2036
+  expiry)
+- **Sectigo Public Server Authentication Root R46** (root, ~2046 expiry)
+
+`atlas-glance.cern.ch` switched from CERN Grid CA certificates to Sectigo
+commercial certificates in early 2025. The Sectigo root is in standard OS trust
+stores but the intermediate is not sent by the server, so we bundle it.
 
 ### Regenerating the bundle (maintainer task)
 
-1. Download from [CERN CA Files](https://cafiles.cern.ch/cafiles/):
-   - **CERN Root Certification Authority 2** — download as DER (`.crt`)
-   - **CERN Grid Certification Authority** — download as PEM (`.pem`)
+Run this when the server's certificate chain changes (check with
+`openssl s_client -connect atlas-glance.cern.ch:443 -showcerts`).
 
-2. Convert the Root CA DER to PEM:
+```bash
+# 1. Get the leaf cert AIA URL for the intermediate
+echo | openssl s_client -connect atlas-glance.cern.ch:443 2>/dev/null \
+  | openssl x509 -noout -text | grep "CA Issuers"
 
-   ```bash
-   openssl x509 -in CERN_ROOT_CA_2.crt -inform der -outform pem -out CERN_ROOT_CA_2.pem
-   ```
+# 2. Download intermediate (DER) and convert to PEM
+curl -s -o intermediate.crt <AIA-URL-from-above>
+openssl x509 -in intermediate.crt -inform der -outform pem > intermediate.pem
 
-3. Concatenate (Grid CA first, Root CA second):
+# 3. Get root URL from intermediate cert, download (p7c), extract PEM
+echo | openssl x509 -in intermediate.crt -inform der -noout -text | grep "CA Issuers"
+curl -s -o root.p7c <root-AIA-URL>
+openssl pkcs7 -in root.p7c -inform der -print_certs \
+  | awk '/BEGIN CERT/{f=1;c++} f&&c==1{print} /END CERT/&&c==1{f=0}' > root.pem
 
-   ```bash
-   cat CERN_GRID_CA.pem CERN_ROOT_CA_2.pem > src/stare/data/CERN_chain.pem
-   ```
+# 4. Build bundle (intermediate first, root second)
+cat intermediate.pem root.pem > src/stare/data/CERN_chain.pem
 
-4. Verify the bundle:
+# 5. Verify — should print "OK"
+echo | openssl s_client -connect atlas-glance.cern.ch:443 2>/dev/null \
+  | openssl x509 > /tmp/leaf.pem
+openssl verify -CAfile src/stare/data/CERN_chain.pem /tmp/leaf.pem
+```
 
-   ```bash
-   openssl verify -CAfile src/stare/data/CERN_chain.pem src/stare/data/CERN_chain.pem
-   ```
-
-5. Commit `src/stare/data/CERN_chain.pem`. The file is tracked in git because it
-   is bundled with the wheel and loaded at runtime via `importlib.resources`.
+Commit `src/stare/data/CERN_chain.pem` — it is tracked in git because it is
+bundled with the wheel and loaded at runtime via
+`importlib.resources.as_file()`.
 
 ## API endpoints
 

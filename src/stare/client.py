@@ -26,19 +26,21 @@ if TYPE_CHECKING:
     import types
 
 
-def _load_cern_ssl_context() -> ssl.SSLContext:
-    """Create an SSLContext from the bundled CERN CA chain.
+def _load_ssl_context() -> ssl.SSLContext:
+    """Create an SSLContext from the bundled CA chain.
 
-    Uses importlib.resources.as_file() so the resource is available as a real
-    filesystem path even inside a zip-archived package. The cert data is loaded
-    into the SSLContext in memory; any extracted temp file is cleaned up on exit.
+    atlas-glance.cern.ch uses a certificate issued by Sectigo but does not
+    include the Sectigo intermediate CA in its TLS handshake. The bundle in
+    stare.data provides the missing intermediate so Python can build the full
+    chain. Uses as_file() so the resource is available as a real filesystem
+    path even inside a zip-archived wheel.
     """
     with as_file(files("stare.data").joinpath("CERN_chain.pem")) as cert_path:
         return ssl.create_default_context(cafile=str(cert_path))
 
 
 # Built once at import time; shared across all Glance instances.
-_CERN_SSL_CONTEXT: ssl.SSLContext = _load_cern_ssl_context()
+_SSL_CONTEXT: ssl.SSLContext = _load_ssl_context()
 
 
 def _raise_for_status(response: httpx.Response) -> None:
@@ -245,7 +247,7 @@ class Glance:
         self._token = token
         self._http = httpx.Client(
             base_url=self._settings.base_url,
-            verify=_CERN_SSL_CONTEXT,
+            verify=_SSL_CONTEXT,
             event_hooks={"request": [self._inject_auth]},
         )
         self.analyses = AnalysisResource(self._http)
