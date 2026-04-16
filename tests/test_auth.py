@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import threading
 import time
 import urllib.request
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
+from urllib.parse import parse_qs, urlparse
 
 import httpx
 import pytest
@@ -17,20 +19,23 @@ from stare.auth import TokenManager
 from stare.exceptions import AuthenticationError, TokenExpiredError
 from stare.settings import StareSettings
 
-
 # ---------------------------------------------------------------------------
 # logout
 # ---------------------------------------------------------------------------
 
 
-def test_logout_removes_token_file(stored_token_path: Path, test_settings: StareSettings) -> None:
+def test_logout_removes_token_file(
+    stored_token_path: Path, test_settings: StareSettings
+) -> None:
     manager = TokenManager(settings=test_settings, token_path=stored_token_path)
     assert stored_token_path.exists()
     manager.logout()
     assert not stored_token_path.exists()
 
 
-def test_logout_no_op_when_no_token(tmp_token_path: Path, test_settings: StareSettings) -> None:
+def test_logout_no_op_when_no_token(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
     manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
     assert not tmp_token_path.exists()
     manager.logout()  # must not raise
@@ -41,12 +46,16 @@ def test_logout_no_op_when_no_token(tmp_token_path: Path, test_settings: StareSe
 # ---------------------------------------------------------------------------
 
 
-def test_is_authenticated_false_when_no_file(tmp_token_path: Path, test_settings: StareSettings) -> None:
+def test_is_authenticated_false_when_no_file(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
     manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
     assert manager.is_authenticated() is False
 
 
-def test_is_authenticated_true_with_valid_token(stored_token_path: Path, test_settings: StareSettings) -> None:
+def test_is_authenticated_true_with_valid_token(
+    stored_token_path: Path, test_settings: StareSettings
+) -> None:
     manager = TokenManager(settings=test_settings, token_path=stored_token_path)
     assert manager.is_authenticated() is True
 
@@ -81,12 +90,16 @@ def test_is_authenticated_false_with_corrupt_file(
 # ---------------------------------------------------------------------------
 
 
-def test_get_token_returns_access_token(stored_token_path: Path, test_settings: StareSettings) -> None:
+def test_get_token_returns_access_token(
+    stored_token_path: Path, test_settings: StareSettings
+) -> None:
     manager = TokenManager(settings=test_settings, token_path=stored_token_path)
     assert manager.get_token() == "test-access-token"
 
 
-def test_get_token_raises_when_no_token(tmp_token_path: Path, test_settings: StareSettings) -> None:
+def test_get_token_raises_when_no_token(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
     manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
     with pytest.raises(AuthenticationError):
         manager.get_token()
@@ -170,7 +183,7 @@ def test_get_token_raises_when_no_refresh_token(
 # ---------------------------------------------------------------------------
 
 
-def _make_callback_thread(captured_url: dict[str, str]) -> None:
+def _make_callback_thread(captured_url: dict[str, str]) -> threading.Thread:
     """Background thread: wait for browser open, then send fake callback."""
 
     def _run() -> None:
@@ -183,8 +196,6 @@ def _make_callback_thread(captured_url: dict[str, str]) -> None:
         if not url:
             return
 
-        from urllib.parse import parse_qs, urlparse
-
         parsed = urlparse(url)
         params = parse_qs(parsed.query)
         state = params.get("state", [""])[0]
@@ -193,20 +204,22 @@ def _make_callback_thread(captured_url: dict[str, str]) -> None:
             return
 
         port = urlparse(redirect_uri).port
-        callback_url = f"http://127.0.0.1:{port}/callback?code=fake-auth-code&state={state}"
+        callback_url = (
+            f"http://127.0.0.1:{port}/callback?code=fake-auth-code&state={state}"
+        )
         # Small delay to ensure the server is listening
         time.sleep(0.05)
-        try:
+        with contextlib.suppress(Exception):
             urllib.request.urlopen(callback_url, timeout=5)
-        except Exception:  # noqa: BLE001
-            pass
 
     t = threading.Thread(target=_run, daemon=True)
     t.start()
     return t
 
 
-def test_login_stores_tokens(tmp_token_path: Path, test_settings: StareSettings) -> None:
+def test_login_stores_tokens(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
     captured_url: dict[str, str] = {}
 
     def _fake_browser(url: str) -> bool:
@@ -243,8 +256,6 @@ def test_login_stores_tokens(tmp_token_path: Path, test_settings: StareSettings)
 def test_login_opens_browser_with_pkce_params(
     tmp_token_path: Path, test_settings: StareSettings
 ) -> None:
-    from urllib.parse import parse_qs, urlparse
-
     captured_url: dict[str, str] = {}
 
     def _fake_browser(url: str) -> bool:

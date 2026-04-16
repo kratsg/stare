@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
 from typer.testing import CliRunner
 
 from stare import __version__
@@ -20,7 +18,6 @@ from stare.models import (
     PubNote,
     SearchResult,
     Trigger,
-    TriggerCategory,
 )
 
 runner = CliRunner()
@@ -29,41 +26,59 @@ runner = CliRunner()
 # Helpers
 # ---------------------------------------------------------------------------
 
-SAMPLE_ANALYSIS = Analysis.model_validate({
-    "referenceCode": "ANA-TEST-2024-01",
-    "status": "Active",
-    "shortTitle": "Test analysis",
-})
+SAMPLE_ANALYSIS = Analysis.model_validate(
+    {
+        "referenceCode": "ANA-TEST-2024-01",
+        "status": "Active",
+        "shortTitle": "Test analysis",
+    }
+)
 
-SAMPLE_PAPER = Paper.model_validate({
-    "referenceCode": "HDBS-2024-01",
-    "status": "Published",
-    "shortTitle": "Test paper",
-})
+SAMPLE_PAPER = Paper.model_validate(
+    {
+        "referenceCode": "HDBS-2024-01",
+        "status": "Published",
+        "shortTitle": "Test paper",
+    }
+)
 
-SAMPLE_CONF_NOTE = ConfNote.model_validate({
-    "temporaryReferenceCode": "ATLAS-CONF-2024-001",
-    "status": "Active",
-    "shortTitle": "Test conf note",
-})
+SAMPLE_CONF_NOTE = ConfNote.model_validate(
+    {
+        "temporaryReferenceCode": "ATLAS-CONF-2024-001",
+        "status": "Active",
+        "shortTitle": "Test conf note",
+    }
+)
 
-SAMPLE_PUB_NOTE = PubNote.model_validate({
-    "temporaryReferenceCode": "ATL-PHYS-PUB-2024-001",
-    "status": "Active",
-    "shortTitle": "Test pub note",
-})
+SAMPLE_PUB_NOTE = PubNote.model_validate(
+    {
+        "temporaryReferenceCode": "ATL-PHYS-PUB-2024-001",
+        "status": "Active",
+        "shortTitle": "Test pub note",
+    }
+)
 
-SAMPLE_SEARCH = SearchResult.model_validate({
-    "totalRows": 1,
-    "results": [{"referenceCode": "ANA-TEST-2024-01", "status": "Active", "shortTitle": "Test analysis"}],
-})
+SAMPLE_SEARCH = SearchResult.model_validate(
+    {
+        "totalRows": 1,
+        "results": [
+            {
+                "referenceCode": "ANA-TEST-2024-01",
+                "status": "Active",
+                "shortTitle": "Test analysis",
+            }
+        ],
+    }
+)
 
 SAMPLE_PUBLICATIONS = [
     PublicationRef.model_validate({"referenceCode": "HDBS-2024-01", "type": "Paper"}),
 ]
 
 SAMPLE_TRIGGERS = [
-    Trigger.model_validate({"name": "HLT_e60", "category": {"name": "electron", "year": "2024"}}),
+    Trigger.model_validate(
+        {"name": "HLT_e60", "category": {"name": "electron", "year": "2024"}}
+    ),
 ]
 
 
@@ -100,9 +115,7 @@ def test_version_command() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_login_command_calls_token_manager(tmp_token_path: Path) -> None:
-    from stare.settings import StareSettings
-    settings = StareSettings()
+def test_login_command_calls_token_manager() -> None:
     mock_tm = MagicMock()
     mock_tm.login.return_value = None
     with patch("stare.cli._make_token_manager", return_value=mock_tm):

@@ -69,7 +69,7 @@ SAMPLE_TRIGGERS = [
 ]
 
 
-@pytest.fixture()
+@pytest.fixture
 def glance(test_settings: StareSettings) -> Glance:
     """Glance instance using a fixed token (no real auth)."""
     return Glance(settings=test_settings, token="fake-token")
@@ -82,7 +82,7 @@ def glance(test_settings: StareSettings) -> Glance:
 
 def test_glance_uses_token_directly(test_settings: StareSettings) -> None:
     g = Glance(settings=test_settings, token="my-token")
-    assert g._token == "my-token"  # noqa: SLF001
+    assert g._token == "my-token"
 
 
 def test_glance_context_manager(test_settings: StareSettings) -> None:
@@ -263,9 +263,7 @@ def test_publications_search_returns_list(glance: Glance) -> None:
 
 def test_publications_search_passes_filter_params(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/publications/search").mock(
-            return_value=httpx.Response(200, json=[])
-        )
+        rx.get("/publications/search").mock(return_value=httpx.Response(200, json=[]))
         glance.publications.search(types=["Paper"], leading_groups=["HDBS"])
         params = rx.calls[0].request.url.params
     assert "Paper" in params.get_list("types")
@@ -324,9 +322,7 @@ def test_triggers_search_returns_triggers(glance: Glance) -> None:
 
 def test_triggers_search_passes_filter_params(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/triggers/search").mock(
-            return_value=httpx.Response(200, json=[])
-        )
+        rx.get("/triggers/search").mock(return_value=httpx.Response(200, json=[]))
         glance.triggers.search(categories=["electron"], years=["2024"])
         params = rx.calls[0].request.url.params
     assert "electron" in params.get_list("categories")

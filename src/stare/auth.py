@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import json
+import contextlib
 import secrets
 import time
 import webbrowser
@@ -13,11 +13,48 @@ from urllib.parse import parse_qs, urlencode, urlparse
 import httpx
 from authlib.oauth2.rfc7636 import create_s256_code_challenge
 from platformdirs import user_data_dir
+from pydantic import BaseModel
 
 from stare.exceptions import AuthenticationError, TokenExpiredError
 from stare.settings import StareSettings
 
 _DEFAULT_TOKEN_PATH = Path(user_data_dir("stare")) / "tokens.json"
+
+
+class _OAuthTokenResponse(BaseModel):
+    """Raw OAuth2 token endpoint response from CERN Keycloak."""
+
+    access_token: str
+    refresh_token: str | None = None
+    token_type: str = "Bearer"
+    expires_in: int = 3600
+    id_token: str | None = None
+
+
+class _StoredToken(BaseModel):
+    """Token data persisted to disk after a successful login or refresh."""
+
+    access_token: str
+    refresh_token: str | None = None
+    token_type: str = "Bearer"
+    expires_at: int = 0
+    id_token: str | None = None
+
+    @classmethod
+    def from_response(cls, resp: _OAuthTokenResponse) -> _StoredToken:
+        """Build a stored token from an OAuth response, computing expires_at."""
+        return cls(
+            access_token=resp.access_token,
+            refresh_token=resp.refresh_token,
+            token_type=resp.token_type,
+            expires_at=int(time.time()) + resp.expires_in,
+            id_token=resp.id_token,
+        )
+
+    @property
+    def is_expired(self) -> bool:
+        """True if the token has expired or expires within 60 seconds."""
+        return self.expires_at < int(time.time()) + 60
 
 
 class TokenManager:
@@ -46,7 +83,7 @@ class TokenManager:
         received: dict[str, str] = {}
 
         class _CallbackHandler(BaseHTTPRequestHandler):
-            def do_GET(self) -> None:  # noqa: N802
+            def do_GET(self) -> None:
                 parsed = urlparse(self.path)
                 params = parse_qs(parsed.query)
                 received["code"] = params.get("code", [""])[0]
@@ -79,11 +116,13 @@ class TokenManager:
         server.server_close()
 
         if received.get("state") != state:
-            raise AuthenticationError("State mismatch in OAuth callback — possible CSRF attack.")
+            msg = "State mismatch in OAuth callback — possible CSRF attack."
+            raise AuthenticationError(msg)
 
         code = received.get("code", "")
         if not code:
-            raise AuthenticationError("No authorization code received in callback.")
+            msg = "No authorization code received in callback."
+            raise AuthenticationError(msg)
 
         with httpx.Client() as client:
             response = client.post(
@@ -97,13 +136,11 @@ class TokenManager:
                 },
             )
             response.raise_for_status()
-            token_data: dict[str, object] = response.json()
+            oauth_resp = _OAuthTokenResponse.model_validate(response.json())
 
-        expires_in = int(token_data.get("expires_in", 3600))
-        token_data["expires_at"] = int(time.time()) + expires_in
-
+        token = _StoredToken.from_response(oauth_resp)
         self._token_path.parent.mkdir(parents=True, exist_ok=True)
-        self._token_path.write_text(json.dumps(token_data))
+        self._token_path.write_text(token.model_dump_json())
 
     def logout(self) -> None:
         """Delete stored tokens."""
@@ -113,23 +150,20 @@ class TokenManager:
     def get_token(self) -> str:
         """Return a valid access token, refreshing if needed."""
         if not self._token_path.exists():
-            raise AuthenticationError("Not authenticated. Run `stare login` first.")
+            msg = "Not authenticated. Run `stare login` first."
+            raise AuthenticationError(msg)
 
-        token_data: dict[str, object] = json.loads(self._token_path.read_text())
+        token = _StoredToken.model_validate_json(self._token_path.read_text())
 
-        # Refresh if expired (or within 60 seconds of expiry)
-        if int(token_data.get("expires_at", 0)) < int(time.time()) + 60:
-            refresh_token = token_data.get("refresh_token", "")
-            if not refresh_token:
-                raise TokenExpiredError(
-                    "Access token has expired and no refresh token is available. "
-                    "Run `stare login` again."
-                )
-            token_data = self._refresh(str(refresh_token))
+        if token.is_expired:
+            if not token.refresh_token:
+                msg = "Access token has expired and no refresh token is available. Run `stare login` again."
+                raise TokenExpiredError(msg)
+            token = self._refresh(token.refresh_token)
 
-        return str(token_data["access_token"])
+        return token.access_token
 
-    def _refresh(self, refresh_token: str) -> dict[str, object]:
+    def _refresh(self, refresh_token: str) -> _StoredToken:
         """Exchange a refresh token for new tokens and persist them."""
         try:
             with httpx.Client() as client:
@@ -142,24 +176,20 @@ class TokenManager:
                     },
                 )
                 response.raise_for_status()
-                new_data: dict[str, object] = response.json()
+                oauth_resp = _OAuthTokenResponse.model_validate(response.json())
         except httpx.HTTPStatusError as exc:
-            raise TokenExpiredError(
-                f"Token refresh failed ({exc.response.status_code}). "
-                "Run `stare login` again."
-            ) from exc
+            msg = f"Token refresh failed ({exc.response.status_code}). Run `stare login` again."
+            raise TokenExpiredError(msg) from exc
 
-        expires_in = int(new_data.get("expires_in", 3600))
-        new_data["expires_at"] = int(time.time()) + expires_in
-        self._token_path.write_text(json.dumps(new_data))
-        return new_data
+        token = _StoredToken.from_response(oauth_resp)
+        self._token_path.write_text(token.model_dump_json())
+        return token
 
     def is_authenticated(self) -> bool:
         """Return True if a non-expired token is stored."""
         if not self._token_path.exists():
             return False
-        try:
-            token_data = json.loads(self._token_path.read_text())
-            return int(token_data.get("expires_at", 0)) > int(time.time())
-        except (json.JSONDecodeError, TypeError, ValueError):
-            return False
+        with contextlib.suppress(Exception):
+            token = _StoredToken.model_validate_json(self._token_path.read_text())
+            return not token.is_expired
+        return False

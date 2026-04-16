@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import httpx
+
+if TYPE_CHECKING:
+    import types
 
 from stare.auth import TokenManager
 from stare.exceptions import ApiError, ForbiddenError, NotFoundError, UnauthorizedError
@@ -129,19 +132,14 @@ class PublicationResource:
         statuses: list[str] | None = None,
     ) -> list[PublicationRef]:
         """Search across all publication types."""
-        params: list[tuple[str, str]] = []
-        for val in reference_codes or []:
-            params.append(("referenceCodes", val))
-        for val in types or []:
-            params.append(("types", val))
-        for val in short_titles or []:
-            params.append(("shortTitles", val))
-        for val in leading_groups or []:
-            params.append(("leadingGroups", val))
-        for val in subgroups or []:
-            params.append(("subgroups", val))
-        for val in statuses or []:
-            params.append(("statuses", val))
+        params: list[Any] = (
+            [("referenceCodes", val) for val in reference_codes or []]
+            + [("types", val) for val in types or []]
+            + [("shortTitles", val) for val in short_titles or []]
+            + [("leadingGroups", val) for val in leading_groups or []]
+            + [("subgroups", val) for val in subgroups or []]
+            + [("statuses", val) for val in statuses or []]
+        )
         response = self._client.get("/publications/search", params=params)
         _raise_for_status(response)
         return [PublicationRef.model_validate(item) for item in response.json()]
@@ -186,11 +184,9 @@ class TriggerResource:
         years: list[str] | None = None,
     ) -> list[Trigger]:
         """Search triggers by category and/or year."""
-        params: list[tuple[str, str]] = []
-        for val in categories or []:
-            params.append(("categories", val))
-        for val in years or []:
-            params.append(("years", val))
+        params: list[Any] = [("categories", val) for val in categories or []] + [
+            ("years", val) for val in years or []
+        ]
         response = self._client.get("/triggers/search", params=params)
         _raise_for_status(response)
         return [Trigger.model_validate(item) for item in response.json()]
@@ -223,15 +219,17 @@ class Glance:
         self.triggers = TriggerResource(self._http)
 
     def _inject_auth(self, request: httpx.Request) -> None:
-        if self._token:
-            token = self._token
-        else:
-            token = self._token_manager.get_token()
+        token = self._token or self._token_manager.get_token()
         request.headers["Authorization"] = f"Bearer {token}"
 
     def __enter__(self) -> Glance:
         self._http.__enter__()
         return self
 
-    def __exit__(self, *args: object) -> None:
-        self._http.__exit__(*args)
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
+    ) -> None:
+        self._http.__exit__(exc_type, exc_val, exc_tb)
