@@ -142,7 +142,7 @@ def test_analyses_search_passes_query_params(glance: Glance) -> None:
         )
         glance.analyses.search(query='"referenceCode" = "X"', limit=10, offset=5)
         params = dict(rx.calls[0].request.url.params)
-    assert params["query"] == '"referenceCode" = "X"'
+    assert params["queryString"] == '"referenceCode" = "X"'
     assert params["limit"] == "10"
     assert params["offset"] == "5"
 
@@ -165,7 +165,7 @@ def test_analyses_search_omits_none_params(glance: Glance) -> None:
         )
         glance.analyses.search()  # no query, no sort
         params = dict(rx.calls[0].request.url.params)
-    assert "query" not in params
+    assert "queryString" not in params
     assert "sortBy" not in params
     assert "sortDesc" not in params
 

@@ -84,7 +84,7 @@ class AnalysisResource:
         """Search analyses via GET /searchAnalysis."""
         params: dict[str, Any] = {"offset": offset, "limit": limit}
         if query is not None:
-            params["query"] = query
+            params["queryString"] = query
         if sort_by is not None:
             params["sortBy"] = sort_by
             params["sortDesc"] = str(sort_desc).lower()
