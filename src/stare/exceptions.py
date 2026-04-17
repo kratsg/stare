@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Any
+
 
 class StareError(Exception):
     """Base exception for all stare errors."""
@@ -35,3 +40,17 @@ class ForbiddenError(ApiError):
 
 class UnauthorizedError(ApiError):
     """Authentication token is missing or invalid (401)."""
+
+
+class ResponseParseError(StareError):
+    """Raised when an API response cannot be parsed into the expected model.
+
+    Attributes:
+        raw_data: The raw object that failed validation (typically the parsed
+            JSON dict/list), attached so callers can display it alongside the
+            error message.
+    """
+
+    def __init__(self, message: str, raw_data: Any = None) -> None:
+        self.raw_data = raw_data
+        super().__init__(message)

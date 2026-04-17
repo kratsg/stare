@@ -2,11 +2,59 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict, Field
+from typing import TYPE_CHECKING
+
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
+
+from stare.exceptions import ResponseParseError
+
+if TYPE_CHECKING:
+    from typing import Any
+
+    from typing_extensions import Self
+
+
+def _format_parse_error(model_name: str, error: ValidationError) -> str:
+    """Build a human-readable summary of a pydantic ValidationError.
+
+    For scalar inputs the offending value is shown inline; complex inputs
+    (dicts/lists) are omitted from the line to keep the output concise — the
+    caller may display the full raw payload separately.
+    """
+    errors = error.errors()
+    count = len(errors)
+    lines = [
+        f"Failed to parse {model_name} from API response ({count} validation error(s)):"
+    ]
+    for i, err in enumerate(errors, 1):
+        loc = ".".join(str(p) for p in err.get("loc", ())) or "(root)"
+        msg = err.get("msg", "unknown error")
+        input_val = err.get("input")
+        if input_val is not None and not isinstance(input_val, (dict, list)):
+            lines.append(
+                f"  {i}. {loc}: {msg} [got: {type(input_val).__name__} = {input_val!r}]"
+            )
+        else:
+            lines.append(f"  {i}. {loc}: {msg}")
+    return "\n".join(lines)
 
 
 class _Base(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
+
+    @classmethod
+    def model_validate(
+        cls,
+        obj: Any,
+        *args: Any,
+        **kwargs: Any,
+    ) -> Self:
+        try:
+            return super().model_validate(obj, *args, **kwargs)
+        except ValidationError as exc:
+            raise ResponseParseError(
+                _format_parse_error(cls.__name__, exc), raw_data=obj
+            ) from exc
 
 
 class Person(_Base):

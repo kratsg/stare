@@ -10,17 +10,32 @@ from typing import Annotated
 
 import typer
 from rich.console import Console
+from rich.json import JSON
 from rich.panel import Panel
 from rich.table import Table
 
 from stare import __version__
 from stare.auth import TokenManager
 from stare.client import Glance
-from stare.exceptions import StareError
+from stare.exceptions import ResponseParseError, StareError
 from stare.settings import StareSettings
 
 console = Console()
 err_console = Console(stderr=True)
+
+
+def _handle_error(exc: StareError) -> None:
+    """Print a StareError to stderr; for ResponseParseError also show the raw JSON."""
+    err_console.print(f"[red]Error:[/red] {exc}")
+    if isinstance(exc, ResponseParseError) and exc.raw_data is not None:
+        err_console.print(
+            Panel(
+                JSON(json.dumps(exc.raw_data, default=str)),
+                title="[yellow]Raw API Response[/yellow]",
+                border_style="yellow",
+            )
+        )
+
 
 app = typer.Typer(
     name="stare",
@@ -91,11 +106,12 @@ def auth_login() -> None:
         console.print(
             Panel(
                 f"[dim]If your browser did not open, copy this URL:[/dim]\n\n"
-                f"[bold cyan]{url}[/bold cyan]",
+                f"[bold cyan][link={url}]{url}[/link][/bold cyan]",
                 title="[bold]CERN SSO Authentication[/bold]",
                 border_style="blue",
                 padding=(1, 2),
-            )
+            ),
+            crop=False,
         )
         console.print("[dim]Opening browser...[/dim]")
 
@@ -112,7 +128,7 @@ def auth_login() -> None:
     try:
         tm.login(on_url_ready=_on_url_ready, get_manual_code=_get_manual_code)
     except StareError as exc:
-        err_console.print(f"[red]Error:[/red] {exc}")
+        _handle_error(exc)
         raise typer.Exit(1) from exc
 
     console.print("\n[green]✓[/green] Authenticated successfully.")
@@ -220,7 +236,7 @@ def analysis_search(
             sort_desc=sort_desc,
         )
     except StareError as exc:
-        err_console.print(f"[red]Error:[/red] {exc}")
+        _handle_error(exc)
         raise typer.Exit(1) from exc
 
     if output_json:
@@ -252,7 +268,7 @@ def analysis_get(
     try:
         result = g.analyses.get(ref_code)
     except StareError as exc:
-        err_console.print(f"[red]Error:[/red] {exc}")
+        _handle_error(exc)
         raise typer.Exit(1) from exc
 
     if output_json:
@@ -303,7 +319,7 @@ def paper_search(
             sort_desc=sort_desc,
         )
     except StareError as exc:
-        err_console.print(f"[red]Error:[/red] {exc}")
+        _handle_error(exc)
         raise typer.Exit(1) from exc
 
     if output_json:
@@ -335,7 +351,7 @@ def paper_get(
     try:
         result = g.papers.get(ref_code)
     except StareError as exc:
-        err_console.print(f"[red]Error:[/red] {exc}")
+        _handle_error(exc)
         raise typer.Exit(1) from exc
 
     if output_json:
@@ -366,7 +382,7 @@ def conf_note(
     try:
         result = g.conf_notes.get(ref_code)
     except StareError as exc:
-        err_console.print(f"[red]Error:[/red] {exc}")
+        _handle_error(exc)
         raise typer.Exit(1) from exc
 
     if output_json:
@@ -397,7 +413,7 @@ def pub_note(
     try:
         result = g.pub_notes.get(ref_code)
     except StareError as exc:
-        err_console.print(f"[red]Error:[/red] {exc}")
+        _handle_error(exc)
         raise typer.Exit(1) from exc
 
     if output_json:
@@ -449,7 +465,7 @@ def publications_search(
             statuses=status or None,
         )
     except StareError as exc:
-        err_console.print(f"[red]Error:[/red] {exc}")
+        _handle_error(exc)
         raise typer.Exit(1) from exc
 
     if output_json:
@@ -480,7 +496,7 @@ def groups(
     try:
         result = g.groups.list()
     except StareError as exc:
-        err_console.print(f"[red]Error:[/red] {exc}")
+        _handle_error(exc)
         raise typer.Exit(1) from exc
 
     if output_json:
@@ -502,7 +518,7 @@ def subgroups(
     try:
         result = g.subgroups.list()
     except StareError as exc:
-        err_console.print(f"[red]Error:[/red] {exc}")
+        _handle_error(exc)
         raise typer.Exit(1) from exc
 
     if output_json:
@@ -538,7 +554,7 @@ def triggers_search(
             years=year or None,
         )
     except StareError as exc:
-        err_console.print(f"[red]Error:[/red] {exc}")
+        _handle_error(exc)
         raise typer.Exit(1) from exc
 
     if output_json:

@@ -9,6 +9,7 @@ from stare.exceptions import (
     AuthenticationError,
     ForbiddenError,
     NotFoundError,
+    ResponseParseError,
     StareError,
     TokenExpiredError,
     UnauthorizedError,
@@ -64,6 +65,24 @@ class TestApiError:
             status_code=401, title="Unauthorized", detail="Token invalid"
         )
         assert isinstance(err, ApiError)
+
+
+class TestResponseParseError:
+    def test_is_stare_error(self) -> None:
+        assert issubclass(ResponseParseError, StareError)
+
+    def test_message(self) -> None:
+        err = ResponseParseError("Failed to parse Foo: field x invalid")
+        assert "Failed to parse Foo" in str(err)
+
+    def test_raw_data_defaults_to_none(self) -> None:
+        err = ResponseParseError("some error")
+        assert err.raw_data is None
+
+    def test_raw_data_stored(self) -> None:
+        payload = {"key": "value"}
+        err = ResponseParseError("some error", raw_data=payload)
+        assert err.raw_data == payload
 
 
 class TestAuthenticationErrors:

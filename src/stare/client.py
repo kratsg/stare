@@ -25,7 +25,6 @@ from stare.settings import StareSettings
 if TYPE_CHECKING:
     import types
 
-
 _BUNDLE_FILE: dict[str, str] = {
     "Sectigo": "Sectigo_chain.pem",
     "CERN": "CERN_chain.pem",

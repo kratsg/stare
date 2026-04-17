@@ -4,13 +4,23 @@ from __future__ import annotations
 
 from importlib.resources import as_file, files
 from typing import TYPE_CHECKING
+from unittest.mock import MagicMock
 
 import httpx
 import pytest
 import respx
+from pydantic import BaseModel as PydanticBase
+from pydantic import ValidationError
 
 from stare.client import Glance
-from stare.exceptions import ApiError, ForbiddenError, NotFoundError, UnauthorizedError
+from stare.exceptions import (
+    ApiError,
+    ForbiddenError,
+    NotFoundError,
+    ResponseParseError,
+    StareError,
+    UnauthorizedError,
+)
 from stare.models import (
     Analysis,
     ConfNote,
@@ -21,6 +31,7 @@ from stare.models import (
     SearchResult,
     Trigger,
 )
+from stare.models.common import _format_parse_error
 
 if TYPE_CHECKING:
     from stare.settings import StareSettings
@@ -410,3 +421,67 @@ def test_generic_api_error_on_500(glance: Glance) -> None:
         with pytest.raises(ApiError) as exc_info:
             glance.groups.list()
     assert exc_info.value.status_code == 500
+
+
+# ---------------------------------------------------------------------------
+# ResponseParseError on invalid response bodies
+# ---------------------------------------------------------------------------
+
+
+def test_analyses_search_raises_response_parse_error(glance: Glance) -> None:
+    """A 200 response that fails model validation raises ResponseParseError."""
+    bad_json = {"results": "not-a-list"}
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchAnalysis").mock(return_value=httpx.Response(200, json=bad_json))
+        with pytest.raises(ResponseParseError) as exc_info:
+            glance.analyses.search()
+    msg = str(exc_info.value)
+    assert "SearchResult" in msg
+    assert "results" in msg
+    assert "validation error" in msg.lower()
+    # raw_data lets callers (e.g. CLI) display the offending JSON
+    assert exc_info.value.raw_data == bad_json
+
+
+def test_response_parse_error_is_stare_error(glance: Glance) -> None:
+    """ResponseParseError is a StareError so existing CLI handlers catch it."""
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchAnalysis").mock(
+            return_value=httpx.Response(200, json={"results": "not-a-list"})
+        )
+        with pytest.raises(StareError):
+            glance.analyses.search()
+
+
+# ---------------------------------------------------------------------------
+# _format_parse_error
+# ---------------------------------------------------------------------------
+
+
+def test_format_parse_error_with_nested_loc() -> None:
+    """loc entries are dot-joined and integer indices appear as numbers."""
+
+    # Use plain BaseModel (not _Base) to get a raw ValidationError
+    class _Tmp(PydanticBase):
+        items: list[str]
+
+    try:
+        _Tmp.model_validate({"items": "not-a-list"})
+    except ValidationError as exc:
+        msg = _format_parse_error("_Tmp", exc)
+
+    assert "_Tmp" in msg
+    assert "items" in msg
+    assert "1." in msg  # numbered entry
+
+
+def test_format_parse_error_empty_loc() -> None:
+    """When loc is empty the location shows as '(root)'."""
+    mock_error = MagicMock()
+    mock_error.errors.return_value = [
+        {"loc": (), "msg": "something broke", "type": "value_error"}
+    ]
+
+    msg = _format_parse_error("MyModel", mock_error)
+    assert "(root)" in msg
+    assert "something broke" in msg
