@@ -215,6 +215,49 @@ def test_auth_info_shows_expired_when_token_expired() -> None:
     assert "expired" in result.output.lower()
 
 
+def test_auth_info_shows_roles() -> None:
+    mock_tm = MagicMock()
+    mock_tm.get_token_info.return_value = TokenInfo(
+        is_expired=False,
+        expires_at=int(__import__("time").time()) + 3600,
+        claims=JwtClaims(
+            preferred_username="kratsg",
+            name="Giordon Stark",
+            cern_roles=["stare-user", "default-role"],
+        ),
+    )
+    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "info"])
+    assert result.exit_code == 0
+    assert "stare-user" in result.output
+
+
+def test_auth_info_exchange_shows_claims() -> None:
+    mock_tm = MagicMock()
+    mock_tm.get_exchange_token_info.return_value = TokenInfo(
+        is_expired=False,
+        expires_at=int(__import__("time").time()) + 3600,
+        claims=JwtClaims(
+            preferred_username="han.solo",
+            name="Han Solo",
+            cern_roles=["stare-user"],
+        ),
+    )
+    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "info", "--exchange"])
+    assert result.exit_code == 0
+    assert "han.solo" in result.output
+    assert "stare-user" in result.output
+
+
+def test_auth_info_exchange_no_audience_shows_error() -> None:
+    mock_tm = MagicMock()
+    mock_tm.get_exchange_token_info.return_value = None
+    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "info", "--exchange"])
+    assert result.exit_code != 0
+
+
 # ---------------------------------------------------------------------------
 # analysis search
 # ---------------------------------------------------------------------------

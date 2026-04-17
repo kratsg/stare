@@ -155,16 +155,36 @@ def auth_status() -> None:
 
 
 @auth_app.command("info")
-def auth_info() -> None:
+def auth_info(
+    exchange: Annotated[
+        bool,
+        typer.Option("--exchange", help="Show info for the RFC 8693 exchanged token"),
+    ] = False,
+) -> None:
     """Show detailed token information and decoded JWT claims."""
     tm = _make_token_manager()
-    info = tm.get_token_info()
 
-    if info is None:
-        err_console.print(
-            "Not authenticated. Run [bold]stare auth login[/bold] to authenticate."
-        )
-        raise typer.Exit(1)
+    if exchange:
+        try:
+            info = tm.get_exchange_token_info()
+        except StareError as exc:
+            _handle_error(exc)
+            raise typer.Exit(1) from exc
+        if info is None:
+            err_console.print(
+                "Token exchange is not configured. "
+                "Set [bold]STARE_EXCHANGE_AUDIENCE[/bold] to enable."
+            )
+            raise typer.Exit(1)
+        panel_title = "[bold]Exchange Token Info[/bold]"
+    else:
+        info = tm.get_token_info()
+        if info is None:
+            err_console.print(
+                "Not authenticated. Run [bold]stare auth login[/bold] to authenticate."
+            )
+            raise typer.Exit(1)
+        panel_title = "[bold]Auth Info[/bold]"
 
     exp: int = info.expires_at
     now = int(time.time())
@@ -191,12 +211,17 @@ def auth_info() -> None:
         ("name", "Name"),
         ("email", "Email"),
         ("sub", "Subject"),
+        ("eduperson_orcid", "ORCID"),
+        ("cern_person_id", "CERN Person ID"),
     ]:
         val = getattr(claims, api_key, None)
         if val:
             table.add_row(label, str(val))
 
-    console.print(Panel(table, title="[bold]Auth Info[/bold]", border_style="blue"))
+    if claims.cern_roles:
+        table.add_row("Roles", ", ".join(claims.cern_roles))
+
+    console.print(Panel(table, title=panel_title, border_style="blue"))
 
 
 # ---------------------------------------------------------------------------

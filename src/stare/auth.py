@@ -48,7 +48,7 @@ def _decode_jwt_payload(token: str) -> JwtClaims:
         payload = json.loads(base64.urlsafe_b64decode(payload_b64))
         if isinstance(payload, dict):
             return JwtClaims.model_validate(payload)
-    except (IndexError, ValueError):
+    except Exception:  # noqa: BLE001 — best-effort decode, never raise to callers
         pass
     return JwtClaims()
 
@@ -310,3 +310,22 @@ class TokenManager:
                 claims=claims,
             )
         return None
+
+    def get_exchange_token_info(self) -> TokenInfo | None:
+        """Decode and return info for the RFC 8693 exchanged token.
+
+        Returns None if ``exchange_audience`` is not configured.
+        Performs the exchange if the cached token is absent or nearly expired.
+        Raises :exc:`~stare.exceptions.AuthenticationError` if not logged in.
+        """
+        if not self._settings.exchange_audience:
+            return None
+        # get_token() populates _exchanged_token / _exchanged_expires_at
+        self.get_token()
+        assert self._exchanged_token is not None
+        claims = _decode_jwt_payload(self._exchanged_token)
+        return TokenInfo(
+            is_expired=self._exchanged_expires_at < int(time.time()) + 60,
+            expires_at=self._exchanged_expires_at,
+            claims=claims,
+        )

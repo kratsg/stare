@@ -18,7 +18,7 @@ import respx
 
 from stare.auth import TokenManager, _decode_jwt_payload
 from stare.exceptions import AuthenticationError, TokenExpiredError
-from stare.models.auth import JwtClaims, TokenInfo
+from stare.models.auth import JwtClaims, ResourceAccessEntry, TokenInfo
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -58,6 +58,40 @@ def test_decode_jwt_payload_returns_known_claims() -> None:
     assert claims.email == "test@cern.ch"
     assert claims.exp == 9999999999
     assert claims.iat == 1000000000
+
+
+def test_decode_jwt_payload_captures_cern_fields() -> None:
+    payload = {
+        "sub": "han.solo",
+        "preferred_username": "han.solo",
+        "given_name": "Han",
+        "family_name": "Solo",
+        "name": "Han Solo",
+        "email": "han.solo@star.wars",
+        "cern_upn": "han.solo",
+        "cern_mail_upn": "han.solo@cern.ch",
+        "cern_person_id": "999999",
+        "cern_identity_id": "aaaabbbb-test",
+        "cern_roles": ["stare-user", "default-role"],
+        "eduperson_orcid": "0000-0000-0000-0001",
+        "resource_access": {"stare": {"roles": ["stare-user", "default-role"]}},
+        "aud": "atlas-glance-analysis-api-dev",
+        "typ": "ID",
+        "azp": "stare",
+    }
+    claims = _decode_jwt_payload(_make_jwt(payload))
+    assert claims.given_name == "Han"
+    assert claims.family_name == "Solo"
+    assert claims.cern_upn == "han.solo"
+    assert claims.cern_mail_upn == "han.solo@cern.ch"
+    assert claims.cern_person_id == "999999"
+    assert claims.cern_identity_id == "aaaabbbb-test"
+    assert claims.cern_roles == ["stare-user", "default-role"]
+    assert claims.eduperson_orcid == "0000-0000-0000-0001"
+    assert claims.resource_access["stare"].roles == ["stare-user", "default-role"]
+    assert claims.aud == "atlas-glance-analysis-api-dev"
+    assert claims.typ == "ID"
+    assert claims.azp == "stare"
 
 
 def test_decode_jwt_payload_preserves_extra_claims() -> None:
@@ -573,6 +607,66 @@ def test_get_token_exchange_raises_on_http_failure(
         manager = TokenManager(settings=settings, token_path=stored_token_path)
         with pytest.raises(TokenExpiredError):
             manager.get_token()
+
+
+def test_get_exchange_token_info_returns_none_when_no_audience(
+    stored_token_path: Path, test_settings: StareSettings
+) -> None:
+    """Returns None when exchange_audience is not configured."""
+    manager = TokenManager(settings=test_settings, token_path=stored_token_path)
+    assert manager.get_exchange_token_info() is None
+
+
+def test_get_exchange_token_info_returns_decoded_claims(
+    stored_token_path: Path, test_settings: StareSettings
+) -> None:
+    """Returns a TokenInfo with decoded claims from the exchanged token."""
+    settings = _exchange_settings(test_settings)
+    payload = {
+        "sub": "han.solo",
+        "preferred_username": "han.solo",
+        "cern_roles": ["stare-user"],
+    }
+    exchanged = {
+        "access_token": _make_jwt(payload),
+        "token_type": "Bearer",
+        "expires_in": 3600,
+    }
+    with respx.mock:
+        respx.post(settings.token_url).mock(
+            return_value=httpx.Response(200, json=exchanged)
+        )
+        manager = TokenManager(settings=settings, token_path=stored_token_path)
+        info = manager.get_exchange_token_info()
+
+    assert info is not None
+    assert isinstance(info, TokenInfo)
+    assert info.claims.sub == "han.solo"
+    assert info.claims.preferred_username == "han.solo"
+    assert info.claims.cern_roles == ["stare-user"]
+    assert info.is_expired is False
+
+
+def test_get_exchange_token_info_propagates_auth_error(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    """AuthenticationError propagates when not logged in."""
+    settings = _exchange_settings(test_settings)
+    manager = TokenManager(settings=settings, token_path=tmp_token_path)
+    with pytest.raises(AuthenticationError):
+        manager.get_exchange_token_info()
+
+
+def test_resource_access_entry_parses_roles() -> None:
+    entry = ResourceAccessEntry.model_validate(
+        {"roles": ["stare-user", "default-role"]}
+    )
+    assert entry.roles == ["stare-user", "default-role"]
+
+
+def test_resource_access_entry_defaults_empty() -> None:
+    entry = ResourceAccessEntry.model_validate({})
+    assert entry.roles == []
 
 
 def test_get_token_exchange_sends_correct_params(
