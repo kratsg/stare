@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 from stare.exceptions import AuthenticationError, TokenExpiredError
 from stare.models.auth import JwtClaims, TokenInfo, _OAuthTokenResponse, _StoredToken
 from stare.settings import StareSettings
+from stare.storage import FileTokenStorage, TokenStorage
 
 _DEFAULT_TOKEN_PATH = Path(user_data_dir("stare")) / "tokens.json"
 
@@ -60,9 +61,11 @@ class TokenManager:
         self,
         settings: StareSettings | None = None,
         token_path: Path | None = None,
+        storage: TokenStorage | None = None,
     ) -> None:
         self._settings = settings or StareSettings()
         self._token_path = token_path or _DEFAULT_TOKEN_PATH
+        self._storage: TokenStorage = storage or FileTokenStorage(self._token_path)
         # In-memory cache for the RFC 8693 exchanged token (avoids a round-trip
         # to the token endpoint on every API call).
         self._exchanged_token: str | None = None
@@ -193,13 +196,11 @@ class TokenManager:
             oauth_resp = _OAuthTokenResponse.model_validate(response.json())
 
         token = _StoredToken.from_response(oauth_resp)
-        self._token_path.parent.mkdir(parents=True, exist_ok=True)
-        self._token_path.write_text(token.model_dump_json())
+        self._storage.save(token)
 
     def logout(self) -> None:
         """Delete stored tokens."""
-        if self._token_path.exists():
-            self._token_path.unlink()
+        self._storage.delete()
 
     def get_token(self) -> str:
         """Return a valid access token, refreshing and exchanging as needed.
@@ -219,11 +220,10 @@ class TokenManager:
 
     def _get_base_token(self) -> str:
         """Return the raw PKCE access token, refreshing via refresh_token if expired."""
-        if not self._token_path.exists():
+        token = self._storage.load()
+        if token is None:
             msg = "Not authenticated. Run `stare login` first."
             raise AuthenticationError(msg)
-
-        token = _StoredToken.model_validate_json(self._token_path.read_text())
 
         if token.is_expired:
             if not token.refresh_token:
@@ -279,7 +279,7 @@ class TokenManager:
             raise TokenExpiredError(msg) from exc
 
         token = _StoredToken.from_response(oauth_resp)
-        self._token_path.write_text(token.model_dump_json())
+        self._storage.save(token)
         return token
 
     def get_pkce_access_token(self) -> str:
@@ -292,11 +292,10 @@ class TokenManager:
 
     def get_pkce_id_token(self) -> str | None:
         """Return the stored PKCE id token, or None if absent or not logged in."""
-        if not self._token_path.exists():
-            return None
         with contextlib.suppress(Exception):
-            token = _StoredToken.model_validate_json(self._token_path.read_text())
-            return token.id_token
+            token = self._storage.load()
+            if token is not None:
+                return token.id_token
         return None
 
     def get_exchange_access_token(self) -> str | None:
@@ -313,11 +312,10 @@ class TokenManager:
 
     def is_authenticated(self) -> bool:
         """Return True if a non-expired token is stored."""
-        if not self._token_path.exists():
-            return False
         with contextlib.suppress(Exception):
-            token = _StoredToken.model_validate_json(self._token_path.read_text())
-            return not token.is_expired
+            token = self._storage.load()
+            if token is not None:
+                return not token.is_expired
         return False
 
     def get_token_info(self) -> TokenInfo | None:
@@ -326,18 +324,17 @@ class TokenManager:
         The JWT payload is decoded without signature verification — suitable
         only for display purposes, not security decisions.
         """
-        if not self._token_path.exists():
-            return None
         with contextlib.suppress(Exception):
-            token = _StoredToken.model_validate_json(self._token_path.read_text())
-            # Prefer id_token (contains identity claims); fall back to access_token.
-            jwt_to_decode = token.id_token or token.access_token
-            claims = _decode_jwt_payload(jwt_to_decode)
-            return TokenInfo(
-                is_expired=token.is_expired,
-                expires_at=token.expires_at,
-                claims=claims,
-            )
+            token = self._storage.load()
+            if token is not None:
+                # Prefer id_token (contains identity claims); fall back to access_token.
+                jwt_to_decode = token.id_token or token.access_token
+                claims = _decode_jwt_payload(jwt_to_decode)
+                return TokenInfo(
+                    is_expired=token.is_expired,
+                    expires_at=token.expires_at,
+                    claims=claims,
+                )
         return None
 
     def get_exchange_token_info(self) -> TokenInfo | None:
