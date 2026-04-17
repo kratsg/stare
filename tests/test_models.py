@@ -115,9 +115,9 @@ class TestAnalysisContact:
 class TestGroups:
     def test_parse(self) -> None:
         g = Groups.model_validate(
-            {"leadingGroup": ["SUSY"], "subgroups": ["Run2"], "otherGroups": []}
+            {"leadingGroup": "SUSY", "subgroups": ["Run2"], "otherGroups": []}
         )
-        assert g.leading_group == ["SUSY"]
+        assert g.leading_group == "SUSY"
         assert g.subgroups == ["Run2"]
         assert g.other_groups == []
 
@@ -312,14 +312,14 @@ class TestAnalysis:
             {
                 "referenceCode": "ANA-SUSY-2020-01",
                 "groups": {
-                    "leadingGroup": ["SUSY"],
+                    "leadingGroup": "SUSY",
                     "subgroups": [],
                     "otherGroups": [],
                 },
             }
         )
         assert a.groups is not None
-        assert a.groups.leading_group == ["SUSY"]
+        assert a.groups.leading_group == "SUSY"
 
     def test_nested_phase0(self) -> None:
         a = Analysis.model_validate(

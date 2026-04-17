@@ -47,7 +47,7 @@ SAMPLE_ANALYSIS = {
     "status": "Active",
     "shortTitle": "Test analysis",
     "publicShortTitle": "Public test",
-    "groups": {"leadingGroup": ["HDBS"], "subgroups": [], "otherGroups": []},
+    "groups": {"leadingGroup": "HDBS", "subgroups": [], "otherGroups": []},
     "phase0": {"state": "Approved"},
 }
 

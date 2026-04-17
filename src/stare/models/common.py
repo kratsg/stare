@@ -89,7 +89,7 @@ class AnalysisContact(Person):
 class Groups(_Base):
     """Leading group, subgroups, and other groups for a publication."""
 
-    leading_group: list[str] | None = Field(default=None, alias="leadingGroup")
+    leading_group: str | None = Field(default=None, alias="leadingGroup")
     subgroups: list[str] | None = Field(default=None, alias="subgroups")
     other_groups: list[str] | None = Field(default=None, alias="otherGroups")
 
