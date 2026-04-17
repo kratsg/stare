@@ -24,6 +24,7 @@ hatch-vcs = ">=0.4"
 [package.run-dependencies]
 python = ">=3.10"
 httpx = ">=0.27"
+keyring = ">=25"
 pydantic = ">=2"
 pydantic-settings = ">=2"
 typer = ">=0.12"

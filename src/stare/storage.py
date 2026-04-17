@@ -2,10 +2,18 @@
 
 from __future__ import annotations
 
+import contextlib
 from abc import ABC, abstractmethod
 from pathlib import Path
 
+import keyring
+import keyring.errors
+from keyring.backends.fail import Keyring as FailKeyring
+from platformdirs import user_data_dir
+
 from stare.models.auth import _StoredToken
+
+_DEFAULT_TOKEN_PATH = Path(user_data_dir("stare")) / "tokens.json"
 
 
 class TokenStorage(ABC):
@@ -58,3 +66,63 @@ class FileTokenStorage(TokenStorage):
     @property
     def lock_path(self) -> Path:
         return self._path.with_suffix(".lock")
+
+
+class KeyringTokenStorage(TokenStorage):
+    """Stores tokens as a JSON blob in the OS-native credential store.
+
+    Uses macOS Keychain, Linux Secret Service, or Windows Credential Locker
+    depending on the platform.  The entire :class:`_StoredToken` is persisted
+    as a single JSON string to avoid partial-write races.
+    """
+
+    SERVICE_NAME = "stare"
+    ENTRY_KEY = "tokens"
+
+    def load(self) -> _StoredToken | None:
+        data = keyring.get_password(self.SERVICE_NAME, self.ENTRY_KEY)
+        if data is None:
+            return None
+        return _StoredToken.model_validate_json(data)
+
+    def save(self, token: _StoredToken) -> None:
+        keyring.set_password(self.SERVICE_NAME, self.ENTRY_KEY, token.model_dump_json())
+
+    def delete(self) -> None:
+        with contextlib.suppress(keyring.errors.PasswordDeleteError):
+            keyring.delete_password(self.SERVICE_NAME, self.ENTRY_KEY)
+
+    def exists(self) -> bool:
+        return keyring.get_password(self.SERVICE_NAME, self.ENTRY_KEY) is not None
+
+    @property
+    def lock_path(self) -> Path:
+        return Path(user_data_dir("stare")) / "tokens.lock"
+
+    def migrate_from_file(self, file_path: Path) -> None:
+        """One-time migration from plaintext file to keyring. Idempotent."""
+        if self.exists():
+            return
+        file_storage = FileTokenStorage(file_path)
+        token = file_storage.load()
+        if token is None:
+            return
+        self.save(token)
+        file_storage.delete()
+
+
+def get_default_storage(token_path: Path | None = None) -> TokenStorage:
+    """Return the best available storage backend.
+
+    Uses :class:`KeyringTokenStorage` when the OS keyring is functional, and
+    performs a one-time migration from the plaintext file if needed.  Falls
+    back to :class:`FileTokenStorage` when no functional keyring is available
+    (headless servers, CI environments).
+    """
+    file_path = token_path or _DEFAULT_TOKEN_PATH
+    backend = keyring.get_keyring()
+    if isinstance(backend, FailKeyring):
+        return FileTokenStorage(file_path)
+    keyring_storage = KeyringTokenStorage()
+    keyring_storage.migrate_from_file(file_path)
+    return keyring_storage

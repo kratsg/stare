@@ -12,22 +12,24 @@ import threading
 import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from pathlib import Path
 from typing import TYPE_CHECKING
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import httpx
-from platformdirs import user_data_dir
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+    from pathlib import Path
 
 from stare.exceptions import AuthenticationError, TokenExpiredError
 from stare.models.auth import JwtClaims, TokenInfo, _OAuthTokenResponse, _StoredToken
 from stare.settings import StareSettings
-from stare.storage import FileTokenStorage, TokenStorage
-
-_DEFAULT_TOKEN_PATH = Path(user_data_dir("stare")) / "tokens.json"
+from stare.storage import (
+    _DEFAULT_TOKEN_PATH,
+    FileTokenStorage,
+    TokenStorage,
+    get_default_storage,
+)
 
 
 def _create_s256_code_challenge(code_verifier: str) -> str:
@@ -65,7 +67,14 @@ class TokenManager:
     ) -> None:
         self._settings = settings or StareSettings()
         self._token_path = token_path or _DEFAULT_TOKEN_PATH
-        self._storage: TokenStorage = storage or FileTokenStorage(self._token_path)
+        if storage is not None:
+            self._storage: TokenStorage = storage
+        elif token_path is not None:
+            # Explicit path → always use file storage (no keyring lookup).
+            self._storage = FileTokenStorage(token_path)
+        else:
+            # No explicit storage or path → auto-detect (keyring if available).
+            self._storage = get_default_storage()
         # In-memory cache for the RFC 8693 exchanged token (avoids a round-trip
         # to the token endpoint on every API call).
         self._exchanged_token: str | None = None
