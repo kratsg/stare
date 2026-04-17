@@ -42,6 +42,8 @@ def test_settings() -> StareSettings:
         auth_url="https://auth.example.com/auth",
         token_url="https://auth.example.com/token",
         revocation_url="https://auth.example.com/revoke",
+        issuer="https://auth.example.com/realms/test",
+        jwks_url="https://auth.example.com/realms/test/certs",
         client_id="test-client",
         scopes="openid",
         callback_port=18182,
