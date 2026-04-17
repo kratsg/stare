@@ -115,6 +115,13 @@ class TokenManager:
 
         class _CallbackHandler(BaseHTTPRequestHandler):
             def do_GET(self) -> None:
+                host = self.headers.get("Host", "")
+                if not host.startswith(
+                    ("localhost:", "127.0.0.1:", "localhost", "127.0.0.1")
+                ):
+                    self.send_response(403)
+                    self.end_headers()
+                    return
                 parsed = urlparse(self.path)
                 params = parse_qs(parsed.query)
                 received["code"] = params.get("code", [""])[0]

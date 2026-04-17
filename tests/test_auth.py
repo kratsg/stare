@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import contextlib
+import http.client
 import json
 import threading
 import time
@@ -1178,3 +1179,66 @@ def test_get_base_token_uses_configurable_expiry_margin(
         token = manager.get_token()
 
     assert token == "new"
+
+
+# ---------------------------------------------------------------------------
+# callback server Host header hardening (Step 8)
+# ---------------------------------------------------------------------------
+
+
+def test_callback_handler_rejects_bad_host(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    """Callback server returns 403 for requests with unrecognized Host headers."""
+    captured_url: dict[str, str] = {}
+    bad_host_status: list[int] = []
+
+    def _fake_browser(url: str) -> bool:
+        captured_url["url"] = url
+        return True
+
+    def _get_manual_code() -> str | None:
+        deadline = time.time() + 5.0
+        while "url" not in captured_url and time.time() < deadline:
+            time.sleep(0.01)
+        url = captured_url.get("url", "")
+        if not url:
+            return None
+        parsed = urlparse(url)
+        params = parse_qs(parsed.query)
+        state = params.get("state", [""])[0]
+        redirect_uri = params.get("redirect_uri", [""])[0]
+        port = urlparse(redirect_uri).port
+
+        time.sleep(0.05)
+        try:
+            conn = http.client.HTTPConnection("127.0.0.1", port, timeout=5)
+            conn.putrequest(
+                "GET", f"/callback?code=bad-code&state={state}", skip_host=True
+            )
+            conn.putheader("Host", "evil.example.com")
+            conn.endheaders()
+            resp = conn.getresponse()
+            bad_host_status.append(resp.status)
+            resp.read()
+            conn.close()
+        except Exception:  # noqa: BLE001
+            pass
+
+        return "manual-code"
+
+    new_tokens = {
+        "access_token": "host-check-access",
+        "token_type": "Bearer",
+        "expires_in": 3600,
+    }
+
+    with respx.mock:
+        respx.post(test_settings.token_url).mock(
+            return_value=httpx.Response(200, json=new_tokens)
+        )
+        with patch("stare.auth.webbrowser.open", side_effect=_fake_browser):
+            manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+            manager.login(get_manual_code=_get_manual_code)
+
+    assert bad_host_status == [403]
