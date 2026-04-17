@@ -772,3 +772,63 @@ def test_get_token_exchange_sends_correct_params(
         params["subject_token_type"] == "urn:ietf:params:oauth:token-type:access_token"
     )
     assert params["audience"] == "target-api"
+
+
+# ---------------------------------------------------------------------------
+# refresh token rotation safety (Step 3)
+# ---------------------------------------------------------------------------
+
+
+def test_refresh_failure_clears_stored_tokens(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    """On HTTP 4xx from the refresh endpoint, stored tokens must be deleted."""
+    expired = {
+        "access_token": "old",
+        "refresh_token": "bad-refresh",
+        "token_type": "Bearer",
+        "expires_at": int(time.time()) - 10,
+    }
+    tmp_token_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_token_path.write_text(json.dumps(expired))
+
+    with respx.mock:
+        respx.post(test_settings.token_url).mock(
+            return_value=httpx.Response(401, json={"error": "invalid_grant"})
+        )
+        manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+        with pytest.raises(TokenExpiredError):
+            manager.get_token()
+
+    assert not tmp_token_path.exists()
+
+
+def test_refresh_failure_clears_exchange_cache(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    """On HTTP 4xx from the refresh endpoint, in-memory exchange cache is cleared."""
+    expired = {
+        "access_token": "old",
+        "refresh_token": "bad-refresh",
+        "token_type": "Bearer",
+        "expires_at": int(time.time()) - 10,
+    }
+    tmp_token_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_token_path.write_text(json.dumps(expired))
+
+    settings = _exchange_settings(test_settings)
+    with respx.mock:
+        respx.post(settings.token_url).mock(
+            return_value=httpx.Response(401, json={"error": "invalid_grant"})
+        )
+        manager = TokenManager(settings=settings, token_path=tmp_token_path)
+        manager._exchanged_token = "stale-exchanged"
+        manager._exchanged_expires_at = int(time.time()) + 3600
+        with pytest.raises(TokenExpiredError):
+            manager.get_token()
+
+    # Read via typed local vars — prevents mypy from narrowing based on the
+    # "stale-exchanged" assignment above and falsely flagging the None check.
+    cached_token: str | None = manager._exchanged_token
+    assert cached_token is None
+    assert manager._exchanged_expires_at == 0

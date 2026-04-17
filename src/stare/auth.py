@@ -284,6 +284,11 @@ class TokenManager:
                 response.raise_for_status()
                 oauth_resp = _OAuthTokenResponse.model_validate(response.json())
         except httpx.HTTPStatusError as exc:
+            # Keycloak rotates refresh tokens — a 4xx means the stored token
+            # is already invalidated server-side, so delete it locally too.
+            self._storage.delete()
+            self._exchanged_token = None
+            self._exchanged_expires_at = 0
             msg = f"Token refresh failed ({exc.response.status_code}). Run `stare login` again."
             raise TokenExpiredError(msg) from exc
 
