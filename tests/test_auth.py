@@ -609,6 +609,83 @@ def test_get_token_exchange_raises_on_http_failure(
             manager.get_token()
 
 
+# ---------------------------------------------------------------------------
+# get_pkce_access_token / get_pkce_id_token / get_exchange_access_token
+# ---------------------------------------------------------------------------
+
+
+def test_get_pkce_access_token_returns_stored_token(
+    stored_token_path: Path, test_settings: StareSettings
+) -> None:
+    manager = TokenManager(settings=test_settings, token_path=stored_token_path)
+    assert manager.get_pkce_access_token() == "test-access-token"
+
+
+def test_get_pkce_access_token_raises_when_not_logged_in(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+    with pytest.raises(AuthenticationError):
+        manager.get_pkce_access_token()
+
+
+def test_get_pkce_id_token_returns_stored_id_token(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    stored = {
+        "access_token": "at",
+        "id_token": "my-id-token",
+        "token_type": "Bearer",
+        "expires_at": int(time.time()) + 3600,
+    }
+    tmp_token_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_token_path.write_text(json.dumps(stored))
+    manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+    assert manager.get_pkce_id_token() == "my-id-token"
+
+
+def test_get_pkce_id_token_returns_none_when_absent(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    stored = {
+        "access_token": "at",
+        "token_type": "Bearer",
+        "expires_at": int(time.time()) + 3600,
+    }
+    tmp_token_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_token_path.write_text(json.dumps(stored))
+    manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+    assert manager.get_pkce_id_token() is None
+
+
+def test_get_pkce_id_token_returns_none_when_no_file(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+    assert manager.get_pkce_id_token() is None
+
+
+def test_get_exchange_access_token_returns_none_when_no_audience(
+    stored_token_path: Path, test_settings: StareSettings
+) -> None:
+    manager = TokenManager(settings=test_settings, token_path=stored_token_path)
+    assert manager.get_exchange_access_token() is None
+
+
+def test_get_exchange_access_token_returns_exchanged_token(
+    stored_token_path: Path, test_settings: StareSettings
+) -> None:
+    settings = _exchange_settings(test_settings)
+    exchanged = {"access_token": "ex-raw", "token_type": "Bearer", "expires_in": 3600}
+    with respx.mock:
+        respx.post(settings.token_url).mock(
+            return_value=httpx.Response(200, json=exchanged)
+        )
+        manager = TokenManager(settings=settings, token_path=stored_token_path)
+        tok = manager.get_exchange_access_token()
+    assert tok == "ex-raw"
+
+
 def test_get_exchange_token_info_returns_none_when_no_audience(
     stored_token_path: Path, test_settings: StareSettings
 ) -> None:

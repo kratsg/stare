@@ -215,6 +215,33 @@ def test_auth_info_shows_expired_when_token_expired() -> None:
     assert "expired" in result.output.lower()
 
 
+def test_auth_info_shows_audience_string() -> None:
+    mock_tm = MagicMock()
+    mock_tm.get_token_info.return_value = TokenInfo(
+        is_expired=False,
+        expires_at=int(__import__("time").time()) + 3600,
+        claims=JwtClaims(preferred_username="han.solo", aud="atlas-glance-api"),
+    )
+    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "info"])
+    assert result.exit_code == 0
+    assert "atlas-glance-api" in result.output
+
+
+def test_auth_info_shows_audience_list() -> None:
+    mock_tm = MagicMock()
+    mock_tm.get_token_info.return_value = TokenInfo(
+        is_expired=False,
+        expires_at=int(__import__("time").time()) + 3600,
+        claims=JwtClaims(preferred_username="han.solo", aud=["api-a", "api-b"]),
+    )
+    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "info"])
+    assert result.exit_code == 0
+    assert "api-a" in result.output
+    assert "api-b" in result.output
+
+
 def test_auth_info_shows_roles() -> None:
     mock_tm = MagicMock()
     mock_tm.get_token_info.return_value = TokenInfo(
@@ -255,6 +282,56 @@ def test_auth_info_exchange_no_audience_shows_error() -> None:
     mock_tm.get_exchange_token_info.return_value = None
     with patch("stare.cli._make_token_manager", return_value=mock_tm):
         result = runner.invoke(app, ["auth", "info", "--exchange"])
+    assert result.exit_code != 0
+
+
+def test_auth_info_access_token_prints_raw() -> None:
+    mock_tm = MagicMock()
+    mock_tm.get_pkce_access_token.return_value = "raw-pkce-access"
+    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "info", "--access-token"])
+    assert result.exit_code == 0
+    assert "raw-pkce-access" in result.output
+
+
+def test_auth_info_id_token_prints_raw() -> None:
+    mock_tm = MagicMock()
+    mock_tm.get_pkce_id_token.return_value = "raw-id-token"
+    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "info", "--id-token"])
+    assert result.exit_code == 0
+    assert "raw-id-token" in result.output
+
+
+def test_auth_info_id_token_missing_shows_error() -> None:
+    mock_tm = MagicMock()
+    mock_tm.get_pkce_id_token.return_value = None
+    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "info", "--id-token"])
+    assert result.exit_code != 0
+
+
+def test_auth_info_exchange_access_token_prints_raw() -> None:
+    mock_tm = MagicMock()
+    mock_tm.get_exchange_access_token.return_value = "raw-exchange-access"
+    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "info", "--exchange", "--access-token"])
+    assert result.exit_code == 0
+    assert "raw-exchange-access" in result.output
+
+
+def test_auth_info_exchange_access_token_no_audience_shows_error() -> None:
+    mock_tm = MagicMock()
+    mock_tm.get_exchange_access_token.return_value = None
+    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "info", "--exchange", "--access-token"])
+    assert result.exit_code != 0
+
+
+def test_auth_info_exchange_id_token_shows_error() -> None:
+    mock_tm = MagicMock()
+    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "info", "--exchange", "--id-token"])
     assert result.exit_code != 0
 
 

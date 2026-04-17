@@ -160,9 +160,56 @@ def auth_info(
         bool,
         typer.Option("--exchange", help="Show info for the RFC 8693 exchanged token"),
     ] = False,
+    access_token: Annotated[
+        bool,
+        typer.Option(
+            "--access-token", help="Print the raw access token instead of decoded info"
+        ),
+    ] = False,
+    id_token: Annotated[
+        bool,
+        typer.Option(
+            "--id-token", help="Print the raw id token instead of decoded info"
+        ),
+    ] = False,
 ) -> None:
     """Show detailed token information and decoded JWT claims."""
     tm = _make_token_manager()
+
+    # --exchange --id-token is nonsensical: token exchange produces no id token
+    if exchange and id_token:
+        err_console.print("The RFC 8693 token exchange does not produce an id token.")
+        raise typer.Exit(1)
+
+    # Raw token output mode: print token string(s) and return
+    if access_token or id_token:
+        if access_token:
+            if exchange:
+                try:
+                    tok = tm.get_exchange_access_token()
+                except StareError as exc:
+                    _handle_error(exc)
+                    raise typer.Exit(1) from exc
+                if tok is None:
+                    err_console.print(
+                        "Token exchange is not configured. "
+                        "Set [bold]STARE_EXCHANGE_AUDIENCE[/bold] to enable."
+                    )
+                    raise typer.Exit(1)
+            else:
+                try:
+                    tok = tm.get_pkce_access_token()
+                except StareError as exc:
+                    _handle_error(exc)
+                    raise typer.Exit(1) from exc
+            typer.echo(tok)
+        if id_token:
+            raw = tm.get_pkce_id_token()
+            if raw is None:
+                err_console.print("No id token is stored.")
+                raise typer.Exit(1)
+            typer.echo(raw)
+        return
 
     if exchange:
         try:
@@ -217,6 +264,10 @@ def auth_info(
         val = getattr(claims, api_key, None)
         if val:
             table.add_row(label, str(val))
+
+    if claims.aud is not None:
+        aud_str = ", ".join(claims.aud) if isinstance(claims.aud, list) else claims.aud
+        table.add_row("Audience", aud_str)
 
     if claims.cern_roles:
         table.add_row("Roles", ", ".join(claims.cern_roles))

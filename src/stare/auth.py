@@ -282,6 +282,35 @@ class TokenManager:
         self._token_path.write_text(token.model_dump_json())
         return token
 
+    def get_pkce_access_token(self) -> str:
+        """Return the PKCE base access token (refreshing if needed).
+
+        Never performs a token exchange regardless of ``exchange_audience``.
+        Raises :exc:`~stare.exceptions.AuthenticationError` if not logged in.
+        """
+        return self._get_base_token()
+
+    def get_pkce_id_token(self) -> str | None:
+        """Return the stored PKCE id token, or None if absent or not logged in."""
+        if not self._token_path.exists():
+            return None
+        with contextlib.suppress(Exception):
+            token = _StoredToken.model_validate_json(self._token_path.read_text())
+            return token.id_token
+        return None
+
+    def get_exchange_access_token(self) -> str | None:
+        """Return the raw RFC 8693 exchanged access token.
+
+        Returns None if ``exchange_audience`` is not configured.
+        Performs the exchange if the cached token is absent or nearly expired.
+        Raises :exc:`~stare.exceptions.AuthenticationError` if not logged in.
+        """
+        if not self._settings.exchange_audience:
+            return None
+        self.get_token()  # populates _exchanged_token
+        return self._exchanged_token
+
     def is_authenticated(self) -> bool:
         """Return True if a non-expired token is stored."""
         if not self._token_path.exists():
