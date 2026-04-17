@@ -208,8 +208,28 @@ class TokenManager:
         self._storage.save(token)
 
     def logout(self) -> None:
-        """Delete stored tokens."""
+        """Revoke tokens server-side (best-effort) then delete local storage."""
+        token = self._storage.load()
+        if token is not None:
+            self._revoke_token(token.refresh_token, "refresh_token")
+            self._revoke_token(token.access_token, "access_token")
         self._storage.delete()
+        self._exchanged_token = None
+        self._exchanged_expires_at = 0
+
+    def _revoke_token(self, token: str | None, token_type_hint: str) -> None:
+        """POST token to the Keycloak revocation endpoint; never raises."""
+        if not token:
+            return
+        with contextlib.suppress(Exception), httpx.Client() as client:
+            client.post(
+                self._settings.revocation_url,
+                data={
+                    "client_id": self._settings.client_id,
+                    "token": token,
+                    "token_type_hint": token_type_hint,
+                },
+            )
 
     def get_token(self) -> str:
         """Return a valid access token, refreshing and exchanging as needed.

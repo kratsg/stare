@@ -41,6 +41,7 @@ def test_settings() -> StareSettings:
         base_url="https://test-glance.example.com/api",
         auth_url="https://auth.example.com/auth",
         token_url="https://auth.example.com/token",
+        revocation_url="https://auth.example.com/revoke",
         client_id="test-client",
         scopes="openid",
         callback_port=18182,

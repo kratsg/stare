@@ -193,9 +193,11 @@ def test_get_token_info_falls_back_to_access_token(
 def test_logout_removes_token_file(
     stored_token_path: Path, test_settings: StareSettings
 ) -> None:
-    manager = TokenManager(settings=test_settings, token_path=stored_token_path)
-    assert stored_token_path.exists()
-    manager.logout()
+    with respx.mock:
+        respx.post(test_settings.revocation_url).mock(return_value=httpx.Response(200))
+        manager = TokenManager(settings=test_settings, token_path=stored_token_path)
+        assert stored_token_path.exists()
+        manager.logout()
     assert not stored_token_path.exists()
 
 
@@ -205,6 +207,67 @@ def test_logout_no_op_when_no_token(
     manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
     assert not tmp_token_path.exists()
     manager.logout()  # must not raise
+
+
+def test_logout_calls_revocation_for_both_tokens(
+    stored_token_path: Path, test_settings: StareSettings
+) -> None:
+    """logout() POSTs to revocation_url for both refresh_token and access_token."""
+    with respx.mock:
+        revoke_route = respx.post(test_settings.revocation_url).mock(
+            return_value=httpx.Response(200)
+        )
+        manager = TokenManager(settings=test_settings, token_path=stored_token_path)
+        manager.logout()
+    assert revoke_route.call_count == 2
+    assert not stored_token_path.exists()
+
+
+def test_logout_revocation_sends_correct_params(
+    stored_token_path: Path, test_settings: StareSettings
+) -> None:
+    """Each revocation call must include the correct token_type_hint and client_id."""
+    with respx.mock:
+        revoke_route = respx.post(test_settings.revocation_url).mock(
+            return_value=httpx.Response(200)
+        )
+        manager = TokenManager(settings=test_settings, token_path=stored_token_path)
+        manager.logout()
+
+    calls = [
+        {k: v[0] for k, v in parse_qs(c.request.content.decode()).items()}
+        for c in revoke_route.calls
+    ]
+    type_hints = {c["token_type_hint"] for c in calls}
+    assert type_hints == {"refresh_token", "access_token"}
+    for c in calls:
+        assert c["client_id"] == test_settings.client_id
+
+
+def test_logout_completes_when_revocation_unreachable(
+    stored_token_path: Path, test_settings: StareSettings
+) -> None:
+    """Revocation is best-effort — logout must complete even on network failure."""
+    with respx.mock:
+        respx.post(test_settings.revocation_url).mock(
+            side_effect=httpx.ConnectError("unreachable")
+        )
+        manager = TokenManager(settings=test_settings, token_path=stored_token_path)
+        manager.logout()  # must not raise
+    assert not stored_token_path.exists()
+
+
+def test_logout_skips_revocation_when_no_stored_tokens(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    """If no tokens are stored, the revocation endpoint must not be called."""
+    with respx.mock:
+        revoke_route = respx.post(test_settings.revocation_url).mock(
+            return_value=httpx.Response(200)
+        )
+        manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+        manager.logout()
+    assert not revoke_route.called
 
 
 # ---------------------------------------------------------------------------

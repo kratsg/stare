@@ -27,6 +27,9 @@ class StareSettings(BaseSettings):
     # scoped to this audience before each API call. Disabled by default; set
     # STARE_EXCHANGE_AUDIENCE=atlas-analysis-api (or similar) to enable.
     exchange_audience: str | None = None
+    revocation_url: str = (
+        "https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/revoke"
+    )
     # CA bundle to use for TLS verification. "Sectigo" is for the production
     # endpoint (atlas-glance.cern.ch); "CERN" is for the staging/dev endpoint
     # (glance-staging01.cern.ch) which still uses the CERN Grid CA.
