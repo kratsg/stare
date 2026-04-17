@@ -5,10 +5,6 @@ channels = ["conda-forge"]
 platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
 preview = ["pixi-build"]
 
-[activation.env]
-STARE_BASE_URL = "https://glance-staging01.cern.ch/atlas/analysis/api"
-STARE_CA_BUNDLE = "CERN"
-
 [dependencies]
 stare = { path = "./" }
 
@@ -33,6 +29,11 @@ pydantic-settings = ">=2"
 typer = ">=0.12"
 rich = ">=13"
 platformdirs = ">=4"
+
+[feature.staging.activation.env]
+STARE_BASE_URL = "https://glance-staging01.cern.ch/atlas/analysis/api"
+STARE_CA_BUNDLE = "CERN"
+STARE_EXCHANGE_AUDIENCE = "atlas-glance-analysis-api-dev"
 
 [feature.py310.dependencies]
 python = "<3.11,>=3.10"
@@ -95,6 +96,7 @@ py310 = ["test", "py310"]
 py311 = ["test", "py311"]
 py312 = ["test", "py312"]
 py313 = ["test", "py313"]
+staging = ["default", "staging"]
 
 [tasks]
 lint = { depends-on = ["pre-commit", "pylint"], description = "Run all linting (pre-commit + pylint)" }
