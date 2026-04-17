@@ -13,6 +13,7 @@ from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
 import httpx
+import jwt
 import pytest
 import respx
 
@@ -469,7 +470,12 @@ def test_login_stores_tokens(
         respx.post(test_settings.token_url).mock(
             return_value=httpx.Response(200, json=new_tokens)
         )
-        with patch("stare.auth.webbrowser.open", side_effect=_fake_browser):
+        with (
+            patch("stare.auth.webbrowser.open", side_effect=_fake_browser),
+            patch(
+                "stare.auth.TokenManager._validate_id_token", return_value=JwtClaims()
+            ),
+        ):
             manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
             manager.login()
 
@@ -590,6 +596,147 @@ def test_login_uses_manual_code_fallback(
     stored = json.loads(tmp_token_path.read_text())
     assert stored["access_token"] == "manual-access"
     assert stored["refresh_token"] == "manual-refresh"
+
+
+# ---------------------------------------------------------------------------
+# _validate_id_token (Step 5)
+# ---------------------------------------------------------------------------
+
+
+def test_validate_id_token_valid(
+    test_settings: StareSettings, tmp_token_path: Path
+) -> None:
+    """_validate_id_token returns JwtClaims when jwt.decode succeeds."""
+    payload = {"sub": "user123", "preferred_username": "testuser"}
+    manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+    with (
+        patch("stare.auth.jwt.PyJWKClient"),
+        patch("stare.auth.jwt.decode", return_value=payload),
+    ):
+        claims = manager._validate_id_token("fake.jwt.token")
+    assert claims.sub == "user123"
+    assert claims.preferred_username == "testuser"
+
+
+def test_validate_id_token_expired_raises(
+    test_settings: StareSettings, tmp_token_path: Path
+) -> None:
+    """_validate_id_token raises AuthenticationError on expired token."""
+    manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+    with (
+        patch("stare.auth.jwt.PyJWKClient"),
+        patch(
+            "stare.auth.jwt.decode",
+            side_effect=jwt.ExpiredSignatureError("Signature has expired"),
+        ),
+        pytest.raises(AuthenticationError),
+    ):
+        manager._validate_id_token("fake.jwt.token")
+
+
+def test_validate_id_token_wrong_issuer_raises(
+    test_settings: StareSettings, tmp_token_path: Path
+) -> None:
+    """_validate_id_token raises AuthenticationError on issuer mismatch."""
+    manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+    with (
+        patch("stare.auth.jwt.PyJWKClient"),
+        patch(
+            "stare.auth.jwt.decode",
+            side_effect=jwt.InvalidIssuerError("Invalid issuer"),
+        ),
+        pytest.raises(AuthenticationError),
+    ):
+        manager._validate_id_token("fake.jwt.token")
+
+
+def test_validate_id_token_wrong_audience_raises(
+    test_settings: StareSettings, tmp_token_path: Path
+) -> None:
+    """_validate_id_token raises AuthenticationError on audience mismatch."""
+    manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+    with (
+        patch("stare.auth.jwt.PyJWKClient"),
+        patch(
+            "stare.auth.jwt.decode",
+            side_effect=jwt.InvalidAudienceError("Invalid audience"),
+        ),
+        pytest.raises(AuthenticationError),
+    ):
+        manager._validate_id_token("fake.jwt.token")
+
+
+def test_login_validates_id_token_when_present(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    """login() calls _validate_id_token when the OAuth response includes an id_token."""
+    captured_url: dict[str, str] = {}
+
+    def _fake_browser(url: str) -> bool:
+        captured_url["url"] = url
+        return True
+
+    new_tokens = {
+        "access_token": "with-id-access",
+        "refresh_token": "with-id-refresh",
+        "token_type": "Bearer",
+        "expires_in": 3600,
+        "id_token": "some-id-token",
+    }
+
+    callback_thread = _make_callback_thread(captured_url)
+
+    with respx.mock:
+        respx.post(test_settings.token_url).mock(
+            return_value=httpx.Response(200, json=new_tokens)
+        )
+        with (
+            patch("stare.auth.webbrowser.open", side_effect=_fake_browser),
+            patch(
+                "stare.auth.TokenManager._validate_id_token", return_value=JwtClaims()
+            ) as mock_validate,
+        ):
+            manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+            manager.login()
+
+    callback_thread.join(timeout=5.0)
+    mock_validate.assert_called_once_with("some-id-token")
+
+
+def test_login_skips_validation_when_no_id_token(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    """login() skips _validate_id_token when the OAuth response has no id_token."""
+    captured_url: dict[str, str] = {}
+
+    def _fake_browser(url: str) -> bool:
+        captured_url["url"] = url
+        return True
+
+    new_tokens = {
+        "access_token": "no-id-access",
+        "refresh_token": "no-id-refresh",
+        "token_type": "Bearer",
+        "expires_in": 3600,
+    }
+
+    callback_thread = _make_callback_thread(captured_url)
+
+    with respx.mock:
+        respx.post(test_settings.token_url).mock(
+            return_value=httpx.Response(200, json=new_tokens)
+        )
+        with (
+            patch("stare.auth.webbrowser.open", side_effect=_fake_browser),
+            patch(
+                "stare.auth.TokenManager._validate_id_token", return_value=JwtClaims()
+            ) as mock_validate,
+        ):
+            manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+            manager.login()
+
+    callback_thread.join(timeout=5.0)
+    mock_validate.assert_not_called()
 
 
 # ---------------------------------------------------------------------------

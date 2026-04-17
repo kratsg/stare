@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import httpx
+import jwt
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -204,8 +205,32 @@ class TokenManager:
             response.raise_for_status()
             oauth_resp = _OAuthTokenResponse.model_validate(response.json())
 
+        if oauth_resp.id_token:
+            self._validate_id_token(oauth_resp.id_token)
+
         token = _StoredToken.from_response(oauth_resp)
         self._storage.save(token)
+
+    def _validate_id_token(self, id_token: str) -> JwtClaims:
+        """Validate and decode an ID token using the JWKS endpoint (PyJWT).
+
+        Raises :exc:`~stare.exceptions.AuthenticationError` on any validation
+        failure (expired, wrong issuer, wrong audience, bad signature, …).
+        """
+        try:
+            jwks_client = jwt.PyJWKClient(self._settings.jwks_url)
+            signing_key = jwks_client.get_signing_key_from_jwt(id_token)
+            payload = jwt.decode(
+                id_token,
+                signing_key.key,
+                algorithms=["RS256"],
+                audience=self._settings.client_id,
+                issuer=self._settings.issuer,
+            )
+            return JwtClaims.model_validate(payload)
+        except jwt.PyJWTError as exc:
+            msg = f"ID token validation failed: {exc}"
+            raise AuthenticationError(msg) from exc
 
     def logout(self) -> None:
         """Revoke tokens server-side (best-effort) then delete local storage."""
