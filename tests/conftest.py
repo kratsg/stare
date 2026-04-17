@@ -44,6 +44,7 @@ def test_settings() -> StareSettings:
         client_id="test-client",
         scopes="openid",
         callback_port=18182,
+        exchange_audience=None,
     )
 
 

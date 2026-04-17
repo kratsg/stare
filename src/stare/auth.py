@@ -9,6 +9,7 @@ import json
 import queue
 import secrets
 import threading
+import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
@@ -62,6 +63,10 @@ class TokenManager:
     ) -> None:
         self._settings = settings or StareSettings()
         self._token_path = token_path or _DEFAULT_TOKEN_PATH
+        # In-memory cache for the RFC 8693 exchanged token (avoids a round-trip
+        # to the token endpoint on every API call).
+        self._exchanged_token: str | None = None
+        self._exchanged_expires_at: int = 0
 
     @property
     def token_path(self) -> Path:
@@ -197,7 +202,23 @@ class TokenManager:
             self._token_path.unlink()
 
     def get_token(self) -> str:
-        """Return a valid access token, refreshing if needed."""
+        """Return a valid access token, refreshing and exchanging as needed.
+
+        If ``settings.exchange_audience`` is set, the PKCE access token is
+        exchanged for an audience-scoped token via RFC 8693.  The exchanged
+        token is cached in memory to avoid a round-trip on every API call.
+        """
+        base_token = self._get_base_token()
+        if not self._settings.exchange_audience:
+            return base_token
+        # Return cached exchange token if still valid (> 60 s left)
+        if self._exchanged_token and self._exchanged_expires_at > int(time.time()) + 60:
+            return self._exchanged_token
+        self._exchange_token(base_token)
+        return self._exchanged_token  # type: ignore[return-value]  # set by _exchange_token
+
+    def _get_base_token(self) -> str:
+        """Return the raw PKCE access token, refreshing via refresh_token if expired."""
         if not self._token_path.exists():
             msg = "Not authenticated. Run `stare login` first."
             raise AuthenticationError(msg)
@@ -211,6 +232,33 @@ class TokenManager:
             token = self._refresh(token.refresh_token)
 
         return token.access_token
+
+    def _exchange_token(self, subject_token: str) -> None:
+        """Exchange a PKCE access token for an audience-scoped token (RFC 8693).
+
+        The result is stored in ``_exchanged_token`` / ``_exchanged_expires_at``.
+        Raises :exc:`~stare.exceptions.TokenExpiredError` on HTTP failure.
+        """
+        try:
+            with httpx.Client() as client:
+                response = client.post(
+                    self._settings.token_url,
+                    data={
+                        "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+                        "client_id": self._settings.client_id,
+                        "subject_token": subject_token,
+                        "subject_token_type": "urn:ietf:params:oauth:token-type:access_token",
+                        "audience": self._settings.exchange_audience,
+                    },
+                )
+                response.raise_for_status()
+                oauth_resp = _OAuthTokenResponse.model_validate(response.json())
+
+        except httpx.HTTPStatusError as exc:
+            msg = f"Token exchange failed ({exc.response.status_code}). Run `stare login` again."
+            raise TokenExpiredError(msg) from exc
+        self._exchanged_token = oauth_resp.access_token
+        self._exchanged_expires_at = int(time.time()) + oauth_resp.expires_in
 
     def _refresh(self, refresh_token: str) -> _StoredToken:
         """Exchange a refresh token for new tokens and persist them."""

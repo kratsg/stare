@@ -493,3 +493,111 @@ def test_login_uses_manual_code_fallback(
     stored = json.loads(tmp_token_path.read_text())
     assert stored["access_token"] == "manual-access"
     assert stored["refresh_token"] == "manual-refresh"
+
+
+# ---------------------------------------------------------------------------
+# token exchange (RFC 8693)
+# ---------------------------------------------------------------------------
+
+
+def _exchange_settings(base: StareSettings) -> StareSettings:
+    """Return settings identical to *base* but with exchange_audience set."""
+    return base.model_copy(update={"exchange_audience": "target-api"})
+
+
+def test_get_token_with_exchange_calls_token_endpoint(
+    stored_token_path: Path, test_settings: StareSettings
+) -> None:
+    """When exchange_audience is set, get_token() performs RFC 8693 exchange."""
+    settings = _exchange_settings(test_settings)
+    exchanged = {
+        "access_token": "exchanged-access",
+        "token_type": "Bearer",
+        "expires_in": 3600,
+    }
+    with respx.mock:
+        route = respx.post(settings.token_url).mock(
+            return_value=httpx.Response(200, json=exchanged)
+        )
+        manager = TokenManager(settings=settings, token_path=stored_token_path)
+        token = manager.get_token()
+
+    assert token == "exchanged-access"
+    assert route.called
+
+
+def test_get_token_without_exchange_skips_endpoint(
+    stored_token_path: Path, test_settings: StareSettings
+) -> None:
+    """When exchange_audience is None, get_token() returns the PKCE token directly."""
+    with respx.mock:
+        manager = TokenManager(settings=test_settings, token_path=stored_token_path)
+        token = manager.get_token()
+        # No HTTP calls should have been made (respx would raise on unexpected calls)
+
+    assert token == "test-access-token"
+
+
+def test_get_token_exchange_caches_result(
+    stored_token_path: Path, test_settings: StareSettings
+) -> None:
+    """The exchanged token is cached; a second call must not hit the endpoint again."""
+    settings = _exchange_settings(test_settings)
+    exchanged = {
+        "access_token": "cached-exchanged",
+        "token_type": "Bearer",
+        "expires_in": 3600,
+    }
+    with respx.mock:
+        route = respx.post(settings.token_url).mock(
+            return_value=httpx.Response(200, json=exchanged)
+        )
+        manager = TokenManager(settings=settings, token_path=stored_token_path)
+        first = manager.get_token()
+        second = manager.get_token()
+
+    assert first == "cached-exchanged"
+    assert second == "cached-exchanged"
+    assert route.call_count == 1
+
+
+def test_get_token_exchange_raises_on_http_failure(
+    stored_token_path: Path, test_settings: StareSettings
+) -> None:
+    """An HTTP error from the token exchange endpoint raises TokenExpiredError."""
+    settings = _exchange_settings(test_settings)
+    with respx.mock:
+        respx.post(settings.token_url).mock(
+            return_value=httpx.Response(401, json={"error": "unauthorized"})
+        )
+        manager = TokenManager(settings=settings, token_path=stored_token_path)
+        with pytest.raises(TokenExpiredError):
+            manager.get_token()
+
+
+def test_get_token_exchange_sends_correct_params(
+    stored_token_path: Path, test_settings: StareSettings
+) -> None:
+    """The token exchange POST includes the required RFC 8693 fields."""
+    settings = _exchange_settings(test_settings)
+    exchanged = {
+        "access_token": "ex-token",
+        "token_type": "Bearer",
+        "expires_in": 3600,
+    }
+    with respx.mock:
+        route = respx.post(settings.token_url).mock(
+            return_value=httpx.Response(200, json=exchanged)
+        )
+        manager = TokenManager(settings=settings, token_path=stored_token_path)
+        manager.get_token()
+
+    body = route.calls.last.request.content.decode()
+    params = {k: v[0] for k, v in parse_qs(body).items()}
+    assert params["grant_type"] == "urn:ietf:params:oauth:grant-type:token-exchange"
+    assert params["client_id"] == settings.client_id
+    assert params["subject_token"] == "test-access-token"
+    assert (
+        params["subject_token_type"] == "urn:ietf:params:oauth:token-type:access_token"
+    )
+    assert params["audience"] == "target-api"
