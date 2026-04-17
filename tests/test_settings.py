@@ -66,3 +66,13 @@ class TestStareSettingsEnvOverrides:
         monkeypatch.setenv("STARE_CA_BUNDLE", "CERN")
         s = StareSettings()
         assert s.ca_bundle == "CERN"
+
+
+class TestStareSettingsExpiry:
+    def test_default_exchange_token_buffer_seconds(self) -> None:
+        s = StareSettings()
+        assert s.exchange_token_buffer_seconds == 120
+
+    def test_default_token_expiry_margin_seconds(self) -> None:
+        s = StareSettings()
+        assert s.token_expiry_margin_seconds == 60

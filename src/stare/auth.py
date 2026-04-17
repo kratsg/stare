@@ -271,8 +271,12 @@ class TokenManager:
         base_token = self._get_base_token()
         if not self._settings.exchange_audience:
             return base_token
-        # Return cached exchange token if still valid (> 60 s left)
-        if self._exchanged_token and self._exchanged_expires_at > int(time.time()) + 60:
+        # Return cached exchange token if still valid (> buffer seconds left)
+        if (
+            self._exchanged_token
+            and self._exchanged_expires_at
+            > int(time.time()) + self._settings.exchange_token_buffer_seconds
+        ):
             return self._exchanged_token
         self._exchange_token(base_token)
         return self._exchanged_token  # type: ignore[return-value]  # set by _exchange_token
@@ -285,7 +289,7 @@ class TokenManager:
                 msg = "Not authenticated. Run `stare login` first."
                 raise AuthenticationError(msg)
 
-            if token.is_expired:
+            if token.is_expired_with_margin(self._settings.token_expiry_margin_seconds):
                 if not token.refresh_token:
                     msg = "Access token has expired and no refresh token is available. Run `stare login` again."
                     raise TokenExpiredError(msg)

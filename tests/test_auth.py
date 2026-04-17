@@ -20,13 +20,12 @@ import respx
 
 from stare.auth import TokenManager, _decode_jwt_payload
 from stare.exceptions import AuthenticationError, TokenExpiredError
-from stare.models.auth import JwtClaims, ResourceAccessEntry, TokenInfo
+from stare.models.auth import JwtClaims, ResourceAccessEntry, TokenInfo, _StoredToken
+from stare.settings import StareSettings
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
     from pathlib import Path
-
-    from stare.settings import StareSettings
 
 
 def _make_jwt(payload: Mapping[str, object]) -> str:
@@ -1087,3 +1086,95 @@ def test_concurrent_get_token_does_not_raise(
         t.join(timeout=5.0)
 
     assert errors == []
+
+
+# ---------------------------------------------------------------------------
+# exchange token expiry + clock skew margin (Step 7)
+# ---------------------------------------------------------------------------
+
+
+def test_is_expired_with_margin_false_when_time_remaining() -> None:
+    token = _StoredToken(
+        access_token="at", token_type="Bearer", expires_at=int(time.time()) + 300
+    )
+    assert token.is_expired_with_margin(60) is False
+    assert token.is_expired_with_margin(120) is False
+
+
+def test_is_expired_with_margin_true_within_margin() -> None:
+    token = _StoredToken(
+        access_token="at", token_type="Bearer", expires_at=int(time.time()) + 30
+    )
+    assert token.is_expired_with_margin(60) is True  # expires before the 60s margin
+
+
+def test_is_expired_property_unchanged() -> None:
+    """is_expired convenience property still uses 60s margin."""
+    valid = _StoredToken(
+        access_token="at", token_type="Bearer", expires_at=int(time.time()) + 300
+    )
+    assert valid.is_expired is False
+    almost_expired = _StoredToken(
+        access_token="at", token_type="Bearer", expires_at=int(time.time()) + 30
+    )
+    assert almost_expired.is_expired is True
+
+
+def test_get_token_uses_configurable_exchange_buffer(
+    stored_token_path: Path, test_settings: StareSettings
+) -> None:
+    """get_token() re-exchanges when the buffer exceeds remaining exchange token life."""
+    settings = StareSettings(
+        **{**test_settings.model_dump(), "exchange_audience": "target-api"}
+    )
+    exchanged_soon = {
+        "access_token": "new-ex",
+        "token_type": "Bearer",
+        "expires_in": 3600,
+    }
+
+    manager = TokenManager(settings=settings, token_path=stored_token_path)
+    # Seed a cached exchange token that expires in 90s — less than the 120s buffer.
+    manager._exchanged_token = "old-ex"
+    manager._exchanged_expires_at = int(time.time()) + 90
+
+    with respx.mock:
+        respx.post(settings.token_url).mock(
+            return_value=httpx.Response(200, json=exchanged_soon)
+        )
+        token = manager.get_token()
+
+    assert token == "new-ex"
+
+
+def test_get_base_token_uses_configurable_expiry_margin(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    """_get_base_token() triggers refresh when token is within the margin."""
+    settings = StareSettings(
+        **{**test_settings.model_dump(), "token_expiry_margin_seconds": 300}
+    )
+    # Token expires in 180s — past 60s default but within the 300s custom margin.
+    near_expiry = {
+        "access_token": "old",
+        "refresh_token": "refresh-me",
+        "token_type": "Bearer",
+        "expires_at": int(time.time()) + 180,
+    }
+    tmp_token_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_token_path.write_text(json.dumps(near_expiry))
+
+    refreshed = {
+        "access_token": "new",
+        "refresh_token": "new-refresh",
+        "token_type": "Bearer",
+        "expires_in": 3600,
+    }
+    with respx.mock:
+        respx.post(settings.token_url).mock(
+            return_value=httpx.Response(200, json=refreshed)
+        )
+        manager = TokenManager(settings=settings, token_path=tmp_token_path)
+        token = manager.get_token()
+
+    assert token == "new"

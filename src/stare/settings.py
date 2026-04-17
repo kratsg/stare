@@ -30,6 +30,16 @@ class StareSettings(BaseSettings):
     revocation_url: str = (
         "https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/revoke"
     )
+    issuer: str = "https://auth.cern.ch/auth/realms/cern"
+    jwks_url: str = (
+        "https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/certs"
+    )
+    # Buffer (seconds) before exchanged token is considered near-expiry and
+    # re-exchanged. Default 120s (2 minutes).
+    exchange_token_buffer_seconds: int = 120
+    # Safety margin (seconds) subtracted from token expiry to account for clock
+    # skew between client and server. Default 60s.
+    token_expiry_margin_seconds: int = 60
     # CA bundle to use for TLS verification. "Sectigo" is for the production
     # endpoint (atlas-glance.cern.ch); "CERN" is for the staging/dev endpoint
     # (glance-staging01.cern.ch) which still uses the CERN Grid CA.
