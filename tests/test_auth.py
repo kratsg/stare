@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
+import filelock
 import httpx
 import jwt
 import pytest
@@ -1042,3 +1043,47 @@ def test_refresh_failure_clears_exchange_cache(
     cached_token: str | None = manager._exchanged_token
     assert cached_token is None
     assert manager._exchanged_expires_at == 0
+
+
+# ---------------------------------------------------------------------------
+# concurrent refresh safety (Step 6)
+# ---------------------------------------------------------------------------
+
+
+def test_token_manager_has_thread_lock(
+    mock_token_manager: TokenManager,
+) -> None:
+    """TokenManager has a threading.Lock for in-process safety."""
+    assert isinstance(mock_token_manager._thread_lock, type(threading.Lock()))
+    assert isinstance(mock_token_manager._file_lock, filelock.FileLock)
+
+
+def test_file_lock_path_matches_storage_lock_path(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    """The file lock path matches the storage backend's lock_path."""
+
+    manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+    expected = manager._storage.lock_path
+    assert manager._file_lock.lock_file == str(expected)
+
+
+def test_concurrent_get_token_does_not_raise(
+    mock_token_manager: TokenManager,
+) -> None:
+    """Multiple threads calling get_token() simultaneously must not raise."""
+    errors: list[Exception] = []
+
+    def _call() -> None:
+        try:
+            mock_token_manager.get_token()
+        except Exception as exc:  # noqa: BLE001
+            errors.append(exc)
+
+    threads = [threading.Thread(target=_call) for _ in range(8)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join(timeout=5.0)
+
+    assert errors == []

@@ -15,6 +15,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from typing import TYPE_CHECKING
 from urllib.parse import parse_qs, urlencode, urlparse
 
+import filelock
 import httpx
 import jwt
 
@@ -80,6 +81,10 @@ class TokenManager:
         # to the token endpoint on every API call).
         self._exchanged_token: str | None = None
         self._exchanged_expires_at: int = 0
+        # Locking: thread lock guards in-process races; file lock guards
+        # cross-process races (e.g. two CLI invocations refreshing at once).
+        self._thread_lock = threading.Lock()
+        self._file_lock = filelock.FileLock(self._storage.lock_path)
 
     @property
     def token_path(self) -> Path:
@@ -274,18 +279,19 @@ class TokenManager:
 
     def _get_base_token(self) -> str:
         """Return the raw PKCE access token, refreshing via refresh_token if expired."""
-        token = self._storage.load()
-        if token is None:
-            msg = "Not authenticated. Run `stare login` first."
-            raise AuthenticationError(msg)
+        with self._thread_lock, self._file_lock:
+            token = self._storage.load()
+            if token is None:
+                msg = "Not authenticated. Run `stare login` first."
+                raise AuthenticationError(msg)
 
-        if token.is_expired:
-            if not token.refresh_token:
-                msg = "Access token has expired and no refresh token is available. Run `stare login` again."
-                raise TokenExpiredError(msg)
-            token = self._refresh(token.refresh_token)
+            if token.is_expired:
+                if not token.refresh_token:
+                    msg = "Access token has expired and no refresh token is available. Run `stare login` again."
+                    raise TokenExpiredError(msg)
+                token = self._refresh(token.refresh_token)
 
-        return token.access_token
+            return token.access_token
 
     def _exchange_token(self, subject_token: str) -> None:
         """Exchange a PKCE access token for an audience-scoped token (RFC 8693).
