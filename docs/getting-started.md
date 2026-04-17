@@ -23,31 +23,15 @@ Requires Python 3.10 or later.
 `stare` uses OAuth2 PKCE — no passwords are ever stored. Run once:
 
 ```bash
-stare login
+stare auth login
 ```
 
-Your browser will open the CERN SSO login page. After you approve, the tokens
-are stored in your platform's user data directory
-(`~/.local/share/stare/tokens.json` on Linux,
-`~/Library/Application Support/stare/tokens.json` on macOS) and refreshed
-automatically on subsequent requests.
+Your browser opens the CERN SSO login page. After you approve, tokens are stored
+in your OS credential store (macOS Keychain, Linux Secret Service, or Windows
+Credential Locker) and refreshed automatically.
 
-The login callback listens on `http://localhost:8182/callback` — this port is
-registered with the CERN Keycloak client. If port 8182 is already in use on your
-machine, set `STARE_CALLBACK_PORT` to a free port and contact the maintainers to
-register the new redirect URI.
-
-Check your auth status at any time:
-
-```bash
-stare auth status
-```
-
-To remove stored tokens:
-
-```bash
-stare logout
-```
+See the [Authentication](auth.md) page for full details on token storage,
+lifecycle, token exchange, and security properties.
 
 ## CLI usage
 

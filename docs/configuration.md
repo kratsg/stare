@@ -10,14 +10,20 @@ All settings come from `StareSettings`, which reads environment variables with
 the `STARE_` prefix. Override any default by setting the corresponding variable
 before running `stare` or importing the library.
 
-| Variable              | Default                                                               | Description                                                           |
-| --------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `STARE_BASE_URL`      | `https://atlas-glance.cern.ch/atlas/analysis/api`                     | Glance/Fence API base URL                                             |
-| `STARE_AUTH_URL`      | `https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/auth`  | Keycloak authorization endpoint                                       |
-| `STARE_TOKEN_URL`     | `https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/token` | Keycloak token endpoint                                               |
-| `STARE_CLIENT_ID`     | `stare`                                                               | OAuth2 client identifier                                              |
-| `STARE_SCOPES`        | `openid`                                                              | Space-separated OAuth2 scopes                                         |
-| `STARE_CALLBACK_PORT` | `8182`                                                                | Local port for the PKCE redirect callback; must match Keycloak config |
+| Variable                              | Default                                                                | Description                                                           |
+| ------------------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `STARE_BASE_URL`                      | `https://atlas-glance.cern.ch/atlas/analysis/api`                      | Glance/Fence API base URL                                             |
+| `STARE_AUTH_URL`                      | `https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/auth`   | Keycloak authorization endpoint                                       |
+| `STARE_TOKEN_URL`                     | `https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/token`  | Keycloak token endpoint                                               |
+| `STARE_REVOCATION_URL`                | `https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/revoke` | Keycloak token revocation endpoint                                    |
+| `STARE_ISSUER`                        | `https://auth.cern.ch/auth/realms/cern`                                | Expected JWT issuer (validated on login)                              |
+| `STARE_JWKS_URL`                      | `https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/certs`  | JWKS endpoint for ID token signature verification                     |
+| `STARE_CLIENT_ID`                     | `stare`                                                                | OAuth2 client identifier                                              |
+| `STARE_SCOPES`                        | `openid`                                                               | Space-separated OAuth2 scopes                                         |
+| `STARE_CALLBACK_PORT`                 | `8182`                                                                 | Local port for the PKCE redirect callback; must match Keycloak config |
+| `STARE_EXCHANGE_AUDIENCE`             | _(not set)_                                                            | RFC 8693 target audience; enables token exchange when set             |
+| `STARE_EXCHANGE_TOKEN_BUFFER_SECONDS` | `120`                                                                  | Re-exchange the token this many seconds before expiry                 |
+| `STARE_TOKEN_EXPIRY_MARGIN_SECONDS`   | `60`                                                                   | Trigger refresh this many seconds before the access token expires     |
 
 ## Using a custom settings object
 
@@ -37,17 +43,10 @@ g = Glance(settings=settings)
 
 ## Token storage
 
-Tokens are stored as JSON in the platform user data directory:
-
-| Platform | Path                                              |
-| -------- | ------------------------------------------------- |
-| Linux    | `~/.local/share/stare/tokens.json`                |
-| macOS    | `~/Library/Application Support/stare/tokens.json` |
-| Windows  | `%APPDATA%\stare\tokens.json`                     |
-
-The file contains the access token, refresh token, and expiry timestamp. It is
-read and written by `TokenManager` and is never sent to any server other than
-the CERN Keycloak token endpoint.
+Tokens are stored in your OS native credential store by default (macOS Keychain,
+Linux Secret Service, Windows Credential Locker), falling back to a JSON file in
+the platform user data directory on headless systems. See
+[Authentication — Token storage](auth.md#token-storage) for details.
 
 ## Providing a token directly
 
