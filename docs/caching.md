@@ -58,7 +58,7 @@ Inspect and clear the on-disk cache:
 # Show cache path, TTL, and current database size
 stare cache info
 
-# Delete every cached response (prompts for confirmation unless stdin is a TTY)
+# Delete every cached response (prompts for confirmation when stdin is a TTY)
 stare cache clear
 
 # Non-interactive clear (CI pipelines, scripts)

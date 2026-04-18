@@ -88,7 +88,7 @@ for analysis in result.results:
 
 # Search papers (currently live)
 paper_result = g.papers.search(query='"referenceCode" = "HDBS-2018-33"')
-print(f"Found {paper_result.number_of_results} papers")
+print(f"Found {paper_result.total_rows} papers")
 for paper in paper_result.results:
     print(paper.reference_code, paper.short_title)
 
@@ -130,6 +130,6 @@ git clone https://github.com/kratsg/stare
 cd stare
 pixi install
 pixi run pre-commit-install
-stare login
+stare auth login
 pixi run test
 ```

@@ -15,8 +15,10 @@ class TestAnalysisUrl:
 
     def test_staging_base(self) -> None:
         url = analysis_url("ANA-SUSY-2020-01", web_base=_STAGING)
-        assert url.startswith(_STAGING)
-        assert "ANA-SUSY-2020-01" in url
+        assert (
+            url
+            == f"{_STAGING}/analyses/details.php?ref_code=ANA-SUSY-2020-01"
+        )
 
     def test_ref_code_preserved(self) -> None:
         ref = "ANA-HDBS-2022-99"
