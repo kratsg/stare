@@ -63,14 +63,18 @@ def main() -> None:
     out_dir = repo_root / "src" / "stare" / "dsl" / "data"
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    catalogue: dict[str, object] = {}
     for mode, schema_name in [
         ("analysis", "SearchAnalysisResponse"),
         ("paper", "SearchPaperResponse"),
     ]:
         fields = extract_string_fields(_schema_for(spec, schema_name))
-        out_path = out_dir / f"{mode}_fields.toml"
-        out_path.write_bytes(tomli_w.dumps({"fields": fields}).encode())
-        print(f"{schema_name}: {len(fields)} fields → {out_path.relative_to(repo_root)}")
+        catalogue[mode] = {"fields": fields}
+        print(f"{schema_name}: {len(fields)} fields")
+
+    out_path = out_dir / "fields.toml"
+    out_path.write_bytes(tomli_w.dumps(catalogue).encode())
+    print(f"→ {out_path.relative_to(repo_root)}")
 
 
 if __name__ == "__main__":

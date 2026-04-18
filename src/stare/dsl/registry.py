@@ -25,8 +25,8 @@ class FieldRegistry:
 
     @classmethod
     def for_mode(cls, mode: Mode) -> FieldRegistry:
-        data = files("stare.dsl.data").joinpath(f"{mode}_fields.toml").read_bytes()
-        fields = tomllib.loads(data.decode())["fields"]
+        data = files("stare.dsl.data").joinpath("fields.toml").read_bytes()
+        fields = tomllib.loads(data.decode())[mode]["fields"]
         return cls(frozenset(fields))
 
     def normalize(self, field: str) -> str:
