@@ -43,6 +43,7 @@ STARE_EXCHANGE_AUDIENCE = "atlas-glance-analysis-api-dev"
 
 [feature.py310.dependencies]
 python = "<3.11,>=3.10"
+tomli = ">=2"
 
 [feature.py311.dependencies]
 python = "<3.12,>=3.11"
@@ -79,6 +80,9 @@ docs-clean = { cmd = "rm -rf site", description = "Clean documentation build art
 check-docstrings = { cmd = "pydocstyle src/stare/", description = "Check docstring style" }
 
 [feature.dev.dependencies]
+python = ">=3.11"
+pyyaml = ">=6"
+tomli-w = ">=1.0"
 pre-commit = "*"
 identify = ">=1.4.20"  # ruff-check
 pylint = ">=3.2"
@@ -96,6 +100,7 @@ pre-commit-update = { cmd = "pre-commit autoupdate", description = "Update pre-c
 build-clean = { cmd = "rm -rf build dist", description = "Clean build artifacts" }
 build = { cmd = "python -m build", depends-on = ["build-clean"], description = "Build SDist and wheel distributions", outputs = ["dist"] }
 build-check = { cmd = "twine check --strict ./dist/*", depends-on = ["build"], description = "Run twine to check" }
+extract-fields = { cmd = "python scripts/extract_dsl_fields.py", description = "Regenerate DSL field catalogues from api.yml" }
 [environments]
 docs = ["docs"]
 dev = ["dev"]
