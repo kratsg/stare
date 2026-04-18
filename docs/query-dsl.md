@@ -42,9 +42,9 @@ stare analysis search -q 'reference_code = ANA-HION-2018-01'
 
 Nested fields use a dot separator: `metadata.keywords`, `phase0.state`.
 
-!!! note "Field catalogue is generated" Run `pixi run extract-fields` after an
-API update to regenerate both `src/stare/dsl/data/fields.toml` and the tables
-below.
+!!! note "Field catalogue is generated"
+
+    Run `pixi run extract-fields` after an API update to regenerate both `src/stare/dsl/data/fields.toml` and the tables below.
 
 ## Values
 
@@ -69,10 +69,9 @@ stare analysis search -q 'status = Active or status = Approved'
 `AND` binds tighter than `OR`: `a = 1 AND b = 2 OR c = 3` is parsed as
 `(a = 1 AND b = 2) OR c = 3`.
 
-!!! note "Parentheses are not supported by the server" The grammar accepts
-parentheses, but the Glance API ignores them. `stare` will log a warning and
-send the query without parentheses. Rely on `AND` binding tighter than `OR`
-instead of explicit grouping.
+!!! note "Parentheses are not supported by the server"
+
+    The grammar accepts parentheses, but the Glance API ignores them. `stare` will log a warning and send the query without parentheses. Rely on `AND` binding tighter than `OR` instead of explicit grouping.
 
 ## Sorting
 
