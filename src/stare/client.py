@@ -181,7 +181,7 @@ class PublicationResource:
         statuses: list[str] | None = None,
     ) -> list[PublicationRef]:
         """Search across all publication types."""
-        params: list[tuple[str, str]] = (
+        params: list[tuple[str, str | int | float | bool | None]] = (
             [("referenceCodes", val) for val in reference_codes or []]
             + [("types", val) for val in types or []]
             + [("shortTitles", val) for val in short_titles or []]
