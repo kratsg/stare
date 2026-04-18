@@ -317,7 +317,10 @@ class Glance:
         token = self._token or (
             self._token_manager.get_token() if self._token_manager else None
         )
-        request.headers["Authorization"] = f"Bearer {token}"
+        if token:
+            request.headers["Authorization"] = f"Bearer {token}"
+        else:
+            request.headers.pop("Authorization", None)
 
     def __enter__(self) -> Glance:
         """Enter the context manager, opening the underlying HTTP connection."""

@@ -2,12 +2,26 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import pytest
 
 from stare.settings import StareSettings
 
-if TYPE_CHECKING:
-    import pytest
+_STARE_ENV_KEYS = [
+    "STARE_BASE_URL",
+    "STARE_CLIENT_ID",
+    "STARE_SCOPES",
+    "STARE_AUTH_URL",
+    "STARE_TOKEN_URL",
+    "STARE_CA_BUNDLE",
+    "STARE_EXCHANGE_TOKEN_BUFFER_SECONDS",
+    "STARE_TOKEN_EXPIRY_MARGIN_SECONDS",
+]
+
+
+@pytest.fixture(autouse=True)
+def clear_stare_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    for key in _STARE_ENV_KEYS:
+        monkeypatch.delenv(key, raising=False)
 
 
 class TestStareSettingsDefaults:
@@ -66,7 +80,8 @@ class TestStareSettingsEnvOverrides:
         s = StareSettings()
         assert s.scopes == "openid profile"
 
-    def test_direct_constructor_override(self) -> None:
+    def test_direct_constructor_override(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("STARE_BASE_URL", "https://env.example.com")
         s = StareSettings(base_url="https://override.example.com")
         assert s.base_url == "https://override.example.com"
 

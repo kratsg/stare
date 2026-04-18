@@ -354,6 +354,9 @@ class TokenManager:
         except httpx.HTTPStatusError as exc:
             msg = f"Token exchange failed ({exc.response.status_code}). Run `stare login` again."
             raise TokenExpiredError(msg) from exc
+        except httpx.RequestError as exc:
+            msg = f"Token exchange failed (network error): {exc}. Run `stare login` again."
+            raise TokenExpiredError(msg) from exc
         self._exchanged_token = oauth_resp.access_token
         self._exchanged_expires_at = int(time.time()) + oauth_resp.expires_in
         return self._exchanged_token
