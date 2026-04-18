@@ -23,7 +23,15 @@ src/stare/
 ├── auth.py           # TokenManager: PKCE flow, token storage/refresh
 ├── storage.py        # TokenStorage ABC + FileTokenStorage / KeyringTokenStorage
 ├── client.py         # Glance client + resource accessors
-├── cli.py            # typer CLI entry point
+├── cli/
+│   ├── __init__.py   # app, top-level commands (version, conf-note, pub-note, groups, subgroups)
+│   ├── utils.py      # console, err_console, make_glance/make_settings/make_token_manager, sizeof_fmt
+│   ├── auth.py       # auth_app: login, logout, status, info
+│   ├── analysis.py   # analysis_app: search, get
+│   ├── paper.py      # paper_app: search, get
+│   ├── publications.py # publications_app: search
+│   ├── triggers.py   # triggers_app: search
+│   └── cache.py      # cache_app: info, clear
 ├── exceptions.py     # StareError hierarchy
 ├── urls.py           # URL builders for CLI hyperlinks (analysis_url, paper_url, …)
 ├── _output.py        # Rich output helpers (tables, JSON detection)

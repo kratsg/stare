@@ -106,7 +106,7 @@ def test_cache_enabled_env_var(monkeypatch: pytest.MonkeyPatch) -> None:
 class TestCacheInfoCommand:
     def test_shows_cache_info(self, tmp_path: Path) -> None:
         settings = _cache_settings(tmp_path)
-        with patch("stare.cli._make_settings", return_value=settings):
+        with patch("stare.cli.utils.make_settings", return_value=settings):
             result = runner.invoke(app, ["cache", "info"])
         assert result.exit_code == 0
         # Normalize output: Rich may wrap long paths across lines.
@@ -116,7 +116,7 @@ class TestCacheInfoCommand:
 
     def test_shows_zero_size_when_no_db(self, tmp_path: Path) -> None:
         settings = _cache_settings(tmp_path)
-        with patch("stare.cli._make_settings", return_value=settings):
+        with patch("stare.cli.utils.make_settings", return_value=settings):
             result = runner.invoke(app, ["cache", "info"])
         assert result.exit_code == 0
         assert "0 bytes" in result.output
@@ -126,7 +126,7 @@ class TestCacheInfoCommand:
         db_path = settings.get_cache_dir() / "cache.db"
         db_path.parent.mkdir(parents=True, exist_ok=True)
         db_path.write_bytes(b"x" * 1024)
-        with patch("stare.cli._make_settings", return_value=settings):
+        with patch("stare.cli.utils.make_settings", return_value=settings):
             result = runner.invoke(app, ["cache", "info"])
         assert result.exit_code == 0
         assert "1.0KiB" in result.output
@@ -144,7 +144,7 @@ class TestCacheClearCommand:
         db_path = settings.get_cache_dir() / "cache.db"
         db_path.parent.mkdir(parents=True, exist_ok=True)
         db_path.write_bytes(b"data")
-        with patch("stare.cli._make_settings", return_value=settings):
+        with patch("stare.cli.utils.make_settings", return_value=settings):
             result = runner.invoke(app, ["cache", "clear", "--yes"])
         assert result.exit_code == 0
         assert not db_path.exists()
@@ -152,7 +152,7 @@ class TestCacheClearCommand:
 
     def test_clear_when_no_db_is_harmless(self, tmp_path: Path) -> None:
         settings = _cache_settings(tmp_path)
-        with patch("stare.cli._make_settings", return_value=settings):
+        with patch("stare.cli.utils.make_settings", return_value=settings):
             result = runner.invoke(app, ["cache", "clear", "--yes"])
         assert result.exit_code == 0
         assert "nothing to clear" in result.output.lower()
@@ -169,7 +169,7 @@ class TestNoCacheFlag:
         g.analyses.search.return_value = AnalysisSearchResult.model_validate(
             {"totalRows": 0, "results": []}
         )
-        with patch("stare.cli._make_glance", return_value=g):
+        with patch("stare.cli.utils.make_glance", return_value=g):
             result = runner.invoke(app, ["analysis", "search", "--no-cache"])
         assert result.exit_code == 0
 
@@ -178,6 +178,6 @@ class TestNoCacheFlag:
         g.analyses.search.return_value = AnalysisSearchResult.model_validate(
             {"totalRows": 0, "results": []}
         )
-        with patch("stare.cli._make_glance", return_value=g) as mock_make:
+        with patch("stare.cli.utils.make_glance", return_value=g) as mock_make:
             runner.invoke(app, ["analysis", "search", "--no-cache"])
         mock_make.assert_called_once_with(no_cache=True)

@@ -135,7 +135,7 @@ def test_version_command() -> None:
 def test_auth_login_command_calls_token_manager() -> None:
     mock_tm = MagicMock()
     mock_tm.login.return_value = None
-    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
         result = runner.invoke(app, ["auth", "login"])
     assert result.exit_code == 0
     mock_tm.login.assert_called_once()
@@ -144,7 +144,7 @@ def test_auth_login_command_calls_token_manager() -> None:
 def test_auth_login_shows_error_on_failure() -> None:
     mock_tm = MagicMock()
     mock_tm.login.side_effect = AuthenticationError("Auth failed")
-    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
         result = runner.invoke(app, ["auth", "login"])
     assert result.exit_code != 0
     assert "Auth failed" in result.output
@@ -152,7 +152,7 @@ def test_auth_login_shows_error_on_failure() -> None:
 
 def test_auth_logout_command_calls_token_manager() -> None:
     mock_tm = MagicMock()
-    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
         result = runner.invoke(app, ["auth", "logout"])
     assert result.exit_code == 0
     mock_tm.logout.assert_called_once()
@@ -161,7 +161,7 @@ def test_auth_logout_command_calls_token_manager() -> None:
 def test_auth_status_authenticated() -> None:
     mock_tm = MagicMock()
     mock_tm.is_authenticated.return_value = True
-    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
         result = runner.invoke(app, ["auth", "status"])
     assert result.exit_code == 0
     assert "authenticated" in result.output.lower()
@@ -170,7 +170,7 @@ def test_auth_status_authenticated() -> None:
 def test_auth_status_not_authenticated() -> None:
     mock_tm = MagicMock()
     mock_tm.is_authenticated.return_value = False
-    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
         result = runner.invoke(app, ["auth", "status"])
     assert result.exit_code == 0
     assert "not authenticated" in result.output.lower()
@@ -188,7 +188,7 @@ def test_auth_info_shows_claims() -> None:
             sub="abc123",
         ),
     )
-    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
         result = runner.invoke(app, ["auth", "info"])
     assert result.exit_code == 0
     assert "kratsg" in result.output
@@ -198,7 +198,7 @@ def test_auth_info_shows_claims() -> None:
 def test_auth_info_unauthenticated() -> None:
     mock_tm = MagicMock()
     mock_tm.get_token_info.return_value = None
-    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
         result = runner.invoke(app, ["auth", "info"])
     assert result.exit_code != 0
 
@@ -210,7 +210,7 @@ def test_auth_info_shows_expired_when_token_expired() -> None:
         expires_at=int(__import__("time").time()) - 3600,
         claims=JwtClaims(preferred_username="kratsg"),
     )
-    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
         result = runner.invoke(app, ["auth", "info"])
     assert result.exit_code == 0
     assert "expired" in result.output.lower()
@@ -223,7 +223,7 @@ def test_auth_info_shows_audience_string() -> None:
         expires_at=int(__import__("time").time()) + 3600,
         claims=JwtClaims(preferred_username="han.solo", aud="atlas-glance-api"),
     )
-    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
         result = runner.invoke(app, ["auth", "info"])
     assert result.exit_code == 0
     assert "atlas-glance-api" in result.output
@@ -236,7 +236,7 @@ def test_auth_info_shows_audience_list() -> None:
         expires_at=int(__import__("time").time()) + 3600,
         claims=JwtClaims(preferred_username="han.solo", aud=["api-a", "api-b"]),
     )
-    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
         result = runner.invoke(app, ["auth", "info"])
     assert result.exit_code == 0
     assert "api-a" in result.output
@@ -254,7 +254,7 @@ def test_auth_info_shows_roles() -> None:
             cern_roles=["stare-user", "default-role"],
         ),
     )
-    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
         result = runner.invoke(app, ["auth", "info"])
     assert result.exit_code == 0
     assert "stare-user" in result.output
@@ -271,7 +271,7 @@ def test_auth_info_exchange_shows_claims() -> None:
             cern_roles=["stare-user"],
         ),
     )
-    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
         result = runner.invoke(app, ["auth", "info", "--exchange"])
     assert result.exit_code == 0
     assert "han.solo" in result.output
@@ -281,7 +281,7 @@ def test_auth_info_exchange_shows_claims() -> None:
 def test_auth_info_exchange_no_audience_shows_error() -> None:
     mock_tm = MagicMock()
     mock_tm.get_exchange_token_info.return_value = None
-    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
         result = runner.invoke(app, ["auth", "info", "--exchange"])
     assert result.exit_code != 0
 
@@ -289,7 +289,7 @@ def test_auth_info_exchange_no_audience_shows_error() -> None:
 def test_auth_info_access_token_prints_raw() -> None:
     mock_tm = MagicMock()
     mock_tm.get_pkce_access_token.return_value = "raw-pkce-access"
-    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
         result = runner.invoke(app, ["auth", "info", "--access-token"])
     assert result.exit_code == 0
     assert "raw-pkce-access" in result.output
@@ -298,7 +298,7 @@ def test_auth_info_access_token_prints_raw() -> None:
 def test_auth_info_id_token_prints_raw() -> None:
     mock_tm = MagicMock()
     mock_tm.get_pkce_id_token.return_value = "raw-id-token"
-    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
         result = runner.invoke(app, ["auth", "info", "--id-token"])
     assert result.exit_code == 0
     assert "raw-id-token" in result.output
@@ -307,7 +307,7 @@ def test_auth_info_id_token_prints_raw() -> None:
 def test_auth_info_id_token_missing_shows_error() -> None:
     mock_tm = MagicMock()
     mock_tm.get_pkce_id_token.return_value = None
-    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
         result = runner.invoke(app, ["auth", "info", "--id-token"])
     assert result.exit_code != 0
 
@@ -315,7 +315,7 @@ def test_auth_info_id_token_missing_shows_error() -> None:
 def test_auth_info_exchange_access_token_prints_raw() -> None:
     mock_tm = MagicMock()
     mock_tm.get_exchange_access_token.return_value = "raw-exchange-access"
-    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
         result = runner.invoke(app, ["auth", "info", "--exchange", "--access-token"])
     assert result.exit_code == 0
     assert "raw-exchange-access" in result.output
@@ -324,14 +324,14 @@ def test_auth_info_exchange_access_token_prints_raw() -> None:
 def test_auth_info_exchange_access_token_no_audience_shows_error() -> None:
     mock_tm = MagicMock()
     mock_tm.get_exchange_access_token.return_value = None
-    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
         result = runner.invoke(app, ["auth", "info", "--exchange", "--access-token"])
     assert result.exit_code != 0
 
 
 def test_auth_info_exchange_id_token_shows_error() -> None:
     mock_tm = MagicMock()
-    with patch("stare.cli._make_token_manager", return_value=mock_tm):
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
         result = runner.invoke(app, ["auth", "info", "--exchange", "--id-token"])
     assert result.exit_code != 0
 
@@ -342,7 +342,7 @@ def test_auth_info_exchange_id_token_shows_error() -> None:
 
 
 def test_analysis_search_default() -> None:
-    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["analysis", "search"])
     assert result.exit_code == 0
     assert "ANA-TEST-2024-01" in result.output
@@ -350,7 +350,7 @@ def test_analysis_search_default() -> None:
 
 def test_analysis_search_with_query() -> None:
     g = _mock_glance()
-    with patch("stare.cli._make_glance", return_value=g):
+    with patch("stare.cli.utils.make_glance", return_value=g):
         result = runner.invoke(app, ["analysis", "search", "--query", "test"])
     assert result.exit_code == 0
     g.analyses.search.assert_called_once()
@@ -360,7 +360,7 @@ def test_analysis_search_with_query() -> None:
 
 def test_analysis_search_no_validate_flag() -> None:
     g = _mock_glance()
-    with patch("stare.cli._make_glance", return_value=g):
+    with patch("stare.cli.utils.make_glance", return_value=g):
         result = runner.invoke(
             app, ["analysis", "search", "--query", "foo", "--no-validate"]
         )
@@ -372,14 +372,14 @@ def test_analysis_search_no_validate_flag() -> None:
 def test_analysis_search_dsl_error_shown_as_bad_parameter() -> None:
     g = _mock_glance()
     g.analyses.search.side_effect = DSLValidationError("unknown field 'foo'")
-    with patch("stare.cli._make_glance", return_value=g):
+    with patch("stare.cli.utils.make_glance", return_value=g):
         result = runner.invoke(app, ["analysis", "search", "--query", "foo = bar"])
     assert result.exit_code != 0
     assert "unknown field" in result.output
 
 
 def test_analysis_search_json_output() -> None:
-    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["analysis", "search", "--json"])
     assert result.exit_code == 0
     data = json.loads(result.output)
@@ -388,7 +388,7 @@ def test_analysis_search_json_output() -> None:
 
 def test_analysis_search_with_limit_and_offset() -> None:
     g = _mock_glance()
-    with patch("stare.cli._make_glance", return_value=g):
+    with patch("stare.cli.utils.make_glance", return_value=g):
         runner.invoke(app, ["analysis", "search", "--limit", "10", "--offset", "5"])
     call_kwargs = g.analyses.search.call_args.kwargs
     assert call_kwargs["limit"] == 10
@@ -401,14 +401,14 @@ def test_analysis_search_with_limit_and_offset() -> None:
 
 
 def test_analysis_get_command() -> None:
-    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["analysis", "get", "ANA-TEST-2024-01"])
     assert result.exit_code == 0
     assert "ANA-TEST-2024-01" in result.output
 
 
 def test_analysis_get_json_output() -> None:
-    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["analysis", "get", "ANA-TEST-2024-01", "--json"])
     assert result.exit_code == 0
     data = json.loads(result.output)
@@ -418,7 +418,7 @@ def test_analysis_get_json_output() -> None:
 def test_analysis_get_not_found() -> None:
     g = _mock_glance()
     g.analyses.get.side_effect = NotFoundError(404, "Not Found", "No such analysis")
-    with patch("stare.cli._make_glance", return_value=g):
+    with patch("stare.cli.utils.make_glance", return_value=g):
         result = runner.invoke(app, ["analysis", "get", "MISSING"])
     assert result.exit_code != 0
 
@@ -429,7 +429,7 @@ def test_analysis_get_not_found() -> None:
 
 
 def test_paper_search_default() -> None:
-    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["paper", "search"])
     assert result.exit_code == 0
     assert "HDBS-2024-01" in result.output
@@ -437,7 +437,7 @@ def test_paper_search_default() -> None:
 
 def test_paper_search_with_query() -> None:
     g = _mock_glance()
-    with patch("stare.cli._make_glance", return_value=g):
+    with patch("stare.cli.utils.make_glance", return_value=g):
         result = runner.invoke(app, ["paper", "search", "--query", "test"])
     assert result.exit_code == 0
     g.papers.search.assert_called_once()
@@ -447,7 +447,7 @@ def test_paper_search_with_query() -> None:
 
 def test_paper_search_no_validate_flag() -> None:
     g = _mock_glance()
-    with patch("stare.cli._make_glance", return_value=g):
+    with patch("stare.cli.utils.make_glance", return_value=g):
         result = runner.invoke(
             app, ["paper", "search", "--query", "foo", "--no-validate"]
         )
@@ -459,14 +459,14 @@ def test_paper_search_no_validate_flag() -> None:
 def test_paper_search_dsl_error_shown_as_bad_parameter() -> None:
     g = _mock_glance()
     g.papers.search.side_effect = DSLValidationError("unknown field 'bar'")
-    with patch("stare.cli._make_glance", return_value=g):
+    with patch("stare.cli.utils.make_glance", return_value=g):
         result = runner.invoke(app, ["paper", "search", "--query", "bar = baz"])
     assert result.exit_code != 0
     assert "unknown field" in result.output
 
 
 def test_paper_search_json_output() -> None:
-    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["paper", "search", "--json"])
     assert result.exit_code == 0
     data = json.loads(result.output)
@@ -475,7 +475,7 @@ def test_paper_search_json_output() -> None:
 
 def test_paper_search_with_limit_and_offset() -> None:
     g = _mock_glance()
-    with patch("stare.cli._make_glance", return_value=g):
+    with patch("stare.cli.utils.make_glance", return_value=g):
         runner.invoke(app, ["paper", "search", "--limit", "10", "--offset", "5"])
     call_kwargs = g.papers.search.call_args.kwargs
     assert call_kwargs["limit"] == 10
@@ -488,14 +488,14 @@ def test_paper_search_with_limit_and_offset() -> None:
 
 
 def test_paper_get_command() -> None:
-    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["paper", "get", "HDBS-2024-01"])
     assert result.exit_code == 0
     assert "HDBS-2024-01" in result.output
 
 
 def test_paper_get_json_output() -> None:
-    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["paper", "get", "HDBS-2024-01", "--json"])
     assert result.exit_code == 0
     data = json.loads(result.output)
@@ -508,14 +508,14 @@ def test_paper_get_json_output() -> None:
 
 
 def test_conf_note_command() -> None:
-    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["conf-note", "ATLAS-CONF-2024-001"])
     assert result.exit_code == 0
     assert "ATLAS-CONF-2024-001" in result.output
 
 
 def test_conf_note_json_output() -> None:
-    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["conf-note", "ATLAS-CONF-2024-001", "--json"])
     assert result.exit_code == 0
     data = json.loads(result.output)
@@ -528,14 +528,14 @@ def test_conf_note_json_output() -> None:
 
 
 def test_pub_note_command() -> None:
-    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["pub-note", "ATL-PHYS-PUB-2024-001"])
     assert result.exit_code == 0
     assert "ATL-PHYS-PUB-2024-001" in result.output
 
 
 def test_pub_note_json_output() -> None:
-    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["pub-note", "ATL-PHYS-PUB-2024-001", "--json"])
     assert result.exit_code == 0
     data = json.loads(result.output)
@@ -548,14 +548,14 @@ def test_pub_note_json_output() -> None:
 
 
 def test_publications_search_command() -> None:
-    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["publications", "search"])
     assert result.exit_code == 0
     assert "HDBS-2024-01" in result.output
 
 
 def test_publications_search_json() -> None:
-    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["publications", "search", "--json"])
     assert result.exit_code == 0
     data = json.loads(result.output)
@@ -564,7 +564,7 @@ def test_publications_search_json() -> None:
 
 def test_publications_search_with_type_filter() -> None:
     g = _mock_glance()
-    with patch("stare.cli._make_glance", return_value=g):
+    with patch("stare.cli.utils.make_glance", return_value=g):
         runner.invoke(app, ["publications", "search", "--type", "Paper"])
     call_kwargs = g.publications.search.call_args.kwargs
     assert "Paper" in call_kwargs.get("types", [])
@@ -576,14 +576,14 @@ def test_publications_search_with_type_filter() -> None:
 
 
 def test_groups_command() -> None:
-    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["groups"])
     assert result.exit_code == 0
     assert "HDBS" in result.output
 
 
 def test_groups_json_output() -> None:
-    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["groups", "--json"])
     assert result.exit_code == 0
     data = json.loads(result.output)
@@ -591,7 +591,7 @@ def test_groups_json_output() -> None:
 
 
 def test_subgroups_command() -> None:
-    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["subgroups"])
     assert result.exit_code == 0
     assert "Higgs" in result.output
@@ -603,14 +603,14 @@ def test_subgroups_command() -> None:
 
 
 def test_triggers_search_command() -> None:
-    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["triggers", "search"])
     assert result.exit_code == 0
     assert "HLT_e60" in result.output
 
 
 def test_triggers_search_json() -> None:
-    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["triggers", "search", "--json"])
     assert result.exit_code == 0
     data = json.loads(result.output)
@@ -619,7 +619,7 @@ def test_triggers_search_json() -> None:
 
 def test_triggers_search_with_category_filter() -> None:
     g = _mock_glance()
-    with patch("stare.cli._make_glance", return_value=g):
+    with patch("stare.cli.utils.make_glance", return_value=g):
         runner.invoke(app, ["triggers", "search", "--category", "electron"])
     call_kwargs = g.triggers.search.call_args.kwargs
     assert "electron" in call_kwargs.get("categories", [])
@@ -632,7 +632,7 @@ def test_triggers_search_with_category_filter() -> None:
 
 def test_auto_detect_non_tty_emits_json() -> None:
     """CliRunner captures stdout (not a TTY) → JSON emitted without --json."""
-    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["analysis", "search"])
     assert result.exit_code == 0
     data = json.loads(result.output)
@@ -641,7 +641,7 @@ def test_auto_detect_non_tty_emits_json() -> None:
 
 def test_no_json_forces_rich_table() -> None:
     """--no-json overrides auto-detect and renders a Rich table."""
-    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["analysis", "search", "--no-json"])
     assert result.exit_code == 0
     # Rich table output is not valid JSON
@@ -656,7 +656,7 @@ def test_no_json_forces_rich_table() -> None:
 
 def test_no_json_paper_search_forces_rich_table() -> None:
     """--no-json on paper search renders a Rich table."""
-    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["paper", "search", "--no-json"])
     assert result.exit_code == 0
     try:
