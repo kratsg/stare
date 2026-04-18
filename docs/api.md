@@ -83,9 +83,10 @@ for the syntax reference.
 
 ## Enums
 
-All enums are also available in a *lenient* form via the `Lenient*` type aliases
-(e.g. `LenientAnalysisStatus`). Lenient aliases accept unknown strings gracefully
-— logging a warning and storing the raw value rather than raising a validation error.
+All enums are also available in a _lenient_ form via the `Lenient*` type aliases
+(e.g. `LenientAnalysisStatus`). Lenient aliases accept unknown strings
+gracefully — logging a warning and storing the raw value rather than raising a
+validation error.
 
 ::: stare.models.enums.AnalysisStatus
 
@@ -103,8 +104,8 @@ All enums are also available in a *lenient* form via the `Lenient*` type aliases
 
 ## URLs
 
-URL builders for the ATLAS Glance web UI. Used internally to generate
-clickable hyperlinks in CLI output; also available for library callers.
+URL builders for the ATLAS Glance web UI. Used internally to generate clickable
+hyperlinks in CLI output; also available for library callers.
 
 ::: stare.urls.analysis_url
 

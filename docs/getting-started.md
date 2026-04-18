@@ -37,22 +37,22 @@ lifecycle, token exchange, and security properties.
 
 ### Search
 
-Every resource that supports server-side search exposes a `stare <resource> search`
-subcommand with a common set of flags:
+Every resource that supports server-side search exposes a
+`stare <resource> search` subcommand with a common set of flags:
 
-| Flag                       | Short | Meaning                                        |
-| -------------------------- | ----- | ---------------------------------------------- |
-| `--query`                  | `-q`  | DSL filter; see [Query DSL](query-dsl.md)      |
-| `--limit`                  | `-n`  | Max results returned (default: 50)             |
-| `--offset`                 |       | Pagination offset                              |
-| `--sort-by`                |       | camelCase API field to sort by                 |
-| `--sort-desc`              |       | Sort descending                                |
-| `--json` / `--no-json`     |       | Force or suppress JSON output                  |
-| `--no-cache`               |       | Bypass the 8-hour cache for this invocation    |
-| `--validate` / `--no-validate` |   | Enable/disable client-side DSL field checking  |
+| Flag                           | Short | Meaning                                       |
+| ------------------------------ | ----- | --------------------------------------------- |
+| `--query`                      | `-q`  | DSL filter; see [Query DSL](query-dsl.md)     |
+| `--limit`                      | `-n`  | Max results returned (default: 50)            |
+| `--offset`                     |       | Pagination offset                             |
+| `--sort-by`                    |       | camelCase API field to sort by                |
+| `--sort-desc`                  |       | Sort descending                               |
+| `--json` / `--no-json`         |       | Force or suppress JSON output                 |
+| `--no-cache`                   |       | Bypass the 8-hour cache for this invocation   |
+| `--validate` / `--no-validate` |       | Enable/disable client-side DSL field checking |
 
-Today `--query` applies to `stare analysis search` and `stare paper search`; more
-search commands will appear as the server rolls out new endpoints.
+Today `--query` applies to `stare analysis search` and `stare paper search`;
+more search commands will appear as the server rolls out new endpoints.
 
 ```bash
 # List recent analyses (default limit: 50)
@@ -120,8 +120,9 @@ stare subgroups
 stare triggers search --category electron --year 2024
 ```
 
-These commands return `NotFoundError` until the server rolls out the corresponding
-endpoints. See [endpoint status](#current-api-endpoint-availability) for current availability.
+These commands return `NotFoundError` until the server rolls out the
+corresponding endpoints. See
+[endpoint status](#current-api-endpoint-availability) for current availability.
 
 ### Utility commands
 
@@ -141,7 +142,8 @@ Note: `--exchange` and `--id-token` are mutually exclusive.
 
 ### Pointing at staging
 
-Use the `staging` pixi environment to point all requests at the Glance staging server:
+Use the `staging` pixi environment to point all requests at the Glance staging
+server:
 
 ```bash
 pixi run -e staging stare analysis search
@@ -159,13 +161,13 @@ from stare import Glance
 g = Glance()
 
 # Search analyses (live)
-result = g.analyses.search(query='referenceCode = ANA-HION-2018-01')
+result = g.analyses.search(query="referenceCode = ANA-HION-2018-01")
 print(f"Found {result.total_rows} analyses")
 for analysis in result.results:
     print(analysis.reference_code, analysis.short_title)
 
 # Search papers (live)
-paper_result = g.papers.search(query='status = Active')
+paper_result = g.papers.search(query="status = Active")
 for paper in paper_result.results:
     print(paper.reference_code, paper.status)
 
@@ -191,7 +193,7 @@ connection lifecycle:
 
 ```python
 with Glance() as g:
-    result = g.analyses.search(query='status = Active')
+    result = g.analyses.search(query="status = Active")
     for a in result.results:
         print(a.reference_code)
 ```

@@ -70,10 +70,10 @@ from stare import Glance
 g = Glance()
 
 # Currently live: GET /searchAnalysis
-result = g.analyses.search(query='referenceCode = ANA-HION-2018-01')
+result = g.analyses.search(query="referenceCode = ANA-HION-2018-01")
 
 # Currently live: GET /searchPaper
-paper_result = g.papers.search(query='referenceCode = HDBS-2018-33')
+paper_result = g.papers.search(query="referenceCode = HDBS-2018-33")
 
 # Planned endpoints (available once the API rolls them out)
 analysis = g.analyses.get("ANA-HION-2018-01")
@@ -90,8 +90,8 @@ when adding or renaming fields in `src/stare/settings.py`).
 
 ## Auth flow (PKCE)
 
-1. `stare auth login` spins up a local server on port 8182 (fixed, registered with
-   CERN Keycloak), opens the browser
+1. `stare auth login` spins up a local server on port 8182 (fixed, registered
+   with CERN Keycloak), opens the browser
 2. User authenticates with CERN SSO
 3. Keycloak redirects to `http://localhost:8182/callback`
 4. Tokens are stored as JSON in
@@ -255,8 +255,10 @@ bundled with the wheel and loaded at runtime via
 
 ## API endpoints
 
-See [docs/getting-started.md — Current API endpoint availability](docs/getting-started.md)
-for the live/planned status of each endpoint and its corresponding resource accessor.
+See
+[docs/getting-started.md — Current API endpoint availability](docs/getting-started.md)
+for the live/planned status of each endpoint and its corresponding resource
+accessor.
 
 ## CLI structure
 

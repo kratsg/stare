@@ -25,7 +25,7 @@ stare analysis search --limit 10
 from stare import Glance
 
 with Glance() as g:
-    result = g.analyses.search(query='referenceCode = ANA-HION-2018-01')
+    result = g.analyses.search(query="referenceCode = ANA-HION-2018-01")
     for a in result.results:
         print(a.reference_code, a.short_title)
 ```

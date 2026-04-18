@@ -6,8 +6,9 @@ icon: lucide/search
 
 The `--query` / `-q` flag on `stare` **search commands** accepts a simple filter
 expression validated and normalized client-side before being sent to the server.
-Each search command validates against the field catalogue for its own record type.
-See the [endpoint status table](getting-started.md#current-api-endpoint-availability)
+Each search command validates against the field catalogue for its own record
+type. See the
+[endpoint status table](getting-started.md#current-api-endpoint-availability)
 for which commands currently accept `--query`.
 
 ## Grammar
@@ -24,7 +25,8 @@ op     = "=" | "!=" | "contain" | "not-contain"
 value  = bare token     # one word, no spaces, no quotes
 ```
 
-`and` / `or` are case-insensitive at parse time; canonical output is uppercase (`AND`, `OR`).
+`and` / `or` are case-insensitive at parse time; canonical output is uppercase
+(`AND`, `OR`).
 
 ## Operators
 
@@ -48,10 +50,10 @@ stare analysis search -q 'reference_code = ANA-HION-2018-01'
 
 Nested fields use a dot separator: `metadata.keywords`, `phase0.state`.
 
-!!! note "Field catalogue mirrors `fields.toml`"
-    The field tables below are extracted from the server's OpenAPI spec by
-    `pixi run extract-fields`, which writes `src/stare/dsl/data/fields.toml`.
-    Re-run after an API update and manually update the tables below to match.
+!!! note "Field catalogue mirrors `fields.toml`" The field tables below are
+extracted from the server's OpenAPI spec by `pixi run extract-fields`, which
+writes `src/stare/dsl/data/fields.toml`. Re-run after an API update and manually
+update the tables below to match.
 
 ## Values
 
@@ -73,12 +75,13 @@ stare analysis search -q 'status = Active and groups.leadingGroup = HDBS'
 stare analysis search -q 'status = Active or status = Approved'
 ```
 
-`AND` binds tighter than `OR`: `a = 1 AND b = 2 OR c = 3` is parsed as `(a = 1 AND b = 2) OR c = 3`.
+`AND` binds tighter than `OR`: `a = 1 AND b = 2 OR c = 3` is parsed as
+`(a = 1 AND b = 2) OR c = 3`.
 
-!!! note "Parentheses are not supported by the server"
-    The grammar accepts parentheses, but the Glance API ignores them. `stare` will
-    log a warning and send the query without parentheses. Rely on `AND` binding
-    tighter than `OR` instead of explicit grouping.
+!!! note "Parentheses are not supported by the server" The grammar accepts
+parentheses, but the Glance API ignores them. `stare` will log a warning and
+send the query without parentheses. Rely on `AND` binding tighter than `OR`
+instead of explicit grouping.
 
 ## Sorting
 

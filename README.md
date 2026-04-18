@@ -81,13 +81,13 @@ from stare import Glance
 g = Glance()
 
 # Search analyses (currently live)
-result = g.analyses.search(query='referenceCode = ANA-HION-2018-01')
+result = g.analyses.search(query="referenceCode = ANA-HION-2018-01")
 print(f"Found {result.total_rows} analyses")
 for analysis in result.results:
     print(analysis.reference_code, analysis.short_title)
 
 # Search papers (currently live)
-paper_result = g.papers.search(query='referenceCode = HDBS-2018-33')
+paper_result = g.papers.search(query="referenceCode = HDBS-2018-33")
 print(f"Found {paper_result.total_rows} papers")
 for paper in paper_result.results:
     print(paper.reference_code, paper.short_title)
@@ -102,7 +102,7 @@ Use as a context manager for explicit connection lifecycle:
 
 ```python
 with Glance() as g:
-    result = g.analyses.search(query='status = Active')
+    result = g.analyses.search(query="status = Active")
 ```
 
 Inject a token directly (useful in CI/automated scripts):
