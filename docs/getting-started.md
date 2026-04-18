@@ -10,7 +10,7 @@ icon: lucide/play
 pip install stare
 ```
 
-Or with [pixi](https://prefix.dev/docs/pixi/overview):
+Or with [pixi](https://prefix.dev/docs/prefix/overview):
 
 ```bash
 pixi add stare
