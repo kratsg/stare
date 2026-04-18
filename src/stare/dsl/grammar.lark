@@ -1,0 +1,22 @@
+// Generic DSL grammar — no field names hard-coded.
+// Syntax only; field/operator semantics validated downstream.
+
+?expression: or_expr
+?or_expr: and_expr (OR and_expr)*      -> or_expr
+?and_expr: term (AND term)*            -> and_expr
+?term: condition
+     | "(" expression ")"
+condition: field OP value              -> condition
+
+field: IDENT
+value: ESCAPED_STRING
+
+OP: "=" | "!=" | "contain"i | "not-contain"i
+AND: /[Aa][Nn][Dd]/
+OR:  /[Oo][Rr]/
+
+IDENT: /[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*/
+ESCAPED_STRING: /"([^"\\]|\\["\\])*"/
+
+%import common.WS
+%ignore WS
