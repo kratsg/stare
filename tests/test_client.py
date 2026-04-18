@@ -266,9 +266,7 @@ def test_papers_search_returns_paper_search_result(glance: Glance) -> None:
 def test_papers_search_passes_query_params(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
         rx.get("/searchPaper").mock(
-            return_value=httpx.Response(
-                200, json={"numberOfResults": 0, "results": []}
-            )
+            return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
         )
         glance.papers.search(query='"referenceCode" = "X"', limit=10, offset=5)
         params = dict(rx.calls[0].request.url.params)
@@ -280,9 +278,7 @@ def test_papers_search_passes_query_params(glance: Glance) -> None:
 def test_papers_search_omits_none_params(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
         rx.get("/searchPaper").mock(
-            return_value=httpx.Response(
-                200, json={"numberOfResults": 0, "results": []}
-            )
+            return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
         )
         glance.papers.search()
         params = dict(rx.calls[0].request.url.params)

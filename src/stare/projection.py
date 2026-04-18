@@ -36,8 +36,8 @@ class FieldSpec:
 def parse_specs(raw: str) -> list[FieldSpec]:
     """Parse a comma-separated projection string into a list of FieldSpec."""
     specs = []
-    for part in raw.split(","):
-        part = part.strip()
+    for raw_part in raw.split(","):
+        part = raw_part.strip()
         if not part:
             continue
         if ":" in part:
@@ -64,24 +64,23 @@ def resolve(obj: Any, path: str) -> Any:
             if idx >= len(current):
                 return None
             current = current[idx]
-        else:
+        elif isinstance(current, BaseModel):
+            current = getattr(current, name, None)
+        elif isinstance(current, dict):
+            current = current.get(name)
+        elif isinstance(current, (list, tuple)):
+            # Implicit [0] when indexing into a list by name
+            if not current:
+                return None
+            current = current[0]
             if isinstance(current, BaseModel):
                 current = getattr(current, name, None)
             elif isinstance(current, dict):
                 current = current.get(name)
-            elif isinstance(current, (list, tuple)):
-                # Implicit [0] when indexing into a list by name
-                if not current:
-                    return None
-                current = current[0]
-                if isinstance(current, BaseModel):
-                    current = getattr(current, name, None)
-                elif isinstance(current, dict):
-                    current = current.get(name)
-                else:
-                    return None
             else:
                 return None
+        else:
+            return None
         if current is None:
             return None
     return current

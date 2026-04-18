@@ -3,36 +3,35 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
-import pytest
 from pydantic import BaseModel
 
 from stare.models.enums import (
     AnalysisStatus,
     CollisionType,
-    PaperStatus,
-    PhaseState,
-    PublicationType,
-    RepositoryType,
     LenientAnalysisStatus,
     LenientCollisionType,
     LenientPaperStatus,
     LenientPhaseState,
     LenientPublicationType,
     LenientRepositoryType,
+    PaperStatus,
+    PhaseState,
+    PublicationType,
+    RepositoryType,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
 
-def _model(lenient_type):
+def _model(lenient_type: Any) -> Any:
     """Return a tiny pydantic model with a single `value` field of the given type."""
 
     class M(BaseModel):
-        value: lenient_type | None = None  # type: ignore[valid-type]
+        value: lenient_type | None = None
 
     return M
 
@@ -68,7 +67,7 @@ class TestAnalysisStatus:
         assert "Future Status" in caplog.text
 
     def test_enum_compares_equal_to_string(self) -> None:
-        assert AnalysisStatus.ACTIVE == "Active"
+        assert AnalysisStatus.ACTIVE.value == "Active"
 
     def test_round_trip(self) -> None:
         M = _model(LenientAnalysisStatus)
@@ -161,9 +160,7 @@ class TestCollisionType:
 class TestRepositoryType:
     def test_known_values(self) -> None:
         M = _model(LenientRepositoryType)
-        assert (
-            M.model_validate({"value": "analysis"}).value == RepositoryType.ANALYSIS
-        )
+        assert M.model_validate({"value": "analysis"}).value == RepositoryType.ANALYSIS
         assert M.model_validate({"value": "thesis"}).value == RepositoryType.THESIS
         assert (
             M.model_validate({"value": "framework"}).value == RepositoryType.FRAMEWORK
@@ -189,12 +186,8 @@ class TestPublicationType:
         assert (
             M.model_validate({"value": "ConfNote"}).value == PublicationType.CONF_NOTE
         )
-        assert (
-            M.model_validate({"value": "PubNote"}).value == PublicationType.PUB_NOTE
-        )
-        assert (
-            M.model_validate({"value": "Analysis"}).value == PublicationType.ANALYSIS
-        )
+        assert M.model_validate({"value": "PubNote"}).value == PublicationType.PUB_NOTE
+        assert M.model_validate({"value": "Analysis"}).value == PublicationType.ANALYSIS
 
     def test_unknown_falls_back(self, caplog) -> None:
         M = _model(LenientPublicationType)
@@ -213,4 +206,3 @@ class TestNonStringPassthrough:
     def test_none_passes_through(self) -> None:
         M = _model(LenientAnalysisStatus)
         assert M.model_validate({"value": None}).value is None
-

@@ -4,9 +4,9 @@ icon: lucide/table-2
 
 # Field projections
 
-The `--projection` / `-p` flag on `stare analysis search` and `stare paper
-search` lets you choose which fields appear as table columns, without
-hardcoding anything on the server side.
+The `--projection` / `-p` flag on `stare analysis search` and
+`stare paper search` lets you choose which fields appear as table columns,
+without hardcoding anything on the server side.
 
 ## Syntax
 
@@ -26,7 +26,7 @@ stare analysis search -p "reference_code,groups.leading_group"
 
 ### List indexing
 
-Use `[n]` to select a specific list element.  Omitting the index implicitly
+Use `[n]` to select a specific list element. Omitting the index implicitly
 selects element `[0]`:
 
 ```bash
@@ -56,8 +56,8 @@ Output:
 
 ### Missing paths
 
-A path that does not exist on a given record produces an empty cell — no
-error is raised.
+A path that does not exist on a given record produces an empty cell — no error
+is raised.
 
 ## Examples
 
@@ -76,8 +76,8 @@ Show paper reference code and phase1 state:
 stare paper search -p "reference_code,phase1.state"
 ```
 
-Combine with `--json` to get the raw API payload instead (projection is
-ignored with `--json`):
+Combine with `--json` to get the raw API payload instead (projection is ignored
+with `--json`):
 
 ```bash
 stare analysis search --json | jq '.results[].referenceCode'

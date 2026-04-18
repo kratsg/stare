@@ -22,15 +22,13 @@ from stare.models.common import (
 from stare.models.enums import LenientAnalysisStatus, LenientPhaseState, MeetingType
 
 # Maps API JSON keys to meeting type tags (and reverse).
-_MEETING_API_KEYS: dict[MeetingType, str] = {
+_MEETING_API_KEYS: dict[str, str] = {
     MeetingType.EOI: "eoiMeeting",
     MeetingType.EDITORIAL_BOARD_REQUEST: "editorialBoardRequestMeeting",
     MeetingType.PRE_APPROVAL: "preApprovalMeeting",
     MeetingType.APPROVAL: "approvalMeeting",
 }
-_MEETING_API_KEY_TO_TYPE: dict[str, MeetingType] = {
-    v: k for k, v in _MEETING_API_KEYS.items()
-}
+_MEETING_API_KEY_TO_TYPE: dict[str, str] = {v: k for k, v in _MEETING_API_KEYS.items()}
 
 
 class AnalysisPhase0(_Base):
@@ -61,18 +59,19 @@ class AnalysisPhase0(_Base):
             return data
         meetings: list[dict[str, Any]] = []
         for api_key, meeting_type in _MEETING_API_KEY_TO_TYPE.items():
-            for m in data.pop(api_key, []) or []:
-                if isinstance(m, dict):
-                    m = {**m, "meetingType": meeting_type}
-                meetings.append(m)
+            for raw_m in data.pop(api_key, []) or []:
+                tagged = (
+                    {**raw_m, "meetingType": meeting_type}
+                    if isinstance(raw_m, dict)
+                    else raw_m
+                )
+                meetings.append(tagged)
         data["meetings"] = meetings
         return data
 
     @model_serializer(mode="wrap")
-    def _serialize(
-        self, handler: Any, info: SerializationInfo
-    ) -> dict[str, Any]:
-        result = handler(self)
+    def _serialize(self, handler: Any, info: SerializationInfo) -> dict[str, Any]:
+        result: dict[str, Any] = handler(self)
         raw_meetings = result.pop("meetings", [])
         mt_key = "meetingType" if info.by_alias else "meeting_type"
         groups: dict[str, list[dict[str, Any]]] = {

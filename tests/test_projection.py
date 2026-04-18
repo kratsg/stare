@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
+from stare.models.analysis import Analysis
 from stare.projection import FieldSpec, parse_specs, resolve
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -142,16 +142,12 @@ class TestResolveDict:
 
 class TestResolveWithStareModels:
     def test_analysis_reference_code(self) -> None:
-        from stare.models.analysis import Analysis
-
         a = Analysis.model_validate(
             {"referenceCode": "ANA-HION-2018-01", "status": "Active"}
         )
         assert resolve(a, "reference_code") == "ANA-HION-2018-01"
 
     def test_analysis_nested_group(self) -> None:
-        from stare.models.analysis import Analysis
-
         a = Analysis.model_validate(
             {
                 "referenceCode": "ANA-X",
@@ -161,20 +157,20 @@ class TestResolveWithStareModels:
         assert resolve(a, "groups.leading_group") == "SUSY"
 
     def test_analysis_missing_groups(self) -> None:
-        from stare.models.analysis import Analysis
-
         a = Analysis.model_validate({"referenceCode": "ANA-X"})
         assert resolve(a, "groups.leading_group") is None
 
     def test_analysis_repo_url(self) -> None:
-        from stare.models.analysis import Analysis
-
         a = Analysis.model_validate(
             {
                 "referenceCode": "ANA-X",
                 "documentation": {
                     "repositories": [
-                        {"gitlabId": "42", "type": "analysis", "url": "https://gl.cern.ch/r"}
+                        {
+                            "gitlabId": "42",
+                            "type": "analysis",
+                            "url": "https://gl.cern.ch/r",
+                        }
                     ]
                 },
             }

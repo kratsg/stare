@@ -9,7 +9,7 @@ rather than raising a validation error.
 from __future__ import annotations
 
 import logging
-from enum import StrEnum
+from enum import Enum
 from typing import Annotated
 
 from pydantic import BeforeValidator
@@ -17,7 +17,11 @@ from pydantic import BeforeValidator
 _logger = logging.getLogger("stare")
 
 
-def _lenient(enum_cls: type[StrEnum]) -> Annotated:  # type: ignore[valid-type]
+class StrEnum(str, Enum):
+    """Python 3.10-compatible string enum base (StrEnum was added in 3.11)."""
+
+
+def _lenient(enum_cls: type) -> Annotated:  # type: ignore[valid-type]
     """Return an Annotated validator that coerces str→enum or falls back to str."""
 
     def _validate(v: object) -> object:

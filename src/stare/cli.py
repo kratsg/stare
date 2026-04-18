@@ -6,7 +6,7 @@ import json
 import logging
 import time
 from datetime import datetime, timezone
-from typing import Annotated
+from typing import Annotated, Any
 
 import typer
 from rich.console import Console
@@ -26,7 +26,7 @@ console = Console()
 err_console = Console(stderr=True)
 
 
-def _render(value: object) -> object:
+def _render(value: object) -> Any:
     """Convert a resolved projection value to something Rich can render in a table cell."""
     if value is None:
         return ""

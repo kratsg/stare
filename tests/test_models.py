@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from rich.console import Console
+
 from stare.models.analysis import Analysis, AnalysisPhase0
-from stare.models.enums import MeetingType
 from stare.models.common import (
     AmiGlanceLink,
     AnalysisContact,
@@ -20,6 +21,7 @@ from stare.models.common import (
     RelatedPublication,
     TeamMember,
 )
+from stare.models.enums import MeetingType
 from stare.models.errors import ApiErrorResponse
 from stare.models.search import AnalysisSearchResult, PublicationRef, Trigger
 
@@ -112,8 +114,8 @@ class TestAnalysisContact:
                 "endDate": "2024-01-01",
             }
         )
-        assert c.start_date == datetime(2023, 1, 1)
-        assert c.end_date == datetime(2024, 1, 1)
+        assert c.start_date == datetime(2023, 1, 1)  # noqa: DTZ001
+        assert c.end_date == datetime(2024, 1, 1)  # noqa: DTZ001
 
 
 class TestGroups:
@@ -232,8 +234,6 @@ class TestLink:
         assert link.url == "https://ami.cern.ch"
 
     def test_rich_with_url(self) -> None:
-        from rich.console import Console
-
         link = Link.model_validate({"label": "Indico", "url": "https://indico.cern.ch"})
         console = Console(record=True, force_terminal=True, width=120)
         console.print(link)
@@ -271,7 +271,7 @@ class TestAnalysisPhase0:
             {"state": "Active", "startDate": "2022-01-01"}
         )
         assert p.state == "Active"
-        assert p.start_date == datetime(2022, 1, 1)
+        assert p.start_date == datetime(2022, 1, 1)  # noqa: DTZ001
 
     def test_meetings_parsed(self) -> None:
         p = AnalysisPhase0.model_validate(
@@ -426,9 +426,7 @@ class TestAnalysisSearchResult:
         assert r.results[0].reference_code == "ANA-A"
 
     def test_parse_numberofresults_key(self) -> None:
-        r = AnalysisSearchResult.model_validate(
-            {"numberOfResults": 5, "results": []}
-        )
+        r = AnalysisSearchResult.model_validate({"numberOfResults": 5, "results": []})
         assert r.total_rows == 5
 
     def test_empty_results(self) -> None:
