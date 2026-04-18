@@ -41,19 +41,19 @@ class PaperSearchResult(_SearchResultsBase[Paper]):
 class PublicationRef(_Base):
     """A minimal publication reference returned by /publications/search."""
 
-    reference_code: str | None = Field(default=None, alias="referenceCode")
-    type: str | None = Field(default=None, alias="type")
+    reference_code: str | None = None
+    type: str | None = None
 
 
 class TriggerCategory(_Base):
     """The category and year for a trigger."""
 
-    name: str | None = Field(default=None, alias="name")
-    year: str | None = Field(default=None, alias="year")
+    name: str | None = None
+    year: str | None = None
 
 
 class Trigger(_Base):
     """A trigger entry returned by /triggers/search."""
 
-    name: str | None = Field(default=None, alias="name")
-    category: TriggerCategory | None = Field(default=None, alias="category")
+    name: str | None = None
+    category: TriggerCategory | None = None

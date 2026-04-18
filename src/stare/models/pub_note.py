@@ -17,38 +17,32 @@ from stare.models.common import (
 class PubNoteReader(_Base):
     """A reader assigned to review a PUB note."""
 
-    cern_ccid: str | None = Field(default=None, alias="cernCcid")
-    first_name: str | None = Field(default=None, alias="firstName")
-    last_name: str | None = Field(default=None, alias="lastName")
-    email: str | None = Field(default=None, alias="email")
-    is_first_reader: bool | None = Field(default=None, alias="isFirstReader")
-    is_second_reader: bool | None = Field(default=None, alias="isSecondReader")
+    cern_ccid: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    email: str | None = None
+    is_first_reader: bool | None = None
+    is_second_reader: bool | None = None
 
 
 class PubNotePhase1(_Base):
     """Phase 1 lifecycle metadata for a PUB note."""
 
-    state: str | None = Field(default=None, alias="state")
-    start_date: str | None = Field(default=None, alias="startDate")
+    state: str | None = None
+    start_date: str | None = None
     draft_cds_url: str | None = Field(default=None, alias="draftNoteCdsUrl")
-    readers: list[PubNoteReader] | None = Field(default=None, alias="readers")
-    presentation_date: str | None = Field(default=None, alias="presentationDate")
-    group_approval_on: str | None = Field(default=None, alias="groupApprovalOn")
-    first_reader_draft_sign_off: str | None = Field(
-        default=None, alias="firstReaderDraftSignOff"
-    )
-    date_of_atlas_circulation: str | None = Field(
-        default=None, alias="dateOfAtlasCirculation"
-    )
-    proceed_to_sign_off_on: str | None = Field(default=None, alias="proceedToSignOffOn")
-    first_reader_sign_off: str | None = Field(default=None, alias="firstReaderSignOff")
-    second_reader_sign_off: str | None = Field(
-        default=None, alias="secondReaderSignOff"
-    )
+    readers: list[PubNoteReader] | None = None
+    presentation_date: str | None = None
+    group_approval_on: str | None = None
+    first_reader_draft_sign_off: str | None = None
+    date_of_atlas_circulation: str | None = None
+    proceed_to_sign_off_on: str | None = None
+    first_reader_sign_off: str | None = None
+    second_reader_sign_off: str | None = None
     public_web_page_url: str | None = Field(
         default=None, alias="publicWebPageUrlForFiguresAndTables"
     )
-    release_date: str | None = Field(default=None, alias="releaseDate")
+    release_date: str | None = None
 
 
 class PubNote(_Base):
@@ -57,16 +51,14 @@ class PubNote(_Base):
     temp_reference_code: str | None = Field(
         default=None, alias="temporaryReferenceCode"
     )
-    status: str | None = Field(default=None, alias="status")
-    short_title: str | None = Field(default=None, alias="shortTitle")
-    public_short_title: str | None = Field(default=None, alias="publicShortTitle")
-    full_title: str | None = Field(default=None, alias="fullTitle")
-    groups: Groups | None = Field(default=None, alias="groups")
-    documentation: Documentation | None = Field(default=None, alias="documentation")
-    analysis_team: list[TeamMember] | None = Field(default=None, alias="analysisTeam")
-    metadata: Metadata | None = Field(default=None, alias="metadata")
-    associated_analysis: RelatedPublication | None = Field(
-        default=None, alias="associatedAnalysis"
-    )
-    superseded_by: RelatedPublication | None = Field(default=None, alias="supersededBy")
-    phase1: PubNotePhase1 | None = Field(default=None, alias="phase1")
+    status: str | None = None
+    short_title: str | None = None
+    public_short_title: str | None = None
+    full_title: str | None = None
+    groups: Groups | None = None
+    documentation: Documentation | None = None
+    analysis_team: list[TeamMember] | None = None
+    metadata: Metadata | None = None
+    associated_analysis: RelatedPublication | None = None
+    superseded_by: RelatedPublication | None = None
+    phase1: PubNotePhase1 | None = None

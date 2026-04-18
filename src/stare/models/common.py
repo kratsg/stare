@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic.alias_generators import to_camel
 
 from stare.exceptions import ResponseParseError
 
@@ -40,7 +41,10 @@ def _format_parse_error(model_name: str, error: ValidationError) -> str:
 
 
 class _Base(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
+    model_config = ConfigDict(
+        alias_generator=to_camel,
+        populate_by_name=True,
+    )
 
     @classmethod
     def model_validate(
@@ -60,50 +64,50 @@ class _Base(BaseModel):
 class Person(_Base):
     """A CERN person (base for team members, contacts, board members)."""
 
-    cern_ccid: str | None = Field(default=None, alias="cernCcid")
-    first_name: str | None = Field(default=None, alias="firstName")
-    last_name: str | None = Field(default=None, alias="lastName")
-    email: str | None = Field(default=None, alias="email")
+    cern_ccid: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    email: str | None = None
 
 
 class TeamMember(Person):
     """A member of an analysis team."""
 
-    is_contact_editor: str | None = Field(default=None, alias="isContactEditor")
+    is_contact_editor: str | None = None
 
 
 class EditorialBoardMember(Person):
     """A member of a publication editorial board."""
 
-    is_chair: bool | None = Field(default=None, alias="isChair")
-    is_ex_officio: bool | None = Field(default=None, alias="isExOfficio")
+    is_chair: bool | None = None
+    is_ex_officio: bool | None = None
 
 
 class AnalysisContact(Person):
     """An analysis contact with a start/end assignment period."""
 
-    start_date: str | None = Field(default=None, alias="startDate")
-    end_date: str | None = Field(default=None, alias="endDate")
+    start_date: str | None = None
+    end_date: str | None = None
 
 
 class Groups(_Base):
     """Leading group, subgroups, and other groups for a publication."""
 
-    leading_group: str | None = Field(default=None, alias="leadingGroup")
-    subgroups: list[str] | None = Field(default=None, alias="subgroups")
-    other_groups: list[str] | None = Field(default=None, alias="otherGroups")
+    leading_group: str | None = None
+    subgroups: list[str] | None = None
+    other_groups: list[str] | None = None
 
 
 class Collision(_Base):
     """A collision dataset descriptor (centre-of-mass energy, luminosity, etc.)."""
 
-    type: str | None = Field(default=None, alias="type")
-    year: str | None = Field(default=None, alias="year")
-    run: str | None = Field(default=None, alias="run")
-    ecm_value: str | None = Field(default=None, alias="ecmValue")
-    ecm_unit: str | None = Field(default=None, alias="ecmUnit")
-    luminosity_value: str | None = Field(default=None, alias="luminosityValue")
-    luminosity_unit: str | None = Field(default=None, alias="luminosityUnit")
+    type: str | None = None
+    year: str | None = None
+    run: str | None = None
+    ecm_value: str | None = None
+    ecm_unit: str | None = None
+    luminosity_value: str | None = None
+    luminosity_unit: str | None = None
 
 
 class Metadata(_Base):
@@ -112,63 +116,59 @@ class Metadata(_Base):
     Not all fields are populated for every resource type; absent fields are None.
     """
 
-    collisions: list[Collision] | None = Field(default=None, alias="collisions")
-    keywords: list[str] | None = Field(default=None, alias="keywords")
-    statistical_tools: list[str] | None = Field(default=None, alias="statisticalTools")
-    mva_ml_tools: list[str] | None = Field(default=None, alias="mvaMlTools")
-    triggers: list[str] | None = Field(default=None, alias="triggers")
+    collisions: list[Collision] | None = None
+    keywords: list[str] | None = None
+    statistical_tools: list[str] | None = None
+    mva_ml_tools: list[str] | None = None
+    triggers: list[str] | None = None
     # Analysis-specific
-    analysis_frameworks: dict[str, list[str]] | None = Field(
-        default=None, alias="analysisFrameworks"
-    )
+    analysis_frameworks: dict[str, list[str]] | None = None
     # Paper-specific
-    rivet_routines: list[str] | None = Field(default=None, alias="rivetRoutines")
+    rivet_routines: list[str] | None = None
 
 
 class Repository(_Base):
     """A code or documentation repository."""
 
-    gitlab_id: str | None = Field(default=None, alias="gitlabId")
-    label: str | None = Field(default=None, alias="label")
-    type: str | None = Field(default=None, alias="type")
-    url: str | None = Field(default=None, alias="url")
+    gitlab_id: str | None = None
+    label: str | None = None
+    type: str | None = None
+    url: str | None = None
 
 
 class InternalDocument(_Base):
     """A supporting internal document (e.g. CDS note)."""
 
-    label: str | None = Field(default=None, alias="label")
-    url: str | None = Field(default=None, alias="url")
+    label: str | None = None
+    url: str | None = None
 
 
 class Documentation(_Base):
     """Repositories and supporting documents for a publication."""
 
-    repositories: list[Repository] = Field(default_factory=list, alias="repositories")
-    supporting_internal_documents: list[InternalDocument] = Field(
-        default_factory=list, alias="supportingInternalDocuments"
-    )
+    repositories: list[Repository] = Field(default_factory=list)
+    supporting_internal_documents: list[InternalDocument] = Field(default_factory=list)
 
 
 class Meeting(_Base):
     """A recorded meeting (EOI, editorial board request, pre-approval, approval, etc.)."""
 
-    title: str | None = Field(default=None, alias="title")
-    date: str | None = Field(default=None, alias="date")
-    comments: str | None = Field(default=None, alias="comments")
-    link_label: str | None = Field(default=None, alias="linkLabel")
-    link: str | None = Field(default=None, alias="link")
+    title: str | None = None
+    date: str | None = None
+    comments: str | None = None
+    link_label: str | None = None
+    link: str | None = None
 
 
 class AmiGlanceLink(_Base):
     """An AMI/Glance cross-reference link."""
 
-    label: str | None = Field(default=None, alias="label")
-    url: str | None = Field(default=None, alias="url")
+    label: str | None = None
+    url: str | None = None
 
 
 class RelatedPublication(_Base):
     """A reference to a related publication (analysis, paper, CONF/PUB note)."""
 
-    reference_code: str | None = Field(default=None, alias="referenceCode")
-    type: str | None = Field(default=None, alias="type")
+    reference_code: str | None = None
+    type: str | None = None

@@ -16,43 +16,35 @@ from stare.models.common import (
 
 
 class _SignOffResponsible(_Base):
-    cern_ccid: str | None = Field(default=None, alias="cernCcid")
-    first_name: str | None = Field(default=None, alias="firstName")
-    last_name: str | None = Field(default=None, alias="lastName")
-    email: str | None = Field(default=None, alias="email")
+    cern_ccid: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
+    email: str | None = None
 
 
 class ConfNotePhase1(_Base):
     """Phase 1 lifecycle metadata for a CONF note."""
 
-    state: str | None = Field(default=None, alias="state")
-    start_date: str | None = Field(default=None, alias="startDate")
+    state: str | None = None
+    start_date: str | None = None
     cds_url: str | None = Field(default=None, alias="cdsDraftNoteUrl")
-    editorial_board: list[EditorialBoardMember] | None = Field(
-        default=None, alias="editorialBoard"
-    )
-    editorial_board_formed_on: str | None = Field(
-        default=None, alias="editorialBoardFormedOn"
-    )
-    presentation_date: str | None = Field(default=None, alias="presentationDate")
+    editorial_board: list[EditorialBoardMember] | None = None
+    editorial_board_formed_on: str | None = None
+    presentation_date: str | None = None
     pgc_approved_analysis_on: str | None = Field(
         default=None, alias="principalGroupCoordinatorApprovedAnalysisOn"
     )
     eb_draft_sign_off: str | None = Field(
         default=None, alias="editorialBoardDraftSignOff"
     )
-    first_sign_off_responsible: _SignOffResponsible | None = Field(
-        default=None, alias="firstSignOffResponsible"
-    )
-    second_sign_off_responsible: _SignOffResponsible | None = Field(
-        default=None, alias="secondSignOffResponsible"
-    )
-    first_sign_off: str | None = Field(default=None, alias="firstSignOff")
-    second_sign_off: str | None = Field(default=None, alias="secondSignOff")
+    first_sign_off_responsible: _SignOffResponsible | None = None
+    second_sign_off_responsible: _SignOffResponsible | None = None
+    first_sign_off: str | None = None
+    second_sign_off: str | None = None
     public_web_page_url: str | None = Field(
         default=None, alias="publicWebPageUrlForFiguresAndTables"
     )
-    release_date: str | None = Field(default=None, alias="releaseDate")
+    release_date: str | None = None
 
 
 class ConfNote(_Base):
@@ -61,16 +53,14 @@ class ConfNote(_Base):
     temp_reference_code: str | None = Field(
         default=None, alias="temporaryReferenceCode"
     )
-    status: str | None = Field(default=None, alias="status")
-    short_title: str | None = Field(default=None, alias="shortTitle")
-    public_short_title: str | None = Field(default=None, alias="publicShortTitle")
-    full_title: str | None = Field(default=None, alias="fullTitle")
-    groups: Groups | None = Field(default=None, alias="groups")
-    documentation: Documentation | None = Field(default=None, alias="documentation")
-    analysis_team: list[TeamMember] | None = Field(default=None, alias="analysisTeam")
-    metadata: Metadata | None = Field(default=None, alias="metadata")
-    associated_analysis: RelatedPublication | None = Field(
-        default=None, alias="associatedAnalysis"
-    )
-    superseded_by: RelatedPublication | None = Field(default=None, alias="supersededBy")
-    phase1: ConfNotePhase1 | None = Field(default=None, alias="phase1")
+    status: str | None = None
+    short_title: str | None = None
+    public_short_title: str | None = None
+    full_title: str | None = None
+    groups: Groups | None = None
+    documentation: Documentation | None = None
+    analysis_team: list[TeamMember] | None = None
+    metadata: Metadata | None = None
+    associated_analysis: RelatedPublication | None = None
+    superseded_by: RelatedPublication | None = None
+    phase1: ConfNotePhase1 | None = None
