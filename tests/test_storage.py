@@ -216,7 +216,7 @@ def test_keyring_migrate_noop_when_file_absent(tmp_path: Path) -> None:
 
 
 def test_get_default_storage_returns_file_when_fail_keyring() -> None:
-    with patch("keyring.get_keyring", return_value=FailKeyring()):  # type: ignore[no-untyped-call]
+    with patch("keyring.get_keyring", return_value=object.__new__(FailKeyring)):
         storage = get_default_storage()
     assert isinstance(storage, FileTokenStorage)
 
@@ -232,6 +232,6 @@ def test_get_default_storage_returns_keyring_when_available(tmp_path: Path) -> N
 
 def test_get_default_storage_uses_custom_fallback_path(tmp_path: Path) -> None:
     custom_path = tmp_path / "custom.json"
-    with patch("keyring.get_keyring", return_value=FailKeyring()):  # type: ignore[no-untyped-call]
+    with patch("keyring.get_keyring", return_value=object.__new__(FailKeyring)):
         storage = get_default_storage(token_path=custom_path)
     assert isinstance(storage, FileTokenStorage)
