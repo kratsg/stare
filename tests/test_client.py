@@ -157,9 +157,9 @@ def test_analyses_search_passes_query_params(glance: Glance) -> None:
         rx.get("/searchAnalysis").mock(
             return_value=httpx.Response(200, json={"totalRows": 0, "results": []})
         )
-        glance.analyses.search(query='"referenceCode" = "X"', limit=10, offset=5)
+        glance.analyses.search(query="referenceCode = X", limit=10, offset=5)
         params = dict(rx.calls[0].request.url.params)
-    assert params["queryString"] == '"referenceCode" = "X"'
+    assert params["queryString"] == "referenceCode = X"
     assert params["limit"] == "10"
     assert params["offset"] == "5"
 
@@ -185,6 +185,54 @@ def test_analyses_search_omits_none_params(glance: Glance) -> None:
     assert "queryString" not in params
     assert "sortBy" not in params
     assert "sortDesc" not in params
+
+
+def test_analyses_search_accepts_expression(glance: Glance) -> None:
+    from stare.dsl.models import Condition
+
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchAnalysis").mock(
+            return_value=httpx.Response(200, json={"totalRows": 0, "results": []})
+        )
+        glance.analyses.search(
+            query=Condition(field="referenceCode", operator="=", value="X")
+        )
+        params = dict(rx.calls[0].request.url.params)
+    assert params["queryString"] == "referenceCode = X"
+
+
+def test_analyses_search_normalizes_snake_case_query(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchAnalysis").mock(
+            return_value=httpx.Response(200, json={"totalRows": 0, "results": []})
+        )
+        glance.analyses.search(query="reference_code = X")
+        params = dict(rx.calls[0].request.url.params)
+    assert params["queryString"] == "referenceCode = X"
+
+
+def test_analyses_search_rejects_unknown_field(glance: Glance) -> None:
+    from stare.dsl import DSLValidationError
+
+    with pytest.raises(DSLValidationError, match="unknown field"):
+        glance.analyses.search(query="foo = bar")
+
+
+def test_analyses_search_validate_false_passes_raw(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchAnalysis").mock(
+            return_value=httpx.Response(200, json={"totalRows": 0, "results": []})
+        )
+        glance.analyses.search(query="foo = bar", validate_query=False)
+        params = dict(rx.calls[0].request.url.params)
+    assert params["queryString"] == "foo = bar"
+
+
+def test_papers_search_rejects_analysis_field(glance: Glance) -> None:
+    from stare.dsl import DSLValidationError
+
+    with pytest.raises(DSLValidationError):
+        glance.papers.search(query="phase0.state = ACTIVE")
 
 
 # ---------------------------------------------------------------------------
@@ -268,9 +316,9 @@ def test_papers_search_passes_query_params(glance: Glance) -> None:
         rx.get("/searchPaper").mock(
             return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
         )
-        glance.papers.search(query='"referenceCode" = "X"', limit=10, offset=5)
+        glance.papers.search(query="referenceCode = X", limit=10, offset=5)
         params = dict(rx.calls[0].request.url.params)
-    assert params["queryString"] == '"referenceCode" = "X"'
+    assert params["queryString"] == "referenceCode = X"
     assert params["limit"] == "10"
     assert params["offset"] == "5"
 

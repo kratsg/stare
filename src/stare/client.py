@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import ssl
 from importlib.resources import as_file, files
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 import httpx
 from hishel import CacheOptions, SpecificationPolicy, SyncSqliteStorage
 from hishel.httpx import SyncCacheTransport
 
 from stare.auth import TokenManager
+from stare.dsl import Expression, parse_dsl
 from stare.exceptions import ApiError, ForbiddenError, NotFoundError, UnauthorizedError
 from stare.models import (
     Analysis,
@@ -67,6 +68,14 @@ def _raise_for_status(response: httpx.Response) -> None:
     raise ApiError(status_code, title, detail)
 
 
+def _resolve_query(
+    q: str | Expression, *, mode: Literal["analysis", "paper"], validate: bool
+) -> str:
+    if isinstance(q, str):
+        return parse_dsl(q, mode=mode).to_dsl() if validate else q
+    return q.to_dsl()
+
+
 class AnalysisResource:
     """Accessor for /analyses/ and /searchAnalysis endpoints."""
 
@@ -83,16 +92,19 @@ class AnalysisResource:
     def search(
         self,
         *,
-        query: str | None = None,
+        query: str | Expression | None = None,
         offset: int = 0,
         limit: int = 50,
         sort_by: str | None = None,
         sort_desc: bool = False,
+        validate_query: bool = True,
     ) -> AnalysisSearchResult:
         """Search analyses via GET /searchAnalysis."""
         params: dict[str, Any] = {"offset": offset, "limit": limit}
         if query is not None:
-            params["queryString"] = query
+            params["queryString"] = _resolve_query(
+                query, mode="analysis", validate=validate_query
+            )
         if sort_by is not None:
             params["sortBy"] = sort_by
             params["sortDesc"] = str(sort_desc).lower()
@@ -117,16 +129,19 @@ class PaperResource:
     def search(
         self,
         *,
-        query: str | None = None,
+        query: str | Expression | None = None,
         offset: int = 0,
         limit: int = 50,
         sort_by: str | None = None,
         sort_desc: bool = False,
+        validate_query: bool = True,
     ) -> PaperSearchResult:
         """Search papers via GET /searchPaper."""
         params: dict[str, Any] = {"offset": offset, "limit": limit}
         if query is not None:
-            params["queryString"] = query
+            params["queryString"] = _resolve_query(
+                query, mode="paper", validate=validate_query
+            )
         if sort_by is not None:
             params["sortBy"] = sort_by
             params["sortDesc"] = str(sort_desc).lower()
