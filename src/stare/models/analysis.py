@@ -60,7 +60,7 @@ class AnalysisPhase0(_Base):
     def _flatten_meetings(cls, data: Any) -> Any:
         if not isinstance(data, dict):
             return data
-        meetings: list[dict[str, Any]] = []
+        meetings = list(data.get("meetings") or [])
         for api_key, meeting_type in _MEETING_API_KEY_TO_TYPE.items():
             for raw_m in data.pop(api_key, []) or []:
                 tagged = (
@@ -69,7 +69,8 @@ class AnalysisPhase0(_Base):
                     else raw_m
                 )
                 meetings.append(tagged)
-        data["meetings"] = meetings
+        if meetings or "meetings" in data:
+            data["meetings"] = meetings
         return data
 
     @model_serializer(mode="wrap")

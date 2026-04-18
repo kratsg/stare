@@ -70,8 +70,8 @@ stare cache clear --yes
 ```
 
 Output is a Rich table when stdout is a terminal and JSON when piped or
-redirected. Use `--json` / `--no-json` to override. Every command accepts
-`--no-cache` to bypass the 8-hour on-disk response cache.
+redirected. Use `--json` / `--no-json` to override. Commands that expose
+`--no-cache` bypass the 8-hour on-disk response cache for that invocation.
 
 ## Library usage
 

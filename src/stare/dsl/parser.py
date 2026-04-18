@@ -106,6 +106,6 @@ def parse_dsl(source: str, *, mode: Literal["analysis", "paper"]) -> Expression:
     try:
         return _DSLTransformer(registry).transform(tree)
     except VisitError as exc:
-        if isinstance(exc.__context__, DSLValidationError):
-            raise exc.__context__ from exc
+        if isinstance(exc.orig_exc, DSLValidationError):
+            raise exc.orig_exc from exc
         raise

@@ -264,6 +264,9 @@ class TokenManager:
         except jwt.PyJWTError as exc:
             msg = f"ID token validation failed: {exc}"
             raise AuthenticationError(msg) from exc
+        except ValidationError as exc:
+            msg = f"ID token claims validation failed: {exc}"
+            raise AuthenticationError(msg) from exc
 
     def logout(self) -> None:
         """Revoke tokens server-side (best-effort) then delete local storage."""
