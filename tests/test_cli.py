@@ -582,3 +582,46 @@ def test_triggers_search_with_category_filter() -> None:
         runner.invoke(app, ["triggers", "search", "--category", "electron"])
     call_kwargs = g.triggers.search.call_args.kwargs
     assert "electron" in call_kwargs.get("categories", [])
+
+
+# ---------------------------------------------------------------------------
+# TTY auto-detection
+# ---------------------------------------------------------------------------
+
+
+def test_auto_detect_non_tty_emits_json() -> None:
+    """CliRunner captures stdout (not a TTY) → JSON emitted without --json."""
+    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+        result = runner.invoke(app, ["analysis", "search"])
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    assert "numberOfResults" in data or "totalRows" in data
+
+
+def test_no_json_forces_rich_table() -> None:
+    """--no-json overrides auto-detect and renders a Rich table."""
+    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+        result = runner.invoke(app, ["analysis", "search", "--no-json"])
+    assert result.exit_code == 0
+    # Rich table output is not valid JSON
+    try:
+        json.loads(result.output)
+        is_json = True
+    except json.JSONDecodeError:
+        is_json = False
+    assert not is_json
+    assert "ANA-TEST-2024-01" in result.output
+
+
+def test_no_json_paper_search_forces_rich_table() -> None:
+    """--no-json on paper search renders a Rich table."""
+    with patch("stare.cli._make_glance", return_value=_mock_glance()):
+        result = runner.invoke(app, ["paper", "search", "--no-json"])
+    assert result.exit_code == 0
+    try:
+        json.loads(result.output)
+        is_json = True
+    except json.JSONDecodeError:
+        is_json = False
+    assert not is_json
+    assert "HDBS-2024-01" in result.output

@@ -15,6 +15,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 from stare import __version__
+from stare._output import stdout_is_interactive
 from stare.auth import TokenManager
 from stare.client import Glance
 from stare.exceptions import ResponseParseError, StareError
@@ -299,10 +300,16 @@ def analysis_search(
         bool, typer.Option("--sort-desc", help="Sort descending")
     ] = False,
     output_json: Annotated[
-        bool, typer.Option("--json", help="Output raw JSON")
-    ] = False,
+        bool | None,
+        typer.Option(
+            "--json/--no-json",
+            help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
+        ),
+    ] = None,
 ) -> None:
     """Search analyses."""
+    if output_json is None:
+        output_json = not stdout_is_interactive()
     g = _make_glance()
     try:
         result = g.analyses.search(
@@ -340,10 +347,16 @@ def analysis_search(
 def analysis_get(
     ref_code: Annotated[str, typer.Argument(help="Analysis reference code")],
     output_json: Annotated[
-        bool, typer.Option("--json", help="Output raw JSON")
-    ] = False,
+        bool | None,
+        typer.Option(
+            "--json/--no-json",
+            help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
+        ),
+    ] = None,
 ) -> None:
     """Fetch a single analysis by reference code."""
+    if output_json is None:
+        output_json = not stdout_is_interactive()
     g = _make_glance()
     try:
         result = g.analyses.get(ref_code)
@@ -387,10 +400,16 @@ def paper_search(
         bool, typer.Option("--sort-desc", help="Sort descending")
     ] = False,
     output_json: Annotated[
-        bool, typer.Option("--json", help="Output raw JSON")
-    ] = False,
+        bool | None,
+        typer.Option(
+            "--json/--no-json",
+            help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
+        ),
+    ] = None,
 ) -> None:
     """Search papers."""
+    if output_json is None:
+        output_json = not stdout_is_interactive()
     g = _make_glance()
     try:
         result = g.papers.search(
@@ -428,10 +447,16 @@ def paper_search(
 def paper_get(
     ref_code: Annotated[str, typer.Argument(help="Paper reference code")],
     output_json: Annotated[
-        bool, typer.Option("--json", help="Output raw JSON")
-    ] = False,
+        bool | None,
+        typer.Option(
+            "--json/--no-json",
+            help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
+        ),
+    ] = None,
 ) -> None:
     """Fetch a single paper by reference code."""
+    if output_json is None:
+        output_json = not stdout_is_interactive()
     g = _make_glance()
     try:
         result = g.papers.get(ref_code)
@@ -461,10 +486,16 @@ def paper_get(
 def conf_note(
     ref_code: Annotated[str, typer.Argument(help="CONF note temporary reference code")],
     output_json: Annotated[
-        bool, typer.Option("--json", help="Output raw JSON")
-    ] = False,
+        bool | None,
+        typer.Option(
+            "--json/--no-json",
+            help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
+        ),
+    ] = None,
 ) -> None:
     """Fetch a single CONF note by temporary reference code."""
+    if output_json is None:
+        output_json = not stdout_is_interactive()
     g = _make_glance()
     try:
         result = g.conf_notes.get(ref_code)
@@ -494,10 +525,16 @@ def conf_note(
 def pub_note(
     ref_code: Annotated[str, typer.Argument(help="PUB note temporary reference code")],
     output_json: Annotated[
-        bool, typer.Option("--json", help="Output raw JSON")
-    ] = False,
+        bool | None,
+        typer.Option(
+            "--json/--no-json",
+            help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
+        ),
+    ] = None,
 ) -> None:
     """Fetch a single PUB note by temporary reference code."""
+    if output_json is None:
+        output_json = not stdout_is_interactive()
     g = _make_glance()
     try:
         result = g.pub_notes.get(ref_code)
@@ -542,10 +579,16 @@ def publications_search(
         list[str] | None, typer.Option("--status", help="Filter by status")
     ] = None,
     output_json: Annotated[
-        bool, typer.Option("--json", help="Output raw JSON")
-    ] = False,
+        bool | None,
+        typer.Option(
+            "--json/--no-json",
+            help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
+        ),
+    ] = None,
 ) -> None:
     """Search across all publication types."""
+    if output_json is None:
+        output_json = not stdout_is_interactive()
     g = _make_glance()
     try:
         results = g.publications.search(
@@ -579,10 +622,16 @@ def publications_search(
 @app.command()
 def groups(
     output_json: Annotated[
-        bool, typer.Option("--json", help="Output raw JSON")
-    ] = False,
+        bool | None,
+        typer.Option(
+            "--json/--no-json",
+            help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
+        ),
+    ] = None,
 ) -> None:
     """List all leading groups."""
+    if output_json is None:
+        output_json = not stdout_is_interactive()
     g = _make_glance()
     try:
         result = g.groups.list()
@@ -601,10 +650,16 @@ def groups(
 @app.command()
 def subgroups(
     output_json: Annotated[
-        bool, typer.Option("--json", help="Output raw JSON")
-    ] = False,
+        bool | None,
+        typer.Option(
+            "--json/--no-json",
+            help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
+        ),
+    ] = None,
 ) -> None:
     """List all subgroups."""
+    if output_json is None:
+        output_json = not stdout_is_interactive()
     g = _make_glance()
     try:
         result = g.subgroups.list()
@@ -634,10 +689,16 @@ def triggers_search(
         list[str] | None, typer.Option("--year", help="Filter by year")
     ] = None,
     output_json: Annotated[
-        bool, typer.Option("--json", help="Output raw JSON")
-    ] = False,
+        bool | None,
+        typer.Option(
+            "--json/--no-json",
+            help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
+        ),
+    ] = None,
 ) -> None:
     """Search triggers."""
+    if output_json is None:
+        output_json = not stdout_is_interactive()
     g = _make_glance()
     try:
         results = g.triggers.search(
