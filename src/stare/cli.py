@@ -27,6 +27,15 @@ console = Console()
 err_console = Console(stderr=True)
 
 
+def sizeof_fmt(num: float, suffix: str = "B") -> str:
+    """Format a byte count as a human-readable string (e.g. 1.0KiB)."""
+    for unit in ("", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"):
+        if abs(num) < 1024.0:
+            return f"{num:3.1f}{unit}{suffix}"
+        num /= 1024.0
+    return f"{num:.1f}Yi{suffix}"
+
+
 def _handle_error(exc: StareError) -> None:
     """Print a StareError to stderr; for ResponseParseError also show the raw JSON."""
     err_console.print(f"[red]Error:[/red] {exc}")
@@ -907,11 +916,12 @@ def cache_info() -> None:
     cache_dir = settings.get_cache_dir()
     db_path = cache_dir / "cache.db"
     size = db_path.stat().st_size if db_path.exists() else 0
+    size_display = f"{sizeof_fmt(size)} ({size} bytes)"
     console.print(f"Enabled:   {settings.cache_enabled}")
     console.print(f"Directory: {cache_dir}")
     console.print(f"Database:  {db_path}")
     console.print(f"TTL:       {settings.cache_ttl_seconds} s")
-    console.print(f"Size:      {size} bytes")
+    console.print(f"Size:      {size_display}")
 
 
 @cache_app.command("clear")

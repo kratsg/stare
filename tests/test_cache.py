@@ -12,7 +12,7 @@ from typer.testing import CliRunner
 if TYPE_CHECKING:
     import pytest
 
-from stare.cli import app
+from stare.cli import app, sizeof_fmt
 from stare.models import AnalysisSearchResult
 from stare.settings import StareSettings
 
@@ -35,6 +35,25 @@ def _make_settings(**kw: object) -> StareSettings:
 
 def _cache_settings(tmp_path: Path, **kw: object) -> StareSettings:
     return _make_settings(cache_dir=tmp_path / "cache", **kw)
+
+
+# ---------------------------------------------------------------------------
+# sizeof_fmt
+# ---------------------------------------------------------------------------
+
+
+class TestSizeofFmt:
+    def test_zero(self) -> None:
+        assert sizeof_fmt(0) == "0.0B"
+
+    def test_sub_kibibyte(self) -> None:
+        assert sizeof_fmt(512) == "512.0B"
+
+    def test_exactly_one_kibibyte(self) -> None:
+        assert sizeof_fmt(1024) == "1.0KiB"
+
+    def test_mebibyte(self) -> None:
+        assert sizeof_fmt(1024 * 1024) == "1.0MiB"
 
 
 # ---------------------------------------------------------------------------
@@ -110,7 +129,8 @@ class TestCacheInfoCommand:
         with patch("stare.cli._make_settings", return_value=settings):
             result = runner.invoke(app, ["cache", "info"])
         assert result.exit_code == 0
-        assert "1024" in result.output
+        assert "1.0KiB" in result.output
+        assert "1024" in result.output  # raw bytes visible in parens
 
 
 # ---------------------------------------------------------------------------
