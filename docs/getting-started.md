@@ -7,7 +7,7 @@ icon: lucide/play
 ## Installation
 
 ```bash
-pip install stare
+python -m pip install stare
 ```
 
 Or with [pixi](https://prefix.dev/docs/prefix/overview):

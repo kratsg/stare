@@ -16,7 +16,7 @@ against CERN Keycloak built in.
 ## Quick start
 
 ```bash
-pip install stare
+python -m pip install stare
 stare auth login          # opens CERN SSO in your browser
 stare analysis search --limit 10
 ```

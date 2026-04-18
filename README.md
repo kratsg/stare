@@ -17,7 +17,7 @@ Python library and CLI for the
 ## Installation
 
 ```bash
-pip install stare
+python -m pip install stare
 ```
 
 ## Authentication
