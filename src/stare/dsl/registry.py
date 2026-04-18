@@ -21,11 +21,15 @@ Mode = Literal["analysis", "paper"]
 
 
 class FieldRegistry:
+    """Catalogue of valid DSL field names for a given query mode."""
+
     def __init__(self, fields: frozenset[str]) -> None:
+        """Initialise with a pre-built frozenset of camelCase field names."""
         self._fields = fields
 
     @classmethod
     def for_mode(cls, mode: Mode) -> FieldRegistry:
+        """Load the field catalogue for *mode* from the bundled TOML data file."""
         data = files("stare.dsl.data").joinpath("fields.toml").read_bytes()
         fields = tomllib.loads(data.decode())[mode]["fields"]
         return cls(frozenset(fields))

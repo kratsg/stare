@@ -5,9 +5,9 @@ from __future__ import annotations
 import difflib
 import logging
 from importlib.resources import files
-from typing import Any, Literal, cast
+from typing import Any, Literal
 
-from lark import Lark, Token, Transformer, UnexpectedInput
+from lark import Lark, Transformer, UnexpectedInput
 from lark.exceptions import VisitError
 
 from stare.dsl.errors import DSLSyntaxError, DSLValidationError
@@ -19,7 +19,7 @@ _logger = logging.getLogger("stare")
 _GRAMMAR = files("stare.dsl").joinpath("grammar.lark").read_text()
 _LARK = Lark(_GRAMMAR, start="expression", parser="lalr")
 
-_VALID_OPS = ("=", "!=", "contain", "not-contain")
+_VALID_OPS = tuple(op.value for op in Operator)
 
 
 class _DSLTransformer(Transformer[Any, Expression]):
@@ -27,26 +27,36 @@ class _DSLTransformer(Transformer[Any, Expression]):
         super().__init__()
         self._registry = registry
 
-    def condition(self, items: list[Any]) -> Condition:
-        field_token: Token = items[0].children[0]
-        op_token: Token = items[1]
-        value_token: Token = items[2].children[0]
+    def field(self, items: list[Any]) -> str:
+        """Return the field name token as a plain string."""
+        return str(items[0])
 
-        raw_field = str(field_token)
+    def value(self, items: list[Any]) -> str:
+        """Return the value token as a plain string."""
+        return str(items[0])
+
+    def condition(self, items: list[Any]) -> Condition:
+        """Build a Condition from (field_str, op_token, value_str)."""
+        raw_field: str = items[0]
+        op_token = items[1]
+        value: str = items[2]
+
         normalized = self._registry.normalize(raw_field)
         self._registry.validate(raw_field)
 
         return Condition(
             field=normalized,
-            operator=cast("Operator", str(op_token).lower()),
-            value=str(value_token),
+            operator=Operator(str(op_token).lower()),
+            value=value,
         )
 
     def or_expr(self, items: list[Expression]) -> Or:
+        """Build an Or node."""
         left, right = items
         return Or(clauses=(left, right))
 
     def and_expr(self, items: list[Expression]) -> And:
+        """Build an And node."""
         left, right = items
         return And(clauses=(left, right))
 

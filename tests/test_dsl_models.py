@@ -4,7 +4,18 @@ from __future__ import annotations
 
 import pytest
 
-from stare.dsl.models import And, Condition, Or
+from stare.dsl.models import And, Condition, Operator, Or
+
+
+def test_operator_is_str_enum() -> None:
+    assert issubclass(Operator, str)
+    assert Operator("=") is Operator.EQ
+    assert Operator("contain") is Operator.CONTAIN
+
+
+def test_condition_operator_is_enum_member() -> None:
+    c = Condition(field="f", operator="=", value="v")  # type: ignore[arg-type]
+    assert isinstance(c.operator, Operator)
 
 
 def test_condition_to_dsl() -> None:
