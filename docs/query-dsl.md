@@ -42,9 +42,9 @@ stare analysis search -q 'reference_code = ANA-HION-2018-01'
 
 Nested fields use a dot separator: `metadata.keywords`, `phase0.state`.
 
-!!! note "Field catalogue is generated"
-    Run `pixi run extract-fields` after an API update to regenerate both
-    `src/stare/dsl/data/fields.toml` and the tables below.
+!!! note "Field catalogue is generated" Run `pixi run extract-fields` after an
+API update to regenerate both `src/stare/dsl/data/fields.toml` and the tables
+below.
 
 ## Values
 

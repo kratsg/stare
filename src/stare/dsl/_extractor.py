@@ -41,8 +41,7 @@ def _group_fields(fields: list[str]) -> list[tuple[str, list[str]]]:
     result: list[tuple[str, list[str]]] = []
     if "" in groups:
         result.append(("Top-level", groups[""]))
-    for key in sorted(k for k in groups if k):
-        result.append((f"`{key}`", groups[key]))
+    result.extend((f"`{key}`", groups[key]) for key in sorted(k for k in groups if k))
     return result
 
 
