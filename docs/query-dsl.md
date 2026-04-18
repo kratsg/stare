@@ -13,16 +13,8 @@ for which commands currently accept `--query`.
 
 ## Grammar
 
-```
-expression  = or_expr
-or_expr     = and_expr ("or" and_expr)*
-and_expr    = term ("and" term)*
-term        = condition | "(" expression ")"
-condition   = field op value
-
-field  = IDENT          # dot-separated camelCase or snake_case path
-op     = "=" | "!=" | "contain" | "not-contain"
-value  = bare token     # one word, no spaces, no quotes
+```lark
+--8<-- "src/stare/dsl/grammar.lark"
 ```
 
 `and` / `or` are case-insensitive at parse time; canonical output is uppercase
