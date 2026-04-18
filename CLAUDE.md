@@ -187,8 +187,11 @@ After incorporating changes, run:
 pixi run test
 ```
 
-All model tests parse from the fixture JSON in `tests/fixtures/` — update those
-fixtures to reflect any new/changed fields before running.
+Model tests in `tests/test_models.py` construct dict payloads manually via
+`model_validate({...})` — no fixture files are needed while the Glance/Fence
+endpoints remain planned. When an endpoint goes live, add representative
+response JSON as fixtures under `tests/fixtures/` and update the tests to load
+from those files.
 
 ## SSL certificate bundle (`src/stare/data/CERN_chain.pem`)
 
