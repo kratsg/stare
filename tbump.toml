@@ -32,9 +32,6 @@ src = "tbump.toml"
 # its version.current attribute bumped anyway.
 search = "Bump version: {current_version} → "
 
-[[file]]
-src = "README.md"
-
 [[field]]
 # the name of the field
 name = "candidate"
