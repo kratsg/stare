@@ -47,7 +47,7 @@ def main() -> None:
 
     spec: dict = yaml.safe_load(api_yml.read_text())
 
-    out_dir = repo_root / "src" / "stare" / "dsl" / "data"
+    out_dir = repo_root / "src" / "stare" / "data"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     snippets_dir = repo_root / "snippets"
@@ -66,7 +66,7 @@ def main() -> None:
         snippet_path.write_text(render_fields_table(fields))
         print(f"→ {snippet_path.relative_to(repo_root)}")
 
-    out_path = out_dir / "fields.toml"
+    out_path = out_dir / "query-fields.toml"
     out_path.write_bytes(tomli_w.dumps(catalogue).encode())
     print(f"→ {out_path.relative_to(repo_root)}")
 

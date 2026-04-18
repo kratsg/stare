@@ -16,7 +16,7 @@ from stare.dsl.registry import FieldRegistry
 
 _logger = logging.getLogger("stare")
 
-_GRAMMAR = files("stare.dsl").joinpath("grammar.lark").read_text()
+_GRAMMAR = files("stare.data").joinpath("query-grammar.lark").read_text()
 _LARK = Lark(_GRAMMAR, start="expression", parser="lalr")
 
 _VALID_OPS = tuple(op.value for op in Operator)

@@ -14,7 +14,7 @@ for which commands currently accept `--query`.
 ## Grammar
 
 ```lark
---8<-- "src/stare/dsl/grammar.lark"
+--8<-- "src/stare/data/query-grammar.lark"
 ```
 
 `and` / `or` are case-insensitive at parse time; canonical output is uppercase

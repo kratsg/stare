@@ -30,7 +30,7 @@ class FieldRegistry:
     @classmethod
     def for_mode(cls, mode: Mode) -> FieldRegistry:
         """Load the field catalogue for *mode* from the bundled TOML data file."""
-        data = files("stare.dsl.data").joinpath("fields.toml").read_text()
+        data = files("stare.data").joinpath("query-fields.toml").read_text()
         fields = tomllib.loads(data)[mode]["fields"]
         return cls(frozenset(fields))
 

@@ -10,7 +10,7 @@ from lark import Lark, UnexpectedInput
 
 @pytest.fixture
 def parser() -> Lark:
-    grammar = files("stare.dsl").joinpath("grammar.lark").read_text()
+    grammar = files("stare.data").joinpath("query-grammar.lark").read_text()
     return Lark(grammar, start="expression", parser="lalr")
 
 
