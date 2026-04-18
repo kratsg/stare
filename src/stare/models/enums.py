@@ -34,6 +34,15 @@ def _lenient(enum_cls: type[StrEnum]) -> Annotated:  # type: ignore[valid-type]
     return Annotated[enum_cls | str, BeforeValidator(_validate)]
 
 
+class MeetingType(StrEnum):
+    """Phase0 meeting role tags (used internally after flattening the 4 meeting lists)."""
+
+    EOI = "eoi"
+    EDITORIAL_BOARD_REQUEST = "editorial_board_request"
+    PRE_APPROVAL = "pre_approval"
+    APPROVAL = "approval"
+
+
 class AnalysisStatus(StrEnum):
     """Observed status values for Analysis records."""
 

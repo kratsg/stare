@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from pydantic import Field
+from pydantic import Field, SerializationInfo, model_serializer, model_validator
 
 from stare.models.common import (
     AmiGlanceLink,
@@ -13,17 +13,34 @@ from stare.models.common import (
     Documentation,
     EditorialBoardMember,
     Groups,
-    Meeting,
     Metadata,
     RelatedPublication,
     TeamMember,
+    TypedMeeting,
     _Base,
 )
-from stare.models.enums import LenientAnalysisStatus, LenientPhaseState
+from stare.models.enums import LenientAnalysisStatus, LenientPhaseState, MeetingType
+
+# Maps API JSON keys to meeting type tags (and reverse).
+_MEETING_API_KEYS: dict[MeetingType, str] = {
+    MeetingType.EOI: "eoiMeeting",
+    MeetingType.EDITORIAL_BOARD_REQUEST: "editorialBoardRequestMeeting",
+    MeetingType.PRE_APPROVAL: "preApprovalMeeting",
+    MeetingType.APPROVAL: "approvalMeeting",
+}
+_MEETING_API_KEY_TO_TYPE: dict[str, MeetingType] = {
+    v: k for k, v in _MEETING_API_KEYS.items()
+}
 
 
 class AnalysisPhase0(_Base):
-    """Phase 0 lifecycle metadata for an analysis."""
+    """Phase 0 lifecycle metadata for an analysis.
+
+    The API sends four separate meeting lists (eoiMeeting, editorialBoardRequestMeeting,
+    preApprovalMeeting, approvalMeeting). We flatten them into a single ``meetings``
+    list and tag each entry with its role via ``TypedMeeting.meeting_type``.
+    Serialization restores the original four keys for API round-trip fidelity.
+    """
 
     state: LenientPhaseState | None = None
     start_date: datetime | None = None
@@ -35,10 +52,43 @@ class AnalysisPhase0(_Base):
     pgc_or_sgc_sign_off_date: datetime | None = None
     analysis_contacts: list[AnalysisContact] = Field(default_factory=list)
     editorial_board: list[EditorialBoardMember] = Field(default_factory=list)
-    eoi_meeting: list[Meeting] = Field(default_factory=list)
-    editorial_board_request_meeting: list[Meeting] = Field(default_factory=list)
-    pre_approval_meeting: list[Meeting] = Field(default_factory=list)
-    approval_meeting: list[Meeting] = Field(default_factory=list)
+    meetings: list[TypedMeeting] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _flatten_meetings(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        meetings: list[dict[str, Any]] = []
+        for api_key, meeting_type in _MEETING_API_KEY_TO_TYPE.items():
+            for m in data.pop(api_key, []) or []:
+                if isinstance(m, dict):
+                    m = {**m, "meetingType": meeting_type}
+                meetings.append(m)
+        data["meetings"] = meetings
+        return data
+
+    @model_serializer(mode="wrap")
+    def _serialize(
+        self, handler: Any, info: SerializationInfo
+    ) -> dict[str, Any]:
+        result = handler(self)
+        raw_meetings = result.pop("meetings", [])
+        mt_key = "meetingType" if info.by_alias else "meeting_type"
+        groups: dict[str, list[dict[str, Any]]] = {
+            api_key: [] for api_key in _MEETING_API_KEYS.values()
+        }
+        for m_dict in raw_meetings:
+            mt_val = m_dict.pop(mt_key, None)
+            try:
+                mt = MeetingType(mt_val)
+            except (ValueError, TypeError):
+                continue
+            api_key = _MEETING_API_KEYS.get(mt)
+            if api_key:
+                groups[api_key].append(m_dict)
+        result.update(groups)
+        return result
 
 
 class Analysis(_Base):

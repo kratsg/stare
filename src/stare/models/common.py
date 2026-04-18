@@ -14,6 +14,7 @@ from stare.models.enums import (
     LenientCollisionType,
     LenientPublicationType,
     LenientRepositoryType,
+    MeetingType,
 )
 
 if TYPE_CHECKING:
@@ -187,6 +188,12 @@ class Meeting(_Base):
             if link_url is not None or link_label is not None:
                 data["link"] = {"label": link_label, "url": link_url}
         return data
+
+
+class TypedMeeting(Meeting):
+    """A Meeting tagged with its phase0 role (EOI, EB request, pre-approval, approval)."""
+
+    meeting_type: MeetingType
 
 
 class RelatedPublication(_Base):

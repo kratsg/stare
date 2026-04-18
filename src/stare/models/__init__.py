@@ -19,11 +19,13 @@ from stare.models.common import (
     RelatedPublication,
     Repository,
     TeamMember,
+    TypedMeeting,
 )
 from stare.models.conf_note import ConfNote, ConfNotePhase1
 from stare.models.enums import (
     AnalysisStatus,
     CollisionType,
+    MeetingType,
     PaperStatus,
     PhaseState,
     PublicationType,
@@ -59,6 +61,7 @@ __all__ = [
     "JwtClaims",
     "Link",
     "Meeting",
+    "MeetingType",
     "Metadata",
     "Paper",
     "PaperPhase1",
@@ -79,5 +82,6 @@ __all__ = [
     "TeamMember",
     "TokenInfo",
     "Trigger",
+    "TypedMeeting",
     "TriggerCategory",
 ]

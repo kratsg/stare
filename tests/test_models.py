@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from stare.models.analysis import Analysis, AnalysisPhase0
+from stare.models.enums import MeetingType
 from stare.models.common import (
     AmiGlanceLink,
     AnalysisContact,
@@ -287,9 +288,25 @@ class TestAnalysisPhase0:
                 "approvalMeeting": [],
             }
         )
-        assert len(p.eoi_meeting) == 1
-        assert p.eoi_meeting[0].title == "EOI"
-        assert p.approval_meeting == []
+        eoi = [m for m in p.meetings if m.meeting_type == MeetingType.EOI]
+        approval = [m for m in p.meetings if m.meeting_type == MeetingType.APPROVAL]
+        assert len(eoi) == 1
+        assert eoi[0].title == "EOI"
+        assert approval == []
+
+    def test_meetings_round_trip(self) -> None:
+        p = AnalysisPhase0.model_validate(
+            {
+                "eoiMeeting": [{"title": "EOI", "date": "2022-03-01", "comments": ""}],
+                "approvalMeeting": [{"title": "Approval", "date": "2023-01-01"}],
+            }
+        )
+        dumped = p.model_dump(by_alias=True)
+        assert len(dumped["eoiMeeting"]) == 1
+        assert dumped["eoiMeeting"][0]["title"] == "EOI"
+        assert len(dumped["approvalMeeting"]) == 1
+        assert dumped["editorialBoardRequestMeeting"] == []
+        assert dumped["preApprovalMeeting"] == []
 
     def test_editorial_board(self) -> None:
         p = AnalysisPhase0.model_validate(
@@ -312,7 +329,7 @@ class TestAnalysisPhase0:
     def test_optional_fields(self) -> None:
         p = AnalysisPhase0.model_validate({})
         assert p.state is None
-        assert p.eoi_meeting == []
+        assert p.meetings == []
 
 
 class TestAnalysis:
