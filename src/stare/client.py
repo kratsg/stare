@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING, Any, Literal
 
 import httpx
 from hishel import CacheOptions, SpecificationPolicy, SyncSqliteStorage
-from pydantic import TypeAdapter
 from hishel.httpx import SyncCacheTransport
+from pydantic import TypeAdapter
 
 from stare.auth import TokenManager
 from stare.dsl import Expression, parse_dsl

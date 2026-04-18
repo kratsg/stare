@@ -20,7 +20,7 @@ import pytest
 import respx
 
 from stare.auth import TokenManager, _decode_jwt_payload
-from stare.exceptions import AuthenticationError, StareError, TokenExpiredError
+from stare.exceptions import AuthenticationError, TokenExpiredError
 from stare.models.auth import JwtClaims, ResourceAccessEntry, TokenInfo, _StoredToken
 from stare.settings import StareSettings
 
