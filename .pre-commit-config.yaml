@@ -3,7 +3,7 @@ ci:
   autofix_commit_msg: "style: pre-commit fixes"
   autoupdate_schedule: "monthly"
 
-exclude: ^.cruft.json|.copier-answers.yml|pixi.lock$
+exclude: ^(\.cruft\.json|\.copier-answers\.yml|pixi\.lock)$
 
 repos:
   - repo: https://github.com/adamchainz/blacken-docs
