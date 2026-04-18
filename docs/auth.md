@@ -120,16 +120,16 @@ is read, written, or refreshed.
 
 ## Security properties
 
-| Property | Verified |
-|---|---|
-| ID token signature | Yes — RS256 via JWKS |
-| ID token issuer | Yes — must match `STARE_ISSUER` |
-| ID token audience | Yes — must match `STARE_CLIENT_ID` |
-| ID token expiry | Yes — validated by PyJWT |
-| Access token (display only) | No — decoded for display, not verified |
-| Callback Host header | Yes — rejects requests from unexpected origins (DNS rebinding protection) |
-| PKCE state parameter | Yes — CSRF protection |
-| Refresh token rotation | Handled — stale token deleted on 4xx |
+| Property | Verified | Notes |
+|---|---|---|
+| ID token signature | Yes | RS256 via JWKS |
+| ID token issuer | Yes | must match `STARE_ISSUER` |
+| ID token audience | Yes | must match `STARE_CLIENT_ID` |
+| ID token expiry | Yes | validated by PyJWT |
+| Access token (display only) | No | decoded for display, not verified |
+| Callback Host header | Yes | rejects requests from unexpected origins (DNS rebinding protection) |
+| PKCE state parameter | Yes | CSRF protection |
+| Refresh token rotation | Handled | stale token deleted on 4xx |
 
 The `auth info` command decodes the stored token for display purposes only,
 without verifying the signature. Security decisions must not rely on
