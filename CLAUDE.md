@@ -100,7 +100,7 @@ pixi run build-check   # verify the built distributions with twine
 
 ## Development setup
 
-```bash
+````bash
 pixi install           # install all dependencies
 pixi run pre-commit-install  # install git hooks
 pixi install           # install all dependencies
@@ -141,7 +141,7 @@ uvx openapi-python-client generate \
     --url https://atlas-glance.cern.ch/atlas/analysis/api/docs/api.yml \
     --output-path _generated --overwrite
 # Writes into _generated/ (gitignored — reference only, never shipped)
-```
+````
 
 ### Step 2 — What gets generated
 
