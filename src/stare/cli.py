@@ -42,26 +42,39 @@ def _handle_error(exc: StareError) -> None:
 
 app = typer.Typer(
     name="stare",
-    help="ATLAS Glance/Fence API — Python library and CLI.",
+    help=(
+        "ATLAS Glance/Fence API — Python library and CLI.\n\n"
+        "Output is a Rich table when stdout is a terminal; structured JSON when piped "
+        "or redirected. Use [cyan]--json[/cyan] / [cyan]--no-json[/cyan] to override.\n\n"
+        "[bold]Pipe to jq for field selection:[/bold]\n"
+        "  [green]stare analysis search | jq '.results[].referenceCode'[/green]"
+    ),
     no_args_is_help=True,
+    rich_markup_mode="rich",
 )
 
-auth_app = typer.Typer(help="Authentication commands.")
+auth_app = typer.Typer(help="Authentication commands.", rich_markup_mode="rich")
 app.add_typer(auth_app, name="auth")
 
-analysis_app = typer.Typer(help="Analysis commands (search and get).")
+analysis_app = typer.Typer(
+    help="Analysis commands (search and get).", rich_markup_mode="rich"
+)
 app.add_typer(analysis_app, name="analysis")
 
-paper_app = typer.Typer(help="Paper commands (search and get).")
+paper_app = typer.Typer(
+    help="Paper commands (search and get).", rich_markup_mode="rich"
+)
 app.add_typer(paper_app, name="paper")
 
-publications_app = typer.Typer(help="Publication search commands.")
+publications_app = typer.Typer(
+    help="Publication search commands.", rich_markup_mode="rich"
+)
 app.add_typer(publications_app, name="publications")
 
-triggers_app = typer.Typer(help="Trigger search commands.")
+triggers_app = typer.Typer(help="Trigger search commands.", rich_markup_mode="rich")
 app.add_typer(triggers_app, name="triggers")
 
-cache_app = typer.Typer(help="HTTP cache management commands.")
+cache_app = typer.Typer(help="HTTP cache management commands.", rich_markup_mode="rich")
 app.add_typer(cache_app, name="cache")
 
 
@@ -292,19 +305,31 @@ def auth_info(
 @analysis_app.command("search")
 def analysis_search(
     query: Annotated[
-        str | None, typer.Option("--query", "-q", help="Filter query string")
+        str | None,
+        typer.Option(
+            "--query",
+            "-q",
+            help='Filter query (e.g. \'"referenceCode" ~= "HION"\'; ops: =, ~=, >, <, !=; combine with "and"/"or").',
+        ),
     ] = None,
     limit: Annotated[
-        int, typer.Option("--limit", "-n", help="Max results to return")
+        int,
+        typer.Option(
+            "--limit", "-n", help="Max results to return (server default: 50)."
+        ),
     ] = 50,
     offset: Annotated[
-        int, typer.Option("--offset", help="Result offset (pagination)")
+        int, typer.Option("--offset", help="Result offset for pagination.")
     ] = 0,
     sort_by: Annotated[
-        str | None, typer.Option("--sort-by", help="Field to sort by")
+        str | None,
+        typer.Option(
+            "--sort-by",
+            help="camelCase API field to sort by (e.g. referenceCode, creationDate).",
+        ),
     ] = None,
     sort_desc: Annotated[
-        bool, typer.Option("--sort-desc", help="Sort descending")
+        bool, typer.Option("--sort-desc", help="Sort descending.")
     ] = False,
     output_json: Annotated[
         bool | None,
@@ -318,7 +343,19 @@ def analysis_search(
         typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
     ] = False,
 ) -> None:
-    """Search analyses."""
+    """Search analyses via GET /searchAnalysis.
+
+    Output auto-detects: Rich table when stdout is a terminal, JSON when piped.
+    Override with [cyan]--json[/cyan] or [cyan]--no-json[/cyan].
+
+    [bold]Examples[/bold]
+      [green]stare analysis search -q '"referenceCode" ~= "HION"'[/green]
+      [green]stare analysis search | jq '.results[].referenceCode'[/green]
+      [green]stare analysis search | jq '[.results[] | select(.status=="Active")] | length'[/green]
+
+    [bold]API reference[/bold]
+      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-analysis-searchAnalysis
+    """
     if output_json is None:
         output_json = not stdout_is_interactive()
     g = _make_glance(no_cache=no_cache)
@@ -369,7 +406,15 @@ def analysis_get(
         typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
     ] = False,
 ) -> None:
-    """Fetch a single analysis by reference code."""
+    """Fetch a single analysis by reference code via GET /analyses/{ref_code}.
+
+    [bold]Examples[/bold]
+      [green]stare analysis get ANA-HION-2018-01[/green]
+      [green]stare analysis get ANA-HION-2018-01 | jq '.phase0.state'[/green]
+
+    [bold]API reference[/bold]
+      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-analysis-getAnalysis
+    """
     if output_json is None:
         output_json = not stdout_is_interactive()
     g = _make_glance(no_cache=no_cache)
@@ -400,19 +445,31 @@ def analysis_get(
 @paper_app.command("search")
 def paper_search(
     query: Annotated[
-        str | None, typer.Option("--query", "-q", help="Filter query string")
+        str | None,
+        typer.Option(
+            "--query",
+            "-q",
+            help='Filter query (e.g. \'"referenceCode" ~= "HDBS"\'; ops: =, ~=, >, <, !=; combine with "and"/"or").',
+        ),
     ] = None,
     limit: Annotated[
-        int, typer.Option("--limit", "-n", help="Max results to return")
+        int,
+        typer.Option(
+            "--limit", "-n", help="Max results to return (server default: 50)."
+        ),
     ] = 50,
     offset: Annotated[
-        int, typer.Option("--offset", help="Result offset (pagination)")
+        int, typer.Option("--offset", help="Result offset for pagination.")
     ] = 0,
     sort_by: Annotated[
-        str | None, typer.Option("--sort-by", help="Field to sort by")
+        str | None,
+        typer.Option(
+            "--sort-by",
+            help="camelCase API field to sort by (e.g. referenceCode, creationDate).",
+        ),
     ] = None,
     sort_desc: Annotated[
-        bool, typer.Option("--sort-desc", help="Sort descending")
+        bool, typer.Option("--sort-desc", help="Sort descending.")
     ] = False,
     output_json: Annotated[
         bool | None,
@@ -426,7 +483,18 @@ def paper_search(
         typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
     ] = False,
 ) -> None:
-    """Search papers."""
+    """Search papers via GET /searchPaper.
+
+    Output auto-detects: Rich table when stdout is a terminal, JSON when piped.
+    Override with [cyan]--json[/cyan] or [cyan]--no-json[/cyan].
+
+    [bold]Examples[/bold]
+      [green]stare paper search -q '"referenceCode" ~= "HDBS"'[/green]
+      [green]stare paper search | jq '.results[].referenceCode'[/green]
+
+    [bold]API reference[/bold]
+      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-paper-searchPaper
+    """
     if output_json is None:
         output_json = not stdout_is_interactive()
     g = _make_glance(no_cache=no_cache)
@@ -477,7 +545,15 @@ def paper_get(
         typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
     ] = False,
 ) -> None:
-    """Fetch a single paper by reference code."""
+    """Fetch a single paper by reference code via GET /papers/{ref_code}.
+
+    [bold]Examples[/bold]
+      [green]stare paper get HDBS-2018-33[/green]
+      [green]stare paper get HDBS-2018-33 | jq '.phase1.state'[/green]
+
+    [bold]API reference[/bold]
+      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-paper-getPaper
+    """
     if output_json is None:
         output_json = not stdout_is_interactive()
     g = _make_glance(no_cache=no_cache)
@@ -520,7 +596,15 @@ def conf_note(
         typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
     ] = False,
 ) -> None:
-    """Fetch a single CONF note by temporary reference code."""
+    """Fetch a single CONF note by temporary reference code via GET /confnotes/{ref_code}.
+
+    [bold]Examples[/bold]
+      [green]stare conf-note ATLAS-CONF-2024-001[/green]
+      [green]stare conf-note ATLAS-CONF-2024-001 | jq '.status'[/green]
+
+    [bold]API reference[/bold]
+      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-confnote-getConfNote
+    """
     if output_json is None:
         output_json = not stdout_is_interactive()
     g = _make_glance(no_cache=no_cache)
@@ -563,7 +647,15 @@ def pub_note(
         typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
     ] = False,
 ) -> None:
-    """Fetch a single PUB note by temporary reference code."""
+    """Fetch a single PUB note by temporary reference code via GET /pubnotes/{ref_code}.
+
+    [bold]Examples[/bold]
+      [green]stare pub-note ATL-PHYS-PUB-2024-001[/green]
+      [green]stare pub-note ATL-PHYS-PUB-2024-001 | jq '.status'[/green]
+
+    [bold]API reference[/bold]
+      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-pubnote-getPubNote
+    """
     if output_json is None:
         output_json = not stdout_is_interactive()
     g = _make_glance(no_cache=no_cache)
@@ -621,7 +713,17 @@ def publications_search(
         typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
     ] = False,
 ) -> None:
-    """Search across all publication types."""
+    """Search across all publication types via GET /publications/search.
+
+    Returns Papers, CONF notes, and PUB notes in a single result set.
+
+    [bold]Examples[/bold]
+      [green]stare publications search --type Paper --group HDBS[/green]
+      [green]stare publications search | jq '.[].referenceCode'[/green]
+
+    [bold]API reference[/bold]
+      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-publications-searchPublications
+    """
     if output_json is None:
         output_json = not stdout_is_interactive()
     g = _make_glance(no_cache=no_cache)
@@ -668,7 +770,14 @@ def groups(
         typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
     ] = False,
 ) -> None:
-    """List all leading groups."""
+    """List all leading ATLAS physics groups via GET /groups.
+
+    [bold]Examples[/bold]
+      [green]stare groups | jq '.[]'[/green]
+
+    [bold]API reference[/bold]
+      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-groups-getGroups
+    """
     if output_json is None:
         output_json = not stdout_is_interactive()
     g = _make_glance(no_cache=no_cache)
@@ -700,7 +809,14 @@ def subgroups(
         typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
     ] = False,
 ) -> None:
-    """List all subgroups."""
+    """List all ATLAS physics subgroups via GET /subgroups.
+
+    [bold]Examples[/bold]
+      [green]stare subgroups | jq '.[]'[/green]
+
+    [bold]API reference[/bold]
+      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-subgroups-getSubgroups
+    """
     if output_json is None:
         output_json = not stdout_is_interactive()
     g = _make_glance(no_cache=no_cache)
@@ -743,7 +859,15 @@ def triggers_search(
         typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
     ] = False,
 ) -> None:
-    """Search triggers."""
+    """Search HLT triggers via GET /triggers/search.
+
+    [bold]Examples[/bold]
+      [green]stare triggers search --category electron --year 2018[/green]
+      [green]stare triggers search | jq '.[].name'[/green]
+
+    [bold]API reference[/bold]
+      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-triggers-searchTriggers
+    """
     if output_json is None:
         output_json = not stdout_is_interactive()
     g = _make_glance(no_cache=no_cache)

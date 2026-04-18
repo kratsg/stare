@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 import platformdirs
-import pytest
 from typer.testing import CliRunner
+
+if TYPE_CHECKING:
+    import pytest
 
 from stare.cli import app
 from stare.models import AnalysisSearchResult
@@ -16,16 +19,18 @@ from stare.settings import StareSettings
 runner = CliRunner()
 
 
+_BASE_KWARGS = {
+    "base_url": "https://example.com",
+    "auth_url": "https://example.com/auth",
+    "token_url": "https://example.com/token",
+    "revocation_url": "https://example.com/revoke",
+    "issuer": "https://example.com",
+    "jwks_url": "https://example.com/certs",
+}
+
+
 def _make_settings(**kw: object) -> StareSettings:
-    return StareSettings(  # type: ignore[arg-type]
-        base_url="https://example.com",
-        auth_url="https://example.com/auth",
-        token_url="https://example.com/token",
-        revocation_url="https://example.com/revoke",
-        issuer="https://example.com",
-        jwks_url="https://example.com/certs",
-        **kw,
-    )
+    return StareSettings.model_validate({**_BASE_KWARGS, **kw})
 
 
 def _cache_settings(tmp_path: Path, **kw: object) -> StareSettings:
