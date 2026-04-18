@@ -1,5 +1,9 @@
-from .version import __version__
-from .settings import settings
-from .client import Glance
+"""stare — Python library and CLI for the CERN ATLAS Glance/Fence API."""
 
-__all__ = ['__version__', 'Session', 'settings', 'Glance']
+from __future__ import annotations
+
+__version__ = "0.2.0"
+
+from stare.client import Glance
+
+__all__ = ["Glance", "__version__"]

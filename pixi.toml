@@ -1,0 +1,117 @@
+[workspace]
+authors = ["Giordon Stark <kratsg@gmail.com>"]
+name = "stare"
+channels = ["conda-forge"]
+platforms = ["linux-64", "linux-aarch64", "osx-64", "osx-arm64"]
+preview = ["pixi-build"]
+
+[dependencies]
+stare = { path = "./" }
+
+[package]
+name = "stare"
+version = "latest"
+
+[package.build]
+backend = { name = "pixi-build-python", version = "*" }
+config = { noarch = true }
+
+[package.host-dependencies]
+uv = "*"
+hatchling = ">=1.25"
+hatch-vcs = ">=0.4"
+
+[package.run-dependencies]
+python = ">=3.10"
+httpx = ">=0.27"
+hishel = ">=0.1"
+keyring = ">=25"
+pyjwt = ">=2.8"
+cryptography = "*"
+filelock = ">=3.13"
+pydantic = ">=2"
+pydantic-settings = ">=2"
+typer = ">=0.12"
+rich = ">=13"
+platformdirs = ">=4"
+lark = ">=1.2"
+
+[feature.staging.activation.env]
+STARE_BASE_URL = "https://glance-staging01.cern.ch/atlas/analysis/api"
+STARE_CA_BUNDLE = "CERN"
+STARE_EXCHANGE_AUDIENCE = "atlas-glance-analysis-api-dev"
+
+[feature.py310.dependencies]
+python = "<3.11,>=3.10"
+tomli = ">=2"
+
+[feature.py311.dependencies]
+python = "<3.12,>=3.11"
+
+[feature.py312.dependencies]
+python = "<3.13,>=3.12"
+
+[feature.py313.dependencies]
+python = "<3.14,>=3.13"
+
+[feature.test.dependencies]
+pytest = ">=9"
+pytest-cov = ">=3"
+respx = ">=0.21"
+
+[feature.test.tasks]
+test = { cmd = "pytest -m 'not slow'", description = "Run quick tests (skip slow)" }
+test-cov = { cmd = "pytest -m 'not slow' --cov=stare --cov-report=term --cov-report=html", description = "Run quick tests with coverage" }
+test-slow = { cmd = "pytest --runslow", description = "Run tests including slow tests" }
+test-all = { cmd = "pytest --cov=stare", description = "Run all tests with coverage" }
+
+[feature.docs.dependencies]
+zensical = "*"
+lychee = "*"
+pydocstyle = "*"
+mkdocstrings = ">=0.26"
+mkdocstrings-python = ">=1.12"
+
+[feature.docs.tasks]
+docs-build = { cmd = "zensical build", description = "Build documentation (static)", inputs = ["src/", "docs/", "zensical.toml"], outputs = ["site"] }
+docs-linkcheck = { cmd = "lychee docs/", description = "Check documentation for broken links" }
+docs-serve = { cmd = "zensical serve", depends-on = ["docs-build"], description = "Build and serve documentation" }
+docs-clean = { cmd = "rm -rf site", description = "Clean documentation build artifacts", inputs = ["site"] }
+check-docstrings = { cmd = "pydocstyle src/stare/", description = "Check docstring style" }
+
+[feature.dev.dependencies]
+python = ">=3.11"
+pyyaml = ">=6"
+tomli-w = ">=1.0"
+pre-commit = "*"
+identify = ">=1.4.20"  # ruff-check
+pylint = ">=3.2"
+tbump = ">=6.7.0"
+mypy = "*"
+ruff = "*"
+python-build = "*"
+twine = "*"
+hishel = ">=0.1"
+[feature.dev.tasks]
+pre-commit = { cmd = "pre-commit run --all-files", description = "Run pre-commit hooks on all files" }
+pylint = { cmd = "pylint stare", description = "Run PyLint on stare package" }
+pre-commit-install = { cmd = "pre-commit install", description = "Install pre-commit git hooks" }
+pre-commit-update = { cmd = "pre-commit autoupdate", description = "Update pre-commit hook versions" }
+build-clean = { cmd = "rm -rf build dist", description = "Clean build artifacts" }
+build = { cmd = "python -m build", depends-on = ["build-clean"], description = "Build SDist and wheel distributions", outputs = ["dist"] }
+build-check = { cmd = "twine check --strict ./dist/*", depends-on = ["build"], description = "Run twine to check" }
+extract-fields = { cmd = "python scripts/extract_dsl_fields.py", description = "Regenerate DSL field catalogues from api.yml" }
+
+[environments]
+docs = ["docs"]
+dev = ["dev"]
+py310 = ["test", "py310"]
+py311 = ["test", "py311"]
+py312 = ["test", "py312"]
+py313 = ["test", "py313"]
+staging = ["default", "staging"]
+
+[tasks]
+lint = { depends-on = ["pre-commit", "pylint"], description = "Run all linting (pre-commit + pylint)" }
+check = { depends-on = ["lint", "test"], description = "Quick check: lint + basic tests" }
+check-all = { depends-on = ["lint", "test-all"], description = "Comprehensive check: lint + all tests" }

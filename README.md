@@ -1,74 +1,135 @@
 # stare
 
-[![GitHub Actions Status](https://github.com/kratsg/stare/workflows/CI/badge.svg)](https://github.com/kratsg/stare/actions?workflow=CI) [![GitHub Actions Deploy Status](https://github.com/kratsg/stare/workflows/Publish%20Python%20%F0%9F%90%8D%20distributions%20%F0%9F%93%A6%20to%20PyPI%20and%20TestPyPI/badge.svg)](https://github.com/kratsg/stare/actions?workflow=Publish+Python+%F0%9F%90%8D+distributions+%F0%9F%93%A6+to+PyPI+and+TestPyPI)
+Python library and CLI for the
+[CERN ATLAS Glance/Fence API](https://atlas-glance.cern.ch/atlas/analysis/api/docs/).
 
-The python wrapper for the Glance API.
+[![Actions Status][actions-badge]][actions-link]
+[![Documentation Status][rtd-badge]][rtd-link]
+[![PyPI version][pypi-version]][pypi-link]
 
-## Environment Variables
+[actions-badge]: https://github.com/kratsg/stare/workflows/CI/badge.svg
+[actions-link]: https://github.com/kratsg/stare/actions
+[rtd-badge]: https://readthedocs.org/projects/stare/badge/?version=latest
+[rtd-link]: https://stare.readthedocs.io/en/latest/?badge=latest
+[pypi-version]: https://img.shields.io/pypi/v/stare.svg
+[pypi-link]: https://pypi.org/project/stare/
 
-See [stare/settings/base.py](src/stare/settings/base.py) for all environment variables that can be set. All environment variables for this package are prefixed with `STARE`. As of now, there are:
+## Installation
 
-* `STARE_USERNAME`: CERN account username
-* `STARE_PASSWORD`: CERN account password
-* `STARE_AUTH_URL`: authentication server
-* `STARE_SITE_URL`: API server
-* `STARE_CASSETTE_LIBRARY_DIR`: for tests, where to store recorded requests/responses
-
-## CLI Usage
-
-Use `stare --help` for the various options provided.
-
-## Python Usage
-
-```
-import stare
-glance = stare.Glance()
-
-# get publication information of a publication
-pub_info = glance.publication('HDBS-2018-33')
-# get publications for a given activity/reference code (see table below)
-pubs = glance.publications(activity_id=26, reference_code='HIGG')
+```bash
+python -m pip install stare
 ```
 
-## Activity IDs
+## Authentication
 
-Activity IDs are currently in a different API project (under SCAB Nominations) which SUSY conveners have access to. For now, this is a partial list to make it easier.
+`stare` uses PKCE (no passwords stored). Run once to authenticate:
 
-|ID |CODE|NAME                  |
-|---|----|----------------------|
-|36 |SUSY|SUSY                  |
-|37 |BGF |Background forum      |
-|38 |CDM |Common Dark Matter    |
-|39 |TGSK|3rd generation squarks|
-|40 |EW  |EW                    |
-|41 |ISG |InclSqGl              |
-|42 |RPVL|RPVLL                 |
-|43 |RVEW|SUSY Review           |
-|199|STPR|Strong production     |
-|200|RUN2|Run2 Summaries        |
-
-## SSL
-
-In order to get SSL handshakes working (certificate verification), one needs to make sure we add/trust the CERN Certification Authorities (CA) for both the Root and the Grid CAs. Specifically, we rely on the Root CA to sign/issue the Grid CA. The Grid CA is what's relied on for the SSL chain. To make this happen, we'll need both PEM for each CA combined into a single `CERN_chain.pem` file which is bundled up with this package.
-
-Going to the [CERN CA Files website](https://cafiles.cern.ch/cafiles/) and downloading the CERN Root Certification Authority 2 (DER file) and CERN Grid Certification Authority (PEM file). We can then convert the DER to PEM as follows (for the Root CA):
-
-```
-openssl x509 -in CERN_ROOT_CA_2.crt -inform der -outform pem -out CERN_ROOT_CA_2.pem
+```bash
+stare auth login
 ```
 
-and then combine the two
+Your browser will open CERN SSO. After approval, tokens are stored locally and
+refreshed automatically.
 
+## CLI usage
+
+```bash
+# Search analyses — Rich table in terminal, JSON when piped
+stare analysis search
+stare analysis search --query 'referenceCode = ANA-HION-2018-01'
+stare analysis search -q 'keywords contain Higgs' --limit 20
+
+# Pipe to jq for field selection (JSON is auto-emitted)
+stare analysis search | jq '.results[].referenceCode'
+stare analysis search -q 'referenceCode contain HION' \
+  | jq -r '.results[] | select(.status == "Active") | .referenceCode'
+
+# Search papers
+stare paper search --query 'referenceCode = HDBS-2018-33'
+
+# Get individual resources
+stare analysis get ANA-HION-2018-01
+stare paper get HDBS-2018-33
+
+# CONF notes / PUB notes
+stare conf-note ATLAS-CONF-2024-001
+stare pub-note ATL-PHYS-PUB-2024-001
+
+# List metadata
+stare groups
+stare subgroups
+
+# Auth management
+stare auth login
+stare auth logout
+stare auth status
+
+# Cache management
+stare cache info
+stare cache clear --yes
 ```
-cat CERN_GRID_CA_2.pem CERN_ROOT_CA_2.pem > CERN_chain.pem
+
+Output is a Rich table when stdout is a terminal and JSON when piped or
+redirected. Use `--json` / `--no-json` to override. Commands that expose
+`--no-cache` bypass the 8-hour on-disk response cache for that invocation.
+
+## Library usage
+
+```python
+from stare import Glance
+
+g = Glance()
+
+# Search analyses (currently live)
+result = g.analyses.search(query="referenceCode = ANA-HION-2018-01")
+print(f"Found {result.total_rows} analyses")
+for analysis in result.results:
+    print(analysis.reference_code, analysis.short_title)
+
+# Search papers (currently live)
+paper_result = g.papers.search(query="referenceCode = HDBS-2018-33")
+print(f"Found {paper_result.total_rows} papers")
+for paper in paper_result.results:
+    print(paper.reference_code, paper.short_title)
+
+# Individual resource lookups (available as API endpoints go live)
+analysis = g.analyses.get("ANA-HION-2018-01")
+paper = g.papers.get("HDBS-2018-33")
+groups = g.groups.list()
 ```
 
-This can be passed into any python `requests::Session` via `verify='/path/to/CERN_chain.pem'` and SSL verification should work.
+Use as a context manager for explicit connection lifecycle:
 
-[1] [DER vs PEM?](https://support.ssl.com/Knowledgebase/Article/View/19/0/der-vs-crt-vs-cer-vs-pem-certificates-and-how-to-convert-them)
+```python
+with Glance() as g:
+    result = g.analyses.search(query="status = Active")
+```
 
+Inject a token directly (useful in CI/automated scripts):
 
-# Reference
-* http://bhomnick.net/design-pattern-python-api-client/
-* https://packaging.python.org/guides/publishing-package-distribution-releases-using-github-actions-ci-cd-workflows/
-  * Thanks to @webknjaz [da900a16](https://github.com/kratsg/stare/commit/da900a1669af8b72fe8fbbf1c83d8d95e412af8e)
+```python
+g = Glance(token="your-access-token")
+```
+
+## Configuration
+
+Override defaults via environment variables:
+
+| Variable              | Default                                           |
+| --------------------- | ------------------------------------------------- |
+| `STARE_BASE_URL`      | `https://atlas-glance.cern.ch/atlas/analysis/api` |
+| `STARE_CLIENT_ID`     | `stare`                                           |
+| `STARE_AUTH_URL`      | CERN Keycloak auth endpoint                       |
+| `STARE_TOKEN_URL`     | CERN Keycloak token endpoint                      |
+| `STARE_CALLBACK_PORT` | `8182` (must match Keycloak registration)         |
+
+## Development
+
+```bash
+git clone https://github.com/kratsg/stare
+cd stare
+pixi install
+pixi run pre-commit-install
+pixi run stare auth login
+pixi run test
+```

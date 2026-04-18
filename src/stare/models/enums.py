@@ -1,0 +1,149 @@
+"""Semantic string enums for Glance API fields.
+
+Each public enum documents the known value set for a field.
+All enums are exposed in their "lenient" form via the ``Lenient*`` type
+aliases, which accept unknown strings gracefully (logging a warning)
+rather than raising a validation error.
+"""
+
+from __future__ import annotations
+
+import logging
+from enum import Enum
+from typing import Annotated, Any, TypeVar
+
+from pydantic import BeforeValidator
+
+_logger = logging.getLogger("stare")
+
+_E = TypeVar("_E", bound="StrEnum")
+
+
+class StrEnum(str, Enum):
+    """Python 3.10-compatible string enum base (StrEnum was added in 3.11)."""
+
+
+def _lenient(enum_cls: type[_E]) -> Any:
+    """Return ``Annotated[EnumCls | str, BeforeValidator]`` for use in model fields.
+
+    Unknown string values fall back to the raw string and log a warning.
+    """
+
+    def _validate(v: object) -> object:
+        if not isinstance(v, str):
+            return v
+        try:
+            return enum_cls(v)
+        except ValueError:
+            _logger.warning(
+                "Unknown %s value %r — storing as raw string", enum_cls.__name__, v
+            )
+            return v
+
+    return Annotated[enum_cls | str, BeforeValidator(_validate)]
+
+
+class MeetingType(StrEnum):
+    """Phase0 meeting role tags (used internally after flattening the 4 meeting lists)."""
+
+    EOI = "eoi"
+    EDITORIAL_BOARD_REQUEST = "editorial_board_request"
+    PRE_APPROVAL = "pre_approval"
+    APPROVAL = "approval"
+
+
+class AnalysisStatus(StrEnum):
+    """Observed status values for Analysis records."""
+
+    ACTIVE = "Active"
+    ANALYSIS_CLOSED = "Analysis Closed"
+    CREATED = "Created"
+    PHASE0_ACTIVE = "Phase 0 Active"
+    PHASE0_CLOSED = "Phase 0 Closed"
+
+
+class PaperStatus(StrEnum):
+    """Observed status values for Paper, ConfNote, and PubNote records."""
+
+    ANALYSIS_CLOSED = "Analysis Closed"
+    CREATED = "Created"
+    PHASE1_ACTIVE = "Phase 1 Active"
+    PHASE2_ACTIVE = "Phase 2 Active"
+    SUBMISSION_ACTIVE = "Submission Active"
+    SUBMISSION_CLOSED = "Submission Closed"
+    ACTIVE = "Active"
+
+
+class PhaseState(StrEnum):
+    """Observed workflow state keys for phase0/phase1/phase2/submission phases."""
+
+    # Human-readable states seen in test data
+    ACTIVE = "Active"
+    APPROVED = "Approved"
+    FINAL_REVIEW_CLOSED = "final_review_closed"
+    FINISHED = "finished"
+    REVIEW_CLOSED = "review_closed"
+    # Internal workflow state identifiers seen in live API
+    ANALYSIS_COORDINATORS_SELECTION = "analysis_coordinators_selection"
+    ANALYSIS_COORDINATORS_TIMELINE = "analysis_coordinators_timeline"
+    ANALYSIS_DEFINITION = "analysis_definition"
+    APPROVED_BY_REVIEWER = "approved_by_reviewer"
+    APPROVAL_ACCEPTANCE = "approval_acceptance"
+    APPROVAL_MEETING = "approval_meeting_data"
+    EDBOARD_MEETING = "edboard_meeting_data"
+    EDBOARD_REQUEST_MEETING = "edboard_request_meeting_data"
+    CONF_SKIP = "conf_skip"
+    EOI_MEETING = "eoi_meeting"
+    FIRST_ANALYSIS = "first_analysis_data"
+    INTERNAL_NOTE = "internal_note_editors_definition"
+    PAPER_CONTACT_EDITORS_DEFINITION = "paper_contact_editors_definition"
+    PAPER_SKIP = "paper_skip"
+    PHASE0_ACTIVE = "phase0_active"
+    PGC_SGC_SIGNOFF = "pgc_sgc_contact_signoff"
+    PRE_APPROVAL_MEETING = "pre_approval_meeting_data"
+    PUBLICATION_DRAFT = "publication_draft"
+    PUB_CONTACT_EDITORS_DEFINITION = "pub_contact_editors_definition"
+    PUB_SKIP = "pub_skip"
+    SECOND_ANALYSIS = "second_analysis_data"
+
+
+class CollisionType(StrEnum):
+    """Observed collision type identifiers."""
+
+    PP = "p-p"
+    P_PB = "p-Pb"
+    PBPB = "Pb-Pb"
+    XE_XE = "Xe-Xe"
+    COL_TYPE = "Col type"
+    SEC_COL_TYPE = "Sec col type"
+    TERT_COL_TYPE = "Tert col type"
+
+
+class RepositoryType(StrEnum):
+    """Observed repository type values."""
+
+    ANALYSIS = "analysis"
+    CONF = "CONF"
+    FRAMEWORK = "framework"
+    INT = "INT"
+    PAP = "PAP"
+    PUB = "PUB"
+    THESIS = "thesis"
+
+
+class PublicationType(StrEnum):
+    """Observed publication type values (cross-references between record types)."""
+
+    PAPER = "Paper"
+    CONF_NOTE = "ConfNote"
+    PUB_NOTE = "PubNote"
+    ANALYSIS = "Analysis"
+
+
+# Lenient type aliases — use these in model field annotations.
+LenientAnalysisStatus = _lenient(AnalysisStatus)
+LenientPaperStatus = _lenient(PaperStatus)
+LenientPhaseState = _lenient(PhaseState)
+LenientCollisionType = _lenient(CollisionType)
+LenientRepositoryType = _lenient(RepositoryType)
+LenientPublicationType = _lenient(PublicationType)

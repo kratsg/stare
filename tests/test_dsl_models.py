@@ -1,0 +1,84 @@
+"""Tests for the DSL AST models and to_dsl() serializers."""
+
+from __future__ import annotations
+
+import pytest
+
+from stare.dsl.models import And, Condition, Operator, Or
+
+
+def test_operator_is_str_enum() -> None:
+    assert issubclass(Operator, str)
+    assert Operator("=") is Operator.EQ
+    assert Operator("contain") is Operator.CONTAIN
+
+
+def test_condition_operator_is_enum_member() -> None:
+    c = Condition(field="f", operator=Operator.EQ, value="v")
+    assert isinstance(c.operator, Operator)
+
+
+def test_condition_to_dsl() -> None:
+    c = Condition(field="referenceCode", operator=Operator.EQ, value="HION")
+    assert c.to_dsl() == "referenceCode = HION"
+
+
+def test_condition_hyphenated_value() -> None:
+    c = Condition(field="referenceCode", operator=Operator.EQ, value="ANA-HION-2018-01")
+    assert c.to_dsl() == "referenceCode = ANA-HION-2018-01"
+
+
+def test_and_two_clauses() -> None:
+    expr = And(
+        clauses=(
+            Condition(field="a", operator=Operator.EQ, value="x"),
+            Condition(field="b", operator=Operator.CONTAIN, value="y"),
+        )
+    )
+    assert expr.to_dsl() == "a = x AND b contain y"
+
+
+def test_or_two_clauses() -> None:
+    expr = Or(
+        clauses=(
+            Condition(field="status", operator=Operator.EQ, value="ACTIVE"),
+            Condition(field="status", operator=Operator.EQ, value="PENDING"),
+        )
+    )
+    assert expr.to_dsl() == "status = ACTIVE OR status = PENDING"
+
+
+def test_or_inside_and_no_parens() -> None:
+    inner = Or(
+        clauses=(
+            Condition(field="status", operator=Operator.EQ, value="ACTIVE"),
+            Condition(field="status", operator=Operator.EQ, value="PENDING"),
+        )
+    )
+    outer = And(
+        clauses=(
+            inner,
+            Condition(field="keywords", operator=Operator.CONTAIN, value="jets"),
+        )
+    )
+    assert (
+        outer.to_dsl()
+        == "status = ACTIVE OR status = PENDING AND keywords contain jets"
+    )
+
+
+def test_and_inside_or_no_parens() -> None:
+    inner = And(
+        clauses=(
+            Condition(field="a", operator=Operator.EQ, value="x"),
+            Condition(field="b", operator=Operator.EQ, value="y"),
+        )
+    )
+    outer = Or(clauses=(inner, Condition(field="c", operator=Operator.EQ, value="z")))
+    assert outer.to_dsl() == "a = x AND b = y OR c = z"
+
+
+@pytest.mark.parametrize("op", list(Operator))
+def test_all_operators(op: Operator) -> None:
+    c = Condition(field="f", operator=op, value="v")
+    assert op.value in c.to_dsl()

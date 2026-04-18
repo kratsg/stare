@@ -1,0 +1,4 @@
+exclude = [
+  'https://atlas-glance.cern.ch/', # SSL issues
+  'https://github.com/kratsg/stare/workflows/CI/badge.svg', # until merged to main
+]

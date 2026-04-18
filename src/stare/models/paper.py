@@ -1,56 +1,125 @@
-import attr
+"""Paper resource models (Phase1, Phase2, SubmissionPhase)."""
+
+from __future__ import annotations
+
+from datetime import date
+
+from pydantic import AwareDatetime, Field, field_validator
+
+from stare.models.common import (
+    Documentation,
+    EditorialBoardMember,
+    Groups,
+    Link,
+    Metadata,
+    Person,
+    RelatedPublication,
+    TeamMember,
+    _Base,
+)
+from stare.models.enums import LenientPaperStatus, LenientPhaseState
 
 
-def make_supporting_note(data):
-    return SupportingNote(id=data['id'], label=data['label'], url=data['url'])
+class PaperPhase1(_Base):
+    """Phase 1 of the paper lifecycle (review and approval)."""
 
-
-def make_supporting_note_list(data):
-    return list(map(make_supporting_note, data))
-
-
-def make_paper(data):
-    return Paper(
-        id=data['id'],
-        short_title=data['short_title'],
-        full_title=data['full_title'],
-        pub_short_title=data['pub_short_title'],
-        creation_date=data['creation_date'],
-        status=data['status'],
-        deletion_request=data['deletion_request'],
-        deletion_reason=data['deletion_reason'],
-        deletion=data['deletion'],
-        supporting_notes=make_supporting_note_list(data['supporting_notes'])
-        if 'supporting_notes' in data
-        else [],
+    state: LenientPhaseState | None = None
+    start_date: date | None = None
+    editorial_board: list[EditorialBoardMember] = Field(default_factory=list)
+    editorial_board_formed_on: date | None = None
+    signed_off_by_language_editors_on: date | None = None
+    presentation_date: date | None = None
+    pgc_approved_analysis_on: date | None = Field(
+        default=None, alias="principalGroupCoordinatorApprovedAnalysisOn"
+    )
+    eb_draft_sign_off: str | None = Field(
+        default=None, alias="editorialBoardDraftSignOff"
+    )
+    released_on: date | None = None
+    pub_committee_chair: Person | None = Field(
+        default=None, alias="publicationCommitteeChairDeputyOrDelegatedTo"
+    )
+    spokesperson: Person | None = Field(
+        default=None, alias="spokespersonDeputyOrDelegatedTo"
+    )
+    atlas_meeting_date: date | None = None
+    phase1_signed_off_by_pub_committee_on: date | None = Field(
+        default=None, alias="phase1SignedOffByPublicationCommitteeChairOn"
     )
 
 
-def make_paper_list(data):
-    return PaperList(papers=list(map(make_paper, data)))
+class PaperPhase2(_Base):
+    """Phase 2 of the paper lifecycle (CERN review, revision, closure)."""
+
+    state: LenientPhaseState | None = None
+    start_date: date | None = None
+    eb_draft2_sign_off_on: date | None = Field(
+        default=None, alias="editorialBoardDraft2SignOffOn"
+    )
+    released_on: date | None = None
+    sent_draft2_to_cern_on: date | None = None
+    signed_off_by_cern_on: date | None = None
+    paper_closure_meeting_urls: list[Link] = Field(default_factory=list)
+    preliminary_plots_released: str | None = Field(
+        default=None, alias="preliminaryPlotsAndResultsReleased"
+    )
+    date_of_paper_closure: date | None = None
+    revised_draft_signed_off_by_eb_chair_on: date | None = Field(
+        default=None, alias="revisedDraftSignedOffByEditorialBoardChairOn"
+    )
+    pub_committee_chair_or_deputy: Person | None = Field(
+        default=None, alias="publicationCommitteeChairOrDeputy"
+    )
+    revised_draft_signed_off_by_pub_committee_on: date | None = Field(
+        default=None, alias="revisedDraftSignedOffByPublicationCommitteeChairOrDeputyOn"
+    )
+    revised_draft_signed_off_by_spokesperson_delegated_on: date | None = None
+    revised_draft_signed_off_by_spokesperson_or_deputy_on: date | None = None
 
 
-@attr.s
-class SupportingNote(object):
-    id = attr.ib()
-    label = attr.ib()
-    url = attr.ib()
+class SubmissionPhase(_Base):
+    """Submission phase: arXiv, journal, final publication."""
+
+    state: LenientPhaseState | None = None
+    start_date: date | None = None
+    arxiv_url: Link | None = Field(default=None, alias="arXivUrl")
+    final_title: str | None = Field(default=None, alias="finalTitleTex")
+    final_submission_journal: str | None = None
+    arxiv_submission_date: AwareDatetime | None = Field(
+        default=None, alias="arXivSubmissionDate"
+    )
+    physics_briefing: Link | None = None
+    date_of_1st_referee_report: date | None = None
+    journal_acceptance_date: date | None = None
+    date_of_1st_proof: date | None = None
+    final_journal_publication: Link | None = None
+    published_online_on: date | None = None
+
+    @field_validator("arxiv_submission_date", mode="before")
+    @classmethod
+    def _parse_arxiv_date(cls, v: object) -> object:
+        if isinstance(v, dict):
+            date_str = v.get("date")
+            time_str = v.get("time")
+            if date_str and time_str:
+                return f"{date_str}T{time_str}"
+            return date_str
+        return v
 
 
-@attr.s
-class Paper(object):
-    id = attr.ib()
-    short_title = attr.ib()
-    full_title = attr.ib()
-    pub_short_title = attr.ib()
-    creation_date = attr.ib()
-    status = attr.ib()
-    deletion_request = attr.ib()
-    deletion_reason = attr.ib()
-    deletion = attr.ib()
-    supporting_notes = attr.ib()
+class Paper(_Base):
+    """A published ATLAS paper."""
 
-
-@attr.s
-class PaperList(object):
-    papers = attr.ib(type=list)
+    reference_code: str | None = None
+    status: LenientPaperStatus | None = None
+    short_title: str | None = None
+    public_short_title: str | None = None
+    full_title: str | None = None
+    groups: Groups | None = None
+    documentation: Documentation | None = None
+    analysis_team: list[TeamMember] = Field(default_factory=list)
+    metadata: Metadata | None = None
+    associated_analysis: RelatedPublication | None = None
+    phase1: PaperPhase1 | None = None
+    phase2: PaperPhase2 | None = None
+    submission_phase: SubmissionPhase | None = None
