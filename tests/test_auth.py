@@ -1077,7 +1077,7 @@ def test_concurrent_get_token_does_not_raise(
     def _call() -> None:
         try:
             mock_token_manager.get_token()
-        except StareError as exc:
+        except Exception as exc:  # noqa: BLE001
             errors.append(exc)
 
     threads = [threading.Thread(target=_call) for _ in range(8)]
@@ -1085,6 +1085,7 @@ def test_concurrent_get_token_does_not_raise(
         t.start()
     for t in threads:
         t.join(timeout=5.0)
+        assert not t.is_alive()
 
     assert errors == []
 

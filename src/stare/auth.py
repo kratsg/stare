@@ -138,6 +138,10 @@ class TokenManager:
                     self.end_headers()
                     return
                 params = parse_qs(parsed.query)
+                if not params.get("state", [""])[0]:
+                    self.send_response(400)
+                    self.end_headers()
+                    return
                 received["code"] = params.get("code", [""])[0]
                 received["state"] = params.get("state", [""])[0]
                 self.send_response(200)
