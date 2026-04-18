@@ -63,6 +63,7 @@ dev = [
 ]
 docs = [
   "zensical>=0.0.20",
+  "mkdocstrings[python]>=0.26",
 ]
 
 
