@@ -140,19 +140,6 @@ stare cache clear      # delete all cached responses
 `--id-token` (print raw id token), `--exchange` (show exchanged token claims).
 Note: `--exchange` and `--id-token` are mutually exclusive.
 
-### Pointing at staging
-
-Use the `staging` pixi environment to point all requests at the Glance staging
-server:
-
-```bash
-pixi run -e staging stare analysis search
-pixi run -e staging stare auth login
-```
-
-This sets `STARE_BASE_URL`, `STARE_CA_BUNDLE=CERN`, and
-`STARE_EXCHANGE_AUDIENCE` to the staging values automatically.
-
 ## Library usage
 
 ```python
