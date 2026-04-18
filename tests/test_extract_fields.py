@@ -126,7 +126,9 @@ def test_render_fields_table_top_level_only() -> None:
 
 
 def test_render_fields_table_grouped() -> None:
-    table = render_fields_table(["groups.leadingGroup", "groups.subgroups", "referenceCode"])
+    table = render_fields_table(
+        ["groups.leadingGroup", "groups.subgroups", "referenceCode"]
+    )
     assert "| Top-level |" in table
     assert "| `groups` |" in table
     assert "`referenceCode`" in table
