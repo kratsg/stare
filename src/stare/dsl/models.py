@@ -24,16 +24,13 @@ class And(BaseModel):
     clauses: list[Expression]
 
     def to_dsl(self) -> str:
-        return " and ".join(_wrap_if_or(c) for c in self.clauses)
+        left, right = self.clauses
+        return f"({left.to_dsl()}) and ({right.to_dsl()})"
 
 
 class Or(BaseModel):
     clauses: list[Expression]
 
     def to_dsl(self) -> str:
-        return " or ".join(c.to_dsl() for c in self.clauses)
-
-
-def _wrap_if_or(expr: Expression) -> str:
-    dsl = expr.to_dsl()
-    return f"({dsl})" if isinstance(expr, Or) else dsl
+        left, right = self.clauses
+        return f"{left.to_dsl()} or {right.to_dsl()}"

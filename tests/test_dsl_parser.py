@@ -49,13 +49,15 @@ def test_or_expression() -> None:
 
 def test_round_trip_canonicalizes_case() -> None:
     src_in = "(status = ACTIVE OR status = PENDING) AND metadata.keywords contain jets"
-    src_out = "(status = ACTIVE or status = PENDING) and metadata.keywords contain jets"
+    src_out = (
+        "(status = ACTIVE or status = PENDING) and (metadata.keywords contain jets)"
+    )
     expr = parse_dsl(src_in, mode="analysis")
     assert expr.to_dsl() == src_out
 
 
 def test_canonical_form_is_idempotent() -> None:
-    src = "(status = ACTIVE or status = PENDING) and metadata.keywords contain jets"
+    src = "(status = ACTIVE or status = PENDING) and (metadata.keywords contain jets)"
     assert parse_dsl(src, mode="analysis").to_dsl() == src
 
 
