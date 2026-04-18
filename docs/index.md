@@ -15,20 +15,24 @@ against CERN Keycloak built in.
 
 ## Quick start
 
-```bash
-python -m pip install stare
-stare auth login          # opens CERN SSO in your browser
-stare analysis search --limit 10
-```
+=== "CLI"
 
-```python
-from stare import Glance
+    ```bash
+    python -m pip install stare
+    stare auth login          # opens CERN SSO in your browser
+    stare analysis search --limit 10
+    ```
 
-with Glance() as g:
-    result = g.analyses.search(query="referenceCode = ANA-HION-2018-01")
-    for a in result.results:
-        print(a.reference_code, a.short_title)
-```
+=== "Library"
+
+    ```python
+    from stare import Glance
+
+    with Glance() as g:
+        result = g.analyses.search(query="referenceCode = ANA-HION-2018-01")
+        for a in result.results:
+            print(a.reference_code, a.short_title)
+    ```
 
 ## Features
 
