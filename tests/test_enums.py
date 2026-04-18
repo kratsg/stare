@@ -132,15 +132,14 @@ class TestPhaseState:
             M.model_validate({"value": "analysis_definition"}).value
             == PhaseState.ANALYSIS_DEFINITION
         )
-        assert (
-            M.model_validate({"value": "conf_skip"}).value == PhaseState.CONF_SKIP
-        )
+        assert M.model_validate({"value": "conf_skip"}).value == PhaseState.CONF_SKIP
         assert (
             M.model_validate({"value": "paper_contact_editors_definition"}).value
             == PhaseState.PAPER_CONTACT_EDITORS_DEFINITION
         )
         assert (
-            M.model_validate({"value": "phase0_active"}).value == PhaseState.PHASE0_ACTIVE
+            M.model_validate({"value": "phase0_active"}).value
+            == PhaseState.PHASE0_ACTIVE
         )
 
     def test_additional_workflow_states(self) -> None:
@@ -188,7 +187,8 @@ class TestCollisionType:
         assert M.model_validate({"value": "Xe-Xe"}).value == CollisionType.XE_XE
         assert M.model_validate({"value": "Col type"}).value == CollisionType.COL_TYPE
         assert (
-            M.model_validate({"value": "Sec col type"}).value == CollisionType.SEC_COL_TYPE
+            M.model_validate({"value": "Sec col type"}).value
+            == CollisionType.SEC_COL_TYPE
         )
         assert (
             M.model_validate({"value": "Tert col type"}).value
