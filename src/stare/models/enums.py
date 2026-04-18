@@ -65,6 +65,11 @@ class AnalysisStatus(StrEnum):
 class PaperStatus(StrEnum):
     """Observed status values for Paper, ConfNote, and PubNote records."""
 
+    ANALYSIS_CLOSED = "Analysis Closed"
+    CREATED = "Created"
+    PHASE1_ACTIVE = "Phase 1 Active"
+    PHASE2_ACTIVE = "Phase 2 Active"
+    SUBMISSION_ACTIVE = "Submission Active"
     SUBMISSION_CLOSED = "Submission Closed"
     ACTIVE = "Active"
 
@@ -75,11 +80,14 @@ class PhaseState(StrEnum):
     # Human-readable states seen in test data
     ACTIVE = "Active"
     APPROVED = "Approved"
+    FINAL_REVIEW_CLOSED = "final_review_closed"
     FINISHED = "finished"
+    REVIEW_CLOSED = "review_closed"
     # Internal workflow state identifiers seen in live API
     ANALYSIS_COORDINATORS_SELECTION = "analysis_coordinators_selection"
     ANALYSIS_COORDINATORS_TIMELINE = "analysis_coordinators_timeline"
     ANALYSIS_DEFINITION = "analysis_definition"
+    APPROVED_BY_REVIEWER = "approved_by_reviewer"
     APPROVAL_ACCEPTANCE = "approval_acceptance"
     APPROVAL_MEETING = "approval_meeting_data"
     EDBOARD_MEETING = "edboard_meeting_data"
