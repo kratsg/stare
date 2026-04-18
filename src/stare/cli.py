@@ -19,6 +19,7 @@ from stare.auth import TokenManager
 from stare.client import Glance
 from stare.exceptions import ResponseParseError, StareError
 from stare.settings import StareSettings
+from stare.urls import analysis_url, conf_note_url, paper_url, pub_note_url
 
 console = Console()
 err_console = Console(stderr=True)
@@ -319,16 +320,19 @@ def analysis_search(
         typer.echo(result.model_dump_json(by_alias=True))
         return
 
+    settings = StareSettings()
     table = Table(title=f"Analyses ({result.total_rows} total)")
     table.add_column("Reference Code", style="cyan")
     table.add_column("Status")
     table.add_column("Short Title")
     for item in result.results:
-        table.add_row(
-            item.reference_code or "",
-            item.status or "",
-            item.short_title or "",
+        ref = item.reference_code or ""
+        ref_cell = (
+            f"[link={analysis_url(ref, web_base=settings.web_base_url)}]{ref}[/link]"
+            if ref
+            else ""
         )
+        table.add_row(ref_cell, item.status or "", item.short_title or "")
     console.print(table)
 
 
@@ -351,9 +355,11 @@ def analysis_get(
         typer.echo(result.model_dump_json(by_alias=True))
         return
 
-    console.print(
-        f"[bold cyan]{result.reference_code}[/bold cyan]  {result.status or ''}"
-    )
+    settings = StareSettings()
+    ref = result.reference_code or ""
+    url = analysis_url(ref, web_base=settings.web_base_url) if ref else None
+    ref_markup = f"[link={url}]{ref}[/link]" if url else ref
+    console.print(f"[bold cyan]{ref_markup}[/bold cyan]  {result.status or ''}")
     if result.short_title:
         console.print(result.short_title)
 
@@ -402,16 +408,19 @@ def paper_search(
         typer.echo(result.model_dump_json(by_alias=True))
         return
 
+    settings = StareSettings()
     table = Table(title=f"Papers ({result.total_rows} total)")
     table.add_column("Reference Code", style="cyan")
     table.add_column("Status")
     table.add_column("Short Title")
     for item in result.results:
-        table.add_row(
-            item.reference_code or "",
-            item.status or "",
-            item.short_title or "",
+        ref = item.reference_code or ""
+        ref_cell = (
+            f"[link={paper_url(ref, web_base=settings.web_base_url)}]{ref}[/link]"
+            if ref
+            else ""
         )
+        table.add_row(ref_cell, item.status or "", item.short_title or "")
     console.print(table)
 
 
@@ -434,9 +443,11 @@ def paper_get(
         typer.echo(result.model_dump_json(by_alias=True))
         return
 
-    console.print(
-        f"[bold cyan]{result.reference_code}[/bold cyan]  {result.status or ''}"
-    )
+    settings = StareSettings()
+    ref = result.reference_code or ""
+    url = paper_url(ref, web_base=settings.web_base_url) if ref else None
+    ref_markup = f"[link={url}]{ref}[/link]" if url else ref
+    console.print(f"[bold cyan]{ref_markup}[/bold cyan]  {result.status or ''}")
     if result.short_title:
         console.print(result.short_title)
 
@@ -465,9 +476,11 @@ def conf_note(
         typer.echo(result.model_dump_json(by_alias=True))
         return
 
-    console.print(
-        f"[bold cyan]{result.temp_reference_code}[/bold cyan]  {result.status or ''}"
-    )
+    settings = StareSettings()
+    ref = result.temp_reference_code or ""
+    url = conf_note_url(ref, web_base=settings.web_base_url) if ref else None
+    ref_markup = f"[link={url}]{ref}[/link]" if url else ref
+    console.print(f"[bold cyan]{ref_markup}[/bold cyan]  {result.status or ''}")
     if result.short_title:
         console.print(result.short_title)
 
@@ -496,9 +509,11 @@ def pub_note(
         typer.echo(result.model_dump_json(by_alias=True))
         return
 
-    console.print(
-        f"[bold cyan]{result.temp_reference_code}[/bold cyan]  {result.status or ''}"
-    )
+    settings = StareSettings()
+    ref = result.temp_reference_code or ""
+    url = pub_note_url(ref, web_base=settings.web_base_url) if ref else None
+    ref_markup = f"[link={url}]{ref}[/link]" if url else ref
+    console.print(f"[bold cyan]{ref_markup}[/bold cyan]  {result.status or ''}")
     if result.short_title:
         console.print(result.short_title)
 
