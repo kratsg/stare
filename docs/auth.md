@@ -55,21 +55,20 @@ the file is deleted.
 
 ## Token lifecycle
 
-```
-stare auth login
-  └── PKCE flow → access token + refresh token + id token
-        └── ID token validated with JWKS (signature, issuer, audience, expiry)
-        └── stored in keyring (or file fallback)
+```mermaid
+flowchart TD
+    A["stare auth login"] --> B["PKCE flow"]
+    B --> C["access + refresh + id tokens"]
+    C --> D["ID token validated with JWKS\n(signature, issuer, audience, expiry)"]
+    D --> E["stored in keyring\n(or file fallback)"]
 
-stare <command>
-  └── access token near-expiry?
-        ├── no → use cached token
-        └── yes → refresh via refresh token
-              └── refresh fails? → delete stored tokens, prompt re-login
+    F["stare &lt;command&gt;"] --> G{"access token\nnear-expiry?"}
+    G -->|no| H["use cached token"]
+    G -->|yes| I["refresh via refresh token"]
+    I -->|fails| J["delete stored tokens\nprompt re-login"]
 
-STARE_EXCHANGE_AUDIENCE set?
-  └── exchange access token for audience-scoped token (RFC 8693)
-        └── cached in memory; re-exchanged 120 s before expiry
+    K{"STARE_EXCHANGE_AUDIENCE set?"} -->|yes| L["exchange for audience-scoped token\n(RFC 8693)"]
+    L --> M["cached in memory\nre-exchanged 120 s before expiry"]
 ```
 
 On login, `stare` validates the ID token using PyJWT against the CERN Keycloak

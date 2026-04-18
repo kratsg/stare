@@ -117,9 +117,8 @@ class TokenManager:
         class _CallbackHandler(BaseHTTPRequestHandler):
             def do_GET(self) -> None:  # pylint: disable=invalid-name
                 host = self.headers.get("Host", "")
-                if not host.startswith(
-                    ("localhost:", "127.0.0.1:", "localhost", "127.0.0.1")
-                ):
+                host_part = host.split(":")[0] if host else ""
+                if host_part not in ("localhost", "127.0.0.1"):
                     self.send_response(403)
                     self.end_headers()
                     return

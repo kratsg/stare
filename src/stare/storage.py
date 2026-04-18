@@ -57,7 +57,8 @@ class FileTokenStorage(TokenStorage):
     def save(self, token: _StoredToken) -> None:
         """Write tokens to the JSON file, creating parent directories as needed."""
         self._path.parent.mkdir(parents=True, exist_ok=True)
-        self._path.write_text(token.model_dump_json())
+        self._path.write_text(token.model_dump_json(), encoding="utf-8")
+        self._path.chmod(0o600)
 
     def delete(self) -> None:
         """Delete the token file; no-op if it does not exist."""

@@ -15,12 +15,17 @@ import pytest
 
 from stare import Glance
 from stare.models import Analysis, AnalysisSearchResult
+from stare.settings import StareSettings
+
+# Disable the on-disk HTTP cache for all live tests so results are always
+# fetched fresh from the API rather than replayed from a stale SQLite entry.
+_LIVE_SETTINGS = StareSettings(cache_enabled=False)
 
 
 @pytest.mark.slow
 def test_search_analyses_returns_results() -> None:
     """GET /searchAnalysis returns a non-empty AnalysisSearchResult."""
-    with Glance() as g:
+    with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.analyses.search(limit=5)
     assert isinstance(result, AnalysisSearchResult)
     assert result.total_rows is not None
@@ -31,7 +36,7 @@ def test_search_analyses_returns_results() -> None:
 @pytest.mark.slow
 def test_search_analyses_by_reference_code() -> None:
     """Searching by referenceCode returns the expected analysis."""
-    with Glance() as g:
+    with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.analyses.search(
             query='"referenceCode" = "ANA-HION-2018-01"', limit=1
         )
@@ -43,7 +48,7 @@ def test_search_analyses_by_reference_code() -> None:
 @pytest.mark.slow
 def test_search_result_items_are_analysis_models() -> None:
     """All items in search results are valid Analysis instances."""
-    with Glance() as g:
+    with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.analyses.search(limit=10)
     for item in result.results:
         assert isinstance(item, Analysis)

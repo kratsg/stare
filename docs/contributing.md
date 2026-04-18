@@ -6,10 +6,11 @@ icon: lucide/code
 
 ## Architecture
 
-```
-User <--typer/CLI--> stare <--HTTPS (httpx)--> ATLAS Glance API
-                       |
-                       +--browser + local server--> CERN Keycloak (PKCE)
+```mermaid
+graph LR
+    U[User] -->|typer / CLI| S[stare]
+    S -->|HTTPS httpx| G[ATLAS Glance API]
+    S -->|browser + local server| K[CERN Keycloak PKCE]
 ```
 
 The library uses **httpx** for HTTP, **authlib** for OAuth2 PKCE, **pydantic**
@@ -22,7 +23,7 @@ git clone https://github.com/kratsg/stare
 cd stare
 pixi install
 pixi run pre-commit-install
-stare login
+pixi run stare auth login
 ```
 
 ## Build and test commands

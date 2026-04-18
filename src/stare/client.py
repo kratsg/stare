@@ -181,7 +181,7 @@ class PublicationResource:
         statuses: list[str] | None = None,
     ) -> list[PublicationRef]:
         """Search across all publication types."""
-        params: list[Any] = (
+        params: list[tuple[str, str]] = (
             [("referenceCodes", val) for val in reference_codes or []]
             + [("types", val) for val in types or []]
             + [("shortTitles", val) for val in short_titles or []]
@@ -236,9 +236,9 @@ class TriggerResource:
         years: list[str] | None = None,
     ) -> list[Trigger]:
         """Search triggers by category and/or year."""
-        params: list[Any] = [("categories", val) for val in categories or []] + [
-            ("years", val) for val in years or []
-        ]
+        params: list[tuple[str, str]] = [
+            ("categories", val) for val in categories or []
+        ] + [("years", val) for val in years or []]
         response = self._client.get("/triggers/search", params=params)
         _raise_for_status(response)
         return [Trigger.model_validate(item) for item in response.json()]

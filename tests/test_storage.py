@@ -220,12 +220,12 @@ def test_get_default_storage_returns_file_when_fail_keyring() -> None:
     assert isinstance(storage, FileTokenStorage)
 
 
-def test_get_default_storage_returns_keyring_when_available() -> None:
+def test_get_default_storage_returns_keyring_when_available(tmp_path: Path) -> None:
     with (
         patch("keyring.get_keyring", return_value=MagicMock(spec=object)),
         patch("keyring.get_password", return_value=None),
     ):
-        storage = get_default_storage()
+        storage = get_default_storage(token_path=tmp_path / "tokens.json")
     assert isinstance(storage, KeyringTokenStorage)
 
 
