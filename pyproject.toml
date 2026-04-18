@@ -47,7 +47,7 @@ dependencies = [
 stare = "stare.cli:app"
 
 [project.urls]
-Documentation = "https://stare.readthedocs.io/"
+Documentation = "https://stare-atlas.readthedocs.io/"
 Homepage = "https://github.com/kratsg/stare"
 "Bug Tracker" = "https://github.com/kratsg/stare/issues"
 Discussions = "https://github.com/kratsg/stare/discussions"
