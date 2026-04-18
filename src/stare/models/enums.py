@@ -52,6 +52,7 @@ class AnalysisStatus(StrEnum):
 
     ACTIVE = "Active"
     ANALYSIS_CLOSED = "Analysis Closed"
+    CREATED = "Created"
     PHASE0_ACTIVE = "Phase 0 Active"
     PHASE0_CLOSED = "Phase 0 Closed"
 
@@ -73,14 +74,18 @@ class PhaseState(StrEnum):
     # Internal workflow state identifiers seen in live API
     ANALYSIS_COORDINATORS_SELECTION = "analysis_coordinators_selection"
     ANALYSIS_COORDINATORS_TIMELINE = "analysis_coordinators_timeline"
+    ANALYSIS_DEFINITION = "analysis_definition"
     APPROVAL_ACCEPTANCE = "approval_acceptance"
     APPROVAL_MEETING = "approval_meeting_data"
     EDBOARD_MEETING = "edboard_meeting_data"
     EDBOARD_REQUEST_MEETING = "edboard_request_meeting_data"
+    CONF_SKIP = "conf_skip"
     EOI_MEETING = "eoi_meeting"
     FIRST_ANALYSIS = "first_analysis_data"
     INTERNAL_NOTE = "internal_note_editors_definition"
+    PAPER_CONTACT_EDITORS_DEFINITION = "paper_contact_editors_definition"
     PAPER_SKIP = "paper_skip"
+    PHASE0_ACTIVE = "phase0_active"
     PGC_SGC_SIGNOFF = "pgc_sgc_contact_signoff"
     PRE_APPROVAL_MEETING = "pre_approval_meeting_data"
     PUBLICATION_DRAFT = "publication_draft"
@@ -93,7 +98,12 @@ class CollisionType(StrEnum):
     """Observed collision type identifiers."""
 
     PP = "p-p"
+    P_PB = "p-Pb"
     PBPB = "Pb-Pb"
+    XE_XE = "Xe-Xe"
+    COL_TYPE = "Col type"
+    SEC_COL_TYPE = "Sec col type"
+    TERT_COL_TYPE = "Tert col type"
 
 
 class RepositoryType(StrEnum):

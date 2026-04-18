@@ -57,6 +57,7 @@ class TestAnalysisStatus:
             M.model_validate({"value": "Phase 0 Closed"}).value
             == AnalysisStatus.PHASE0_CLOSED
         )
+        assert M.model_validate({"value": "Created"}).value == AnalysisStatus.CREATED
 
     def test_unknown_value_falls_back_to_str(self, caplog) -> None:
         M = _model(LenientAnalysisStatus)
@@ -125,6 +126,23 @@ class TestPhaseState:
             == PhaseState.PUBLICATION_DRAFT
         )
 
+    def test_live_api_workflow_states(self) -> None:
+        M = _model(LenientPhaseState)
+        assert (
+            M.model_validate({"value": "analysis_definition"}).value
+            == PhaseState.ANALYSIS_DEFINITION
+        )
+        assert (
+            M.model_validate({"value": "conf_skip"}).value == PhaseState.CONF_SKIP
+        )
+        assert (
+            M.model_validate({"value": "paper_contact_editors_definition"}).value
+            == PhaseState.PAPER_CONTACT_EDITORS_DEFINITION
+        )
+        assert (
+            M.model_validate({"value": "phase0_active"}).value == PhaseState.PHASE0_ACTIVE
+        )
+
     def test_additional_workflow_states(self) -> None:
         M = _model(LenientPhaseState)
         assert (
@@ -166,12 +184,22 @@ class TestCollisionType:
         M = _model(LenientCollisionType)
         assert M.model_validate({"value": "p-p"}).value == CollisionType.PP
         assert M.model_validate({"value": "Pb-Pb"}).value == CollisionType.PBPB
+        assert M.model_validate({"value": "p-Pb"}).value == CollisionType.P_PB
+        assert M.model_validate({"value": "Xe-Xe"}).value == CollisionType.XE_XE
+        assert M.model_validate({"value": "Col type"}).value == CollisionType.COL_TYPE
+        assert (
+            M.model_validate({"value": "Sec col type"}).value == CollisionType.SEC_COL_TYPE
+        )
+        assert (
+            M.model_validate({"value": "Tert col type"}).value
+            == CollisionType.TERT_COL_TYPE
+        )
 
     def test_unknown_falls_back(self, caplog) -> None:
         M = _model(LenientCollisionType)
         with caplog.at_level(logging.WARNING, logger="stare"):
-            result = M.model_validate({"value": "p-Pb"})
-        assert result.value == "p-Pb"
+            result = M.model_validate({"value": "n-n"})
+        assert result.value == "n-n"
         assert "CollisionType" in caplog.text
 
 
