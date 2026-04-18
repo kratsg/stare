@@ -9,8 +9,8 @@ Python library and CLI for the
 
 [actions-badge]: https://github.com/kratsg/stare/workflows/CI/badge.svg
 [actions-link]: https://github.com/kratsg/stare/actions
-[rtd-badge]: https://readthedocs.org/projects/stare/badge/?version=latest
-[rtd-link]: https://stare.readthedocs.io/en/latest/?badge=latest
+[rtd-badge]: https://readthedocs.org/projects/stare-atlas/badge/?version=latest
+[rtd-link]: https://stare-atlas.readthedocs.io/en/latest/?badge=latest
 [pypi-version]: https://img.shields.io/pypi/v/stare.svg
 [pypi-link]: https://pypi.org/project/stare/
 
