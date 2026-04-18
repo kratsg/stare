@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 import base64
-import binascii
 import contextlib
 import hashlib
-import json
 import queue
 import secrets
 import threading
@@ -50,19 +48,9 @@ def _decode_jwt_payload(token: str) -> JwtClaims:
     always access fields safely.
     """
     try:
-        payload_b64 = token.split(".")[1]
-        # JWT uses base64url without padding; re-add it before decoding.
-        payload_b64 += "=" * (4 - len(payload_b64) % 4)
-        payload = json.loads(base64.urlsafe_b64decode(payload_b64))
-        if isinstance(payload, dict):
-            return JwtClaims.model_validate(payload)
-    except (
-        IndexError,
-        ValueError,
-        binascii.Error,
-        json.JSONDecodeError,
-        ValidationError,
-    ):
+        payload = jwt.decode(token, options={"verify_signature": False})
+        return JwtClaims.model_validate(payload)
+    except (jwt.PyJWTError, ValidationError):
         pass
     return JwtClaims()
 
@@ -466,7 +454,10 @@ class TokenManager:
             return None
         # get_token() populates _exchanged_token / _exchanged_expires_at
         self.get_token()
-        assert self._exchanged_token is not None
+        if self._exchanged_token is None:
+            raise RuntimeError(
+                "get_token() completed but _exchanged_token was not set; this is a bug."
+            )
         claims = _decode_jwt_payload(self._exchanged_token)
         return TokenInfo(
             is_expired=self._exchanged_expires_at < int(time.time()) + 60,

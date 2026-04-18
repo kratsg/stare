@@ -25,77 +25,77 @@ def clear_stare_env(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 class TestStareSettingsDefaults:
-    def test_default_base_url(self) -> None:
+    @pytest.mark.parametrize(
+        "attr,expected",
+        [
+            ("base_url", "https://atlas-glance.cern.ch/atlas/analysis/api"),
+            ("client_id", "stare"),
+            ("scopes", "openid"),
+            ("ca_bundle", "Sectigo"),
+            (
+                "auth_url",
+                "https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/auth",
+            ),
+            (
+                "token_url",
+                "https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/token",
+            ),
+        ],
+    )
+    def test_defaults(self, attr: str, expected: str) -> None:
         s = StareSettings()
-        assert s.base_url == "https://atlas-glance.cern.ch/atlas/analysis/api"
-
-    def test_default_client_id(self) -> None:
-        s = StareSettings()
-        assert s.client_id == "stare"
-
-    def test_default_scopes(self) -> None:
-        s = StareSettings()
-        assert s.scopes == "openid"
-
-    def test_default_auth_url_contains_cern(self) -> None:
-        s = StareSettings()
-        assert "auth.cern.ch" in s.auth_url
-
-    def test_default_token_url_contains_cern(self) -> None:
-        s = StareSettings()
-        assert "auth.cern.ch" in s.token_url
-
-    def test_default_ca_bundle_is_sectigo(self) -> None:
-        s = StareSettings()
-        assert s.ca_bundle == "Sectigo"
+        assert getattr(s, attr) == expected
 
 
 class TestStareSettingsEnvOverrides:
-    def test_base_url_override(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setenv("STARE_BASE_URL", "https://custom.example.com/api")
+    @pytest.mark.parametrize(
+        "env_var,value,attr",
+        [
+            ("STARE_BASE_URL", "https://custom.example.com/api", "base_url"),
+            ("STARE_CLIENT_ID", "my-client", "client_id"),
+            ("STARE_SCOPES", "openid profile", "scopes"),
+            ("STARE_CA_BUNDLE", "CERN", "ca_bundle"),
+        ],
+    )
+    def test_env_override(
+        self, monkeypatch: pytest.MonkeyPatch, env_var: str, value: str, attr: str
+    ) -> None:
+        monkeypatch.setenv(env_var, value)
         s = StareSettings()
-        assert s.base_url == "https://custom.example.com/api"
-
-    def test_client_id_override(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setenv("STARE_CLIENT_ID", "my-client")
-        s = StareSettings()
-        assert s.client_id == "my-client"
-
-    def test_scopes_override(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setenv("STARE_SCOPES", "openid profile")
-        s = StareSettings()
-        assert s.scopes == "openid profile"
+        assert getattr(s, attr) == value
 
     def test_direct_constructor_override(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("STARE_BASE_URL", "https://env.example.com")
         s = StareSettings(base_url="https://override.example.com")
         assert s.base_url == "https://override.example.com"
 
-    def test_ca_bundle_override_to_cern(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setenv("STARE_CA_BUNDLE", "CERN")
-        s = StareSettings()
-        assert s.ca_bundle == "CERN"
-
 
 class TestStareSettingsExpiry:
-    def test_default_exchange_token_buffer_seconds(self) -> None:
+    @pytest.mark.parametrize(
+        "attr,expected",
+        [
+            ("exchange_token_buffer_seconds", 120),
+            ("token_expiry_margin_seconds", 60),
+        ],
+    )
+    def test_defaults(self, attr: str, expected: int) -> None:
         s = StareSettings()
-        assert s.exchange_token_buffer_seconds == 120
+        assert getattr(s, attr) == expected
 
-    def test_default_token_expiry_margin_seconds(self) -> None:
-        s = StareSettings()
-        assert s.token_expiry_margin_seconds == 60
-
-    def test_exchange_token_buffer_seconds_env_override(
-        self, monkeypatch: pytest.MonkeyPatch
+    @pytest.mark.parametrize(
+        "env_var,attr,value",
+        [
+            (
+                "STARE_EXCHANGE_TOKEN_BUFFER_SECONDS",
+                "exchange_token_buffer_seconds",
+                300,
+            ),
+            ("STARE_TOKEN_EXPIRY_MARGIN_SECONDS", "token_expiry_margin_seconds", 90),
+        ],
+    )
+    def test_env_override(
+        self, monkeypatch: pytest.MonkeyPatch, env_var: str, attr: str, value: int
     ) -> None:
-        monkeypatch.setenv("STARE_EXCHANGE_TOKEN_BUFFER_SECONDS", "300")
+        monkeypatch.setenv(env_var, str(value))
         s = StareSettings()
-        assert s.exchange_token_buffer_seconds == 300
-
-    def test_token_expiry_margin_seconds_env_override(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        monkeypatch.setenv("STARE_TOKEN_EXPIRY_MARGIN_SECONDS", "90")
-        s = StareSettings()
-        assert s.token_expiry_margin_seconds == 90
+        assert getattr(s, attr) == value
