@@ -14,7 +14,7 @@ from pydantic import ValidationError
 
 from stare.client import Glance
 from stare.dsl import DSLValidationError
-from stare.dsl.models import Condition
+from stare.dsl.models import Condition, Operator
 from stare.exceptions import (
     ApiError,
     ForbiddenError,
@@ -195,7 +195,7 @@ def test_analyses_search_accepts_expression(glance: Glance) -> None:
             return_value=httpx.Response(200, json={"totalRows": 0, "results": []})
         )
         glance.analyses.search(
-            query=Condition(field="referenceCode", operator="=", value="X")
+            query=Condition(field="referenceCode", operator=Operator.EQ, value="X")
         )
         params = dict(rx.calls[0].request.url.params)
     assert params["queryString"] == "referenceCode = X"

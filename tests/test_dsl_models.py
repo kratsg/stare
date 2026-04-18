@@ -14,25 +14,25 @@ def test_operator_is_str_enum() -> None:
 
 
 def test_condition_operator_is_enum_member() -> None:
-    c = Condition(field="f", operator="=", value="v")  # type: ignore[arg-type]
+    c = Condition(field="f", operator=Operator.EQ, value="v")
     assert isinstance(c.operator, Operator)
 
 
 def test_condition_to_dsl() -> None:
-    c = Condition(field="referenceCode", operator="=", value="HION")
+    c = Condition(field="referenceCode", operator=Operator.EQ, value="HION")
     assert c.to_dsl() == "referenceCode = HION"
 
 
 def test_condition_hyphenated_value() -> None:
-    c = Condition(field="referenceCode", operator="=", value="ANA-HION-2018-01")
+    c = Condition(field="referenceCode", operator=Operator.EQ, value="ANA-HION-2018-01")
     assert c.to_dsl() == "referenceCode = ANA-HION-2018-01"
 
 
 def test_and_two_clauses() -> None:
     expr = And(
         clauses=(
-            Condition(field="a", operator="=", value="x"),
-            Condition(field="b", operator="contain", value="y"),
+            Condition(field="a", operator=Operator.EQ, value="x"),
+            Condition(field="b", operator=Operator.CONTAIN, value="y"),
         )
     )
     assert expr.to_dsl() == "a = x AND b contain y"
@@ -41,8 +41,8 @@ def test_and_two_clauses() -> None:
 def test_or_two_clauses() -> None:
     expr = Or(
         clauses=(
-            Condition(field="status", operator="=", value="ACTIVE"),
-            Condition(field="status", operator="=", value="PENDING"),
+            Condition(field="status", operator=Operator.EQ, value="ACTIVE"),
+            Condition(field="status", operator=Operator.EQ, value="PENDING"),
         )
     )
     assert expr.to_dsl() == "status = ACTIVE OR status = PENDING"
@@ -51,14 +51,14 @@ def test_or_two_clauses() -> None:
 def test_or_inside_and_no_parens() -> None:
     inner = Or(
         clauses=(
-            Condition(field="status", operator="=", value="ACTIVE"),
-            Condition(field="status", operator="=", value="PENDING"),
+            Condition(field="status", operator=Operator.EQ, value="ACTIVE"),
+            Condition(field="status", operator=Operator.EQ, value="PENDING"),
         )
     )
     outer = And(
         clauses=(
             inner,
-            Condition(field="keywords", operator="contain", value="jets"),
+            Condition(field="keywords", operator=Operator.CONTAIN, value="jets"),
         )
     )
     assert (
@@ -70,15 +70,15 @@ def test_or_inside_and_no_parens() -> None:
 def test_and_inside_or_no_parens() -> None:
     inner = And(
         clauses=(
-            Condition(field="a", operator="=", value="x"),
-            Condition(field="b", operator="=", value="y"),
+            Condition(field="a", operator=Operator.EQ, value="x"),
+            Condition(field="b", operator=Operator.EQ, value="y"),
         )
     )
-    outer = Or(clauses=(inner, Condition(field="c", operator="=", value="z")))
+    outer = Or(clauses=(inner, Condition(field="c", operator=Operator.EQ, value="z")))
     assert outer.to_dsl() == "a = x AND b = y OR c = z"
 
 
-@pytest.mark.parametrize("op", ["=", "!=", "contain", "not-contain"])
-def test_all_operators(op: str) -> None:
-    c = Condition(field="f", operator=op, value="v")  # type: ignore[arg-type]
-    assert op in c.to_dsl()
+@pytest.mark.parametrize("op", list(Operator))
+def test_all_operators(op: Operator) -> None:
+    c = Condition(field="f", operator=op, value="v")
+    assert op.value in c.to_dsl()
