@@ -115,6 +115,7 @@ class Link(_Base):
     url: str | None = None
 
     def __rich__(self) -> Text:
+        """Render as a Rich clickable hyperlink when a URL is present."""
         display = self.label or self.url or ""
         if self.url:
             return Text(display, style=f"link {self.url}")

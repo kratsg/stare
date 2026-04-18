@@ -67,6 +67,7 @@ class TokenManager:
         token_path: Path | None = None,
         storage: TokenStorage | None = None,
     ) -> None:
+        """Initialise the token manager with optional settings, path, and storage overrides."""
         self._settings = settings or StareSettings()
         self._token_path = token_path or _DEFAULT_TOKEN_PATH
         if storage is not None:

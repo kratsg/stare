@@ -24,6 +24,7 @@ class ApiError(StareError):
     """An error response from the Glance API."""
 
     def __init__(self, status_code: int, title: str, detail: str) -> None:
+        """Store HTTP status code, title, and detail then delegate to Exception."""
         self.status_code = status_code
         self.title = title
         self.detail = detail
@@ -52,5 +53,6 @@ class ResponseParseError(StareError):
     """
 
     def __init__(self, message: str, raw_data: Any = None) -> None:
+        """Store the raw API payload alongside the error message."""
         self.raw_data = raw_data
         super().__init__(message)

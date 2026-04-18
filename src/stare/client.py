@@ -71,6 +71,7 @@ class AnalysisResource:
     """Accessor for /analyses/ and /searchAnalysis endpoints."""
 
     def __init__(self, client: httpx.Client) -> None:
+        """Store the shared httpx client."""
         self._client = client
 
     def get(self, ref_code: str) -> Analysis:
@@ -104,6 +105,7 @@ class PaperResource:
     """Accessor for /papers/ and /searchPaper endpoints."""
 
     def __init__(self, client: httpx.Client) -> None:
+        """Store the shared httpx client."""
         self._client = client
 
     def get(self, ref_code: str) -> Paper:
@@ -137,6 +139,7 @@ class ConfNoteResource:
     """Accessor for /confnotes/ endpoint."""
 
     def __init__(self, client: httpx.Client) -> None:
+        """Store the shared httpx client."""
         self._client = client
 
     def get(self, temp_ref_code: str) -> ConfNote:
@@ -150,6 +153,7 @@ class PubNoteResource:
     """Accessor for /pubnotes/ endpoint."""
 
     def __init__(self, client: httpx.Client) -> None:
+        """Store the shared httpx client."""
         self._client = client
 
     def get(self, temp_ref_code: str) -> PubNote:
@@ -163,6 +167,7 @@ class PublicationResource:
     """Accessor for /publications/search endpoint."""
 
     def __init__(self, client: httpx.Client) -> None:
+        """Store the shared httpx client."""
         self._client = client
 
     def search(
@@ -193,6 +198,7 @@ class GroupResource:
     """Accessor for /groups endpoint."""
 
     def __init__(self, client: httpx.Client) -> None:
+        """Store the shared httpx client."""
         self._client = client
 
     def list(self) -> list[str]:
@@ -206,6 +212,7 @@ class SubgroupResource:
     """Accessor for /subgroups endpoint."""
 
     def __init__(self, client: httpx.Client) -> None:
+        """Store the shared httpx client."""
         self._client = client
 
     def list(self) -> list[str]:
@@ -219,6 +226,7 @@ class TriggerResource:
     """Accessor for /triggers/search endpoint."""
 
     def __init__(self, client: httpx.Client) -> None:
+        """Store the shared httpx client."""
         self._client = client
 
     def search(
@@ -246,6 +254,7 @@ class Glance:
         token_manager: TokenManager | None = None,
         token: str | None = None,
     ) -> None:
+        """Build the httpx client, attach the cache transport, and wire up resource accessors."""
         self._settings = settings or StareSettings()
         self._token_manager = token_manager or TokenManager(self._settings)
         self._token = token
@@ -289,6 +298,7 @@ class Glance:
         request.headers["Authorization"] = f"Bearer {token}"
 
     def __enter__(self) -> Glance:
+        """Enter the context manager, opening the underlying HTTP connection."""
         self._http.__enter__()
         return self
 
@@ -298,4 +308,5 @@ class Glance:
         exc_val: BaseException | None,
         exc_tb: types.TracebackType | None,
     ) -> None:
+        """Exit the context manager, closing the underlying HTTP connection."""
         self._http.__exit__(exc_type, exc_val, exc_tb)

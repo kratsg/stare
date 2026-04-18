@@ -45,26 +45,32 @@ class FileTokenStorage(TokenStorage):
     """Stores tokens as a JSON file on disk."""
 
     def __init__(self, token_path: Path) -> None:
+        """Store the path where the token JSON file will be read and written."""
         self._path = token_path
 
     def load(self) -> _StoredToken | None:
+        """Return stored tokens, or None if the file does not exist."""
         if not self._path.exists():
             return None
         return _StoredToken.model_validate_json(self._path.read_text())
 
     def save(self, token: _StoredToken) -> None:
+        """Write tokens to the JSON file, creating parent directories as needed."""
         self._path.parent.mkdir(parents=True, exist_ok=True)
         self._path.write_text(token.model_dump_json())
 
     def delete(self) -> None:
+        """Delete the token file; no-op if it does not exist."""
         if self._path.exists():
             self._path.unlink()
 
     def exists(self) -> bool:
+        """Return True if the token file exists."""
         return self._path.exists()
 
     @property
     def lock_path(self) -> Path:
+        """Return the path to the advisory lock file for this storage backend."""
         return self._path.with_suffix(".lock")
 
 
@@ -80,23 +86,28 @@ class KeyringTokenStorage(TokenStorage):
     ENTRY_KEY = "tokens"
 
     def load(self) -> _StoredToken | None:
+        """Return stored tokens from the keyring, or None if absent."""
         data = keyring.get_password(self.SERVICE_NAME, self.ENTRY_KEY)
         if data is None:
             return None
         return _StoredToken.model_validate_json(data)
 
     def save(self, token: _StoredToken) -> None:
+        """Persist tokens as a JSON blob in the OS-native credential store."""
         keyring.set_password(self.SERVICE_NAME, self.ENTRY_KEY, token.model_dump_json())
 
     def delete(self) -> None:
+        """Delete the keyring entry; no-op if it does not exist."""
         with contextlib.suppress(keyring.errors.PasswordDeleteError):
             keyring.delete_password(self.SERVICE_NAME, self.ENTRY_KEY)
 
     def exists(self) -> bool:
+        """Return True if a token entry exists in the keyring."""
         return keyring.get_password(self.SERVICE_NAME, self.ENTRY_KEY) is not None
 
     @property
     def lock_path(self) -> Path:
+        """Return the path to the advisory lock file for this storage backend."""
         return Path(user_data_dir("stare")) / "tokens.lock"
 
     def migrate_from_file(self, file_path: Path) -> None:

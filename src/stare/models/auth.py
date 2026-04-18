@@ -40,7 +40,7 @@ class _StoredToken(BaseModel):
         )
 
     def is_expired_with_margin(self, seconds: int) -> bool:
-        """True if the token has expired or expires within ``seconds`` from now."""
+        """Return True if the token has expired or expires within ``seconds`` from now."""
         return self.expires_at < int(time.time()) + seconds
 
     @property
