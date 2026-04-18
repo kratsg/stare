@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+
 import pytest
 
 from stare.dsl import DSLSyntaxError, DSLValidationError, parse_dsl
@@ -48,15 +50,33 @@ def test_or_expression() -> None:
 
 
 def test_round_trip_canonicalizes_case() -> None:
-    src_in = "(status = ACTIVE OR status = PENDING) AND metadata.keywords contain jets"
-    src_out = "(status = ACTIVE or status = PENDING) and metadata.keywords contain jets"
+    """Mixed-case and/or input is normalized to uppercase AND/OR in output."""
+    src_in = "status = ACTIVE or status = PENDING and metadata.keywords contain jets"
+    src_out = "status = ACTIVE OR status = PENDING AND metadata.keywords contain jets"
     expr = parse_dsl(src_in, mode="analysis")
     assert expr.to_dsl() == src_out
 
 
 def test_canonical_form_is_idempotent() -> None:
-    src = "(status = ACTIVE or status = PENDING) and metadata.keywords contain jets"
+    src = "status = ACTIVE OR status = PENDING AND metadata.keywords contain jets"
     assert parse_dsl(src, mode="analysis").to_dsl() == src
+
+
+def test_parentheses_warn(caplog: pytest.LogCaptureFixture) -> None:
+    """Parentheses in input trigger a warning about server incompatibility."""
+    with caplog.at_level(logging.WARNING, logger="stare"):
+        parse_dsl("(referenceCode = HION)", mode="analysis")
+    assert "parenthes" in caplog.text.lower()
+
+
+def test_parentheses_stripped_from_output() -> None:
+    """Parentheses affect the AST but are not emitted in to_dsl() output."""
+    expr = parse_dsl(
+        "(status = ACTIVE OR status = PENDING) AND referenceCode = HION",
+        mode="analysis",
+    )
+    assert "(" not in expr.to_dsl()
+    assert ")" not in expr.to_dsl()
 
 
 def test_unknown_field_raises_validation_error() -> None:
@@ -72,6 +92,24 @@ def test_syntax_error_raises_dsl_syntax_error() -> None:
 def test_syntax_error_message_contains_context() -> None:
     with pytest.raises(DSLSyntaxError, match="referenceCode"):
         parse_dsl("referenceCode", mode="analysis")
+
+
+def test_syntax_error_bad_op_hints_valid_operators() -> None:
+    """Unknown operator name triggers a hint listing valid operators."""
+    with pytest.raises(DSLSyntaxError, match="contain"):
+        parse_dsl("fullTitle badop Higgs", mode="paper")
+
+
+def test_syntax_error_contains_typo_hints_contain() -> None:
+    """'contains' (wrong suffix) is detected and 'contain' is suggested."""
+    with pytest.raises(DSLSyntaxError, match="contain"):
+        parse_dsl("fullTitle contains Higgs", mode="paper")
+
+
+def test_syntax_error_extra_token_hints_and_or() -> None:
+    """Extra token after a complete condition suggests AND/OR chaining."""
+    with pytest.raises(DSLSyntaxError, match=r"(?i)and.*or|or.*and"):
+        parse_dsl("fullTitle contain Higgs extra", mode="paper")
 
 
 def test_paper_specific_field_accepted() -> None:

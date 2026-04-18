@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import difflib
+import logging
 from importlib.resources import files
 from typing import Any, Literal, cast
 
@@ -12,8 +14,12 @@ from stare.dsl.errors import DSLSyntaxError, DSLValidationError
 from stare.dsl.models import And, Condition, Expression, Operator, Or
 from stare.dsl.registry import FieldRegistry
 
+_logger = logging.getLogger("stare")
+
 _GRAMMAR = files("stare.dsl").joinpath("grammar.lark").read_text()
 _LARK = Lark(_GRAMMAR, start="expression", parser="lalr")
+
+_VALID_OPS = ("=", "!=", "contain", "not-contain")
 
 
 class _DSLTransformer(Transformer[Any, Expression]):
@@ -45,6 +51,27 @@ class _DSLTransformer(Transformer[Any, Expression]):
         return And(clauses=(left, right))
 
 
+def _syntax_hint(exc: UnexpectedInput, source: str) -> str | None:
+    """Return a short hint string for common DSL syntax mistakes, or None."""
+    expected: set[str] = getattr(exc, "expected", set())
+    ops_list = ", ".join(repr(op) for op in _VALID_OPS)
+
+    if "OP" in expected:
+        return f"valid operators: {ops_list}"
+
+    if {"_AND", "_OR"} & expected:
+        prefix = source[: exc.pos_in_stream].rstrip()
+        last_word = prefix.rsplit(None, 1)[-1] if prefix else ""
+        close = difflib.get_close_matches(
+            last_word.lower(), _VALID_OPS, n=1, cutoff=0.6
+        )
+        if close:
+            return f"did you mean '{close[0]}' instead of '{last_word}'? valid operators: {ops_list}"
+        return "to chain conditions, use AND or OR"
+
+    return None
+
+
 def parse_dsl(source: str, *, mode: Literal["analysis", "paper"]) -> Expression:
     """Parse a DSL query string and return a validated AST.
 
@@ -55,8 +82,15 @@ def parse_dsl(source: str, *, mode: Literal["analysis", "paper"]) -> Expression:
         tree = _LARK.parse(source)
     except UnexpectedInput as exc:
         context = exc.get_context(source)
-        msg = f"Invalid query syntax near '{source[:40]}': {context}"
+        hint = _syntax_hint(exc, source)
+        suffix = f"\nHint: {hint}" if hint else ""
+        msg = f"Invalid query syntax near '{source[:40]}': {context}{suffix}"
         raise DSLSyntaxError(msg) from exc
+
+    if "(" in source:
+        _logger.warning(
+            "parentheses in DSL query are not supported by the server and will be ignored"
+        )
 
     registry = FieldRegistry.for_mode(mode)
     try:

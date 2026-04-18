@@ -24,7 +24,7 @@ def test_and_two_clauses() -> None:
             Condition(field="b", operator="contain", value="y"),
         )
     )
-    assert expr.to_dsl() == "a = x and b contain y"
+    assert expr.to_dsl() == "a = x AND b contain y"
 
 
 def test_or_two_clauses() -> None:
@@ -34,10 +34,10 @@ def test_or_two_clauses() -> None:
             Condition(field="status", operator="=", value="PENDING"),
         )
     )
-    assert expr.to_dsl() == "status = ACTIVE or status = PENDING"
+    assert expr.to_dsl() == "status = ACTIVE OR status = PENDING"
 
 
-def test_or_parenthesized_inside_and() -> None:
+def test_or_inside_and_no_parens() -> None:
     inner = Or(
         clauses=(
             Condition(field="status", operator="=", value="ACTIVE"),
@@ -50,12 +50,13 @@ def test_or_parenthesized_inside_and() -> None:
             Condition(field="keywords", operator="contain", value="jets"),
         )
     )
-    assert outer.to_dsl() == (
-        "(status = ACTIVE or status = PENDING) and keywords contain jets"
+    assert (
+        outer.to_dsl()
+        == "status = ACTIVE OR status = PENDING AND keywords contain jets"
     )
 
 
-def test_and_inside_or_not_parenthesized() -> None:
+def test_and_inside_or_no_parens() -> None:
     inner = And(
         clauses=(
             Condition(field="a", operator="=", value="x"),
@@ -63,7 +64,7 @@ def test_and_inside_or_not_parenthesized() -> None:
         )
     )
     outer = Or(clauses=(inner, Condition(field="c", operator="=", value="z")))
-    assert outer.to_dsl() == "(a = x and b = y) or c = z"
+    assert outer.to_dsl() == "a = x AND b = y OR c = z"
 
 
 @pytest.mark.parametrize("op", ["=", "!=", "contain", "not-contain"])
