@@ -102,7 +102,7 @@ stare conf-note ATLAS-CONF-2024-001
 stare pub-note ATL-PHYS-PUB-2024-001
 ```
 
-Add `--json` to any command for JSON output.
+Add `--json` to any command for JSON output, or pipe to another command or file.
 
 ### Publications, groups, and triggers
 
