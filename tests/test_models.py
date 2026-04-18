@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime
 
 from rich.console import Console
@@ -392,6 +393,28 @@ class TestAnalysis:
         a = Analysis.model_validate({})
         assert a.reference_code is None
         assert a.phase0 is None
+
+    def test_extra_metadata_dict_is_preserved(self) -> None:
+        a = Analysis.model_validate({"extraMetadata": {"key": "value"}})
+        assert a.extra_metadata == {"key": "value"}
+
+    def test_extra_metadata_none_is_preserved(self) -> None:
+        a = Analysis.model_validate({})
+        assert a.extra_metadata is None
+
+    def test_extra_metadata_non_dict_coerced_with_warning(self, caplog) -> None:
+        with caplog.at_level(logging.WARNING, logger="stare"):
+            a = Analysis.model_validate(
+                {"referenceCode": "ANA-SUSY-2019-04", "extraMetadata": "invalid JSON"}
+            )
+        assert a.extra_metadata == {}
+        assert "ANA-SUSY-2019-04" in caplog.text
+        assert "extraMetadata" in caplog.text
+
+    def test_extra_metadata_non_dict_unknown_ref(self, caplog) -> None:
+        with caplog.at_level(logging.WARNING, logger="stare"):
+            a = Analysis.model_validate({"extraMetadata": 42})
+        assert a.extra_metadata == {}
 
     def test_round_trip_aliases(self) -> None:
         data = {

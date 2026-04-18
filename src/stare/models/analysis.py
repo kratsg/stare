@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime
 from typing import Any
 
 from pydantic import Field, SerializationInfo, model_serializer, model_validator
+
+_logger = logging.getLogger("stare")
 
 from stare.models.common import (
     AmiGlanceLink,
@@ -106,3 +109,20 @@ class Analysis(_Base):
     related_publications: list[RelatedPublication] = Field(default_factory=list)
     phase0: AnalysisPhase0 | None = None
     extra_metadata: dict[str, Any] | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce_extra_metadata(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        extra = data.get("extraMetadata")
+        if extra is not None and not isinstance(extra, dict):
+            ref = data.get("referenceCode", "<unknown>")
+            _logger.warning(
+                "extraMetadata for %r is not a dict (got %s %r) — coercing to {}",
+                ref,
+                type(extra).__name__,
+                extra,
+            )
+            data["extraMetadata"] = {}
+        return data

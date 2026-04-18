@@ -23,12 +23,49 @@ if TYPE_CHECKING:
     from typing_extensions import Self
 
 
-def _format_parse_error(model_name: str, error: ValidationError) -> str:
+def _format_loc(loc: tuple[str | int, ...]) -> str:
+    """Format a pydantic loc tuple into a readable path string.
+
+    Integer indices are rendered as ``[n]`` (e.g. ``results[207].extraMetadata``)
+    rather than dot-joined numbers, matching standard JSON-path notation.
+    """
+    if not loc:
+        return "(root)"
+    result = ""
+    for part in loc:
+        if isinstance(part, int):
+            result += f"[{part}]"
+        else:
+            result = f"{result}.{part}" if result else str(part)
+    return result
+
+
+def _extract_context(obj: Any, loc: tuple[str | int, ...]) -> str | None:
+    """Walk to the parent of the failing field and return a referenceCode label."""
+    try:
+        node = obj
+        for part in loc[:-1]:
+            node = node[part]
+        if isinstance(node, dict):
+            ref = node.get("referenceCode")
+            if ref:
+                return f"referenceCode={ref!r}"
+    except (KeyError, IndexError, TypeError):
+        pass
+    return None
+
+
+def _format_parse_error(
+    model_name: str, error: ValidationError, obj: Any = None
+) -> str:
     """Build a human-readable summary of a pydantic ValidationError.
 
     For scalar inputs the offending value is shown inline; complex inputs
     (dicts/lists) are omitted from the line to keep the output concise — the
     caller may display the full raw payload separately.
+
+    When *obj* (the raw API response) is provided, a ``referenceCode`` label is
+    extracted from the parent of the failing field and appended for context.
     """
     errors = error.errors()
     count = len(errors)
@@ -36,15 +73,17 @@ def _format_parse_error(model_name: str, error: ValidationError) -> str:
         f"Failed to parse {model_name} from API response ({count} validation error(s)):"
     ]
     for i, err in enumerate(errors, 1):
-        loc = ".".join(str(p) for p in err.get("loc", ())) or "(root)"
+        loc_tuple: tuple[str | int, ...] = err.get("loc", ())
+        loc = _format_loc(loc_tuple)
         msg = err.get("msg", "unknown error")
         input_val = err.get("input")
-        if input_val is not None and not isinstance(input_val, (dict, list)):
-            lines.append(
-                f"  {i}. {loc}: {msg} [got: {type(input_val).__name__} = {input_val!r}]"
-            )
-        else:
-            lines.append(f"  {i}. {loc}: {msg}")
+        context = _extract_context(obj, loc_tuple) if obj is not None else None
+        line = f"  {i}. {loc}: {msg}"
+        if context:
+            line += f" [{context}]"
+        if input_val is not None and not isinstance(input_val, dict | list):
+            line += f" [got: {type(input_val).__name__} = {input_val!r}]"
+        lines.append(line)
     return "\n".join(lines)
 
 
@@ -65,7 +104,7 @@ class _Base(BaseModel):
             return super().model_validate(obj, *args, **kwargs)
         except ValidationError as exc:
             raise ResponseParseError(
-                _format_parse_error(cls.__name__, exc), raw_data=obj
+                _format_parse_error(cls.__name__, exc, obj=obj), raw_data=obj
             ) from exc
 
 

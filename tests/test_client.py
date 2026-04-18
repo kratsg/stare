@@ -471,6 +471,43 @@ def test_format_parse_error_with_nested_loc() -> None:
     assert "1." in msg  # numbered entry
 
 
+def test_format_parse_error_integer_index_uses_brackets() -> None:
+    """Integer indices in loc appear as [n], not .n."""
+
+    class _M(PydanticBase):
+        items: list[str]
+
+    try:
+        _M.model_validate({"items": ["ok", 123]})
+    except ValidationError as exc:
+        msg = _format_parse_error("_M", exc)
+
+    assert "items[1]" in msg
+
+
+def test_format_parse_error_with_obj_extracts_reference_code() -> None:
+    """When obj is provided, referenceCode is extracted from the parent at the error loc."""
+    mock_error = MagicMock()
+    mock_error.errors.return_value = [
+        {
+            "loc": ("results", 2, "extraMetadata"),
+            "msg": "bad value",
+            "type": "value_error",
+            "input": "bad",
+        }
+    ]
+    obj = {
+        "results": [
+            {"referenceCode": "ANA-A"},
+            {"referenceCode": "ANA-B"},
+            {"referenceCode": "ANA-C"},
+        ]
+    }
+    msg = _format_parse_error("SearchResult", mock_error, obj=obj)
+    assert "results[2]" in msg
+    assert "ANA-C" in msg
+
+
 def test_format_parse_error_empty_loc() -> None:
     """When loc is empty the location shows as '(root)'."""
     mock_error = MagicMock()

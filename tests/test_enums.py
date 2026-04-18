@@ -125,6 +125,29 @@ class TestPhaseState:
             == PhaseState.PUBLICATION_DRAFT
         )
 
+    def test_additional_workflow_states(self) -> None:
+        M = _model(LenientPhaseState)
+        assert (
+            M.model_validate({"value": "analysis_coordinators_selection"}).value
+            == PhaseState.ANALYSIS_COORDINATORS_SELECTION
+        )
+        assert (
+            M.model_validate({"value": "analysis_coordinators_timeline"}).value
+            == PhaseState.ANALYSIS_COORDINATORS_TIMELINE
+        )
+        assert (
+            M.model_validate({"value": "approval_meeting_data"}).value
+            == PhaseState.APPROVAL_MEETING
+        )
+        assert (
+            M.model_validate({"value": "eoi_meeting"}).value == PhaseState.EOI_MEETING
+        )
+        assert (
+            M.model_validate({"value": "pub_contact_editors_definition"}).value
+            == PhaseState.PUB_CONTACT_EDITORS_DEFINITION
+        )
+        assert M.model_validate({"value": "pub_skip"}).value == PhaseState.PUB_SKIP
+
     def test_unknown_state_falls_back(self, caplog) -> None:
         M = _model(LenientPhaseState)
         with caplog.at_level(logging.WARNING, logger="stare"):
@@ -165,6 +188,13 @@ class TestRepositoryType:
         assert (
             M.model_validate({"value": "framework"}).value == RepositoryType.FRAMEWORK
         )
+
+    def test_publication_shortcode_values(self) -> None:
+        M = _model(LenientRepositoryType)
+        assert M.model_validate({"value": "CONF"}).value == RepositoryType.CONF
+        assert M.model_validate({"value": "INT"}).value == RepositoryType.INT
+        assert M.model_validate({"value": "PAP"}).value == RepositoryType.PAP
+        assert M.model_validate({"value": "PUB"}).value == RepositoryType.PUB
 
     def test_unknown_falls_back(self, caplog) -> None:
         M = _model(LenientRepositoryType)
