@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+import sys
 import time
 from datetime import datetime, timezone
 from typing import Annotated
@@ -60,6 +61,9 @@ app.add_typer(publications_app, name="publications")
 triggers_app = typer.Typer(help="Trigger search commands.")
 app.add_typer(triggers_app, name="triggers")
 
+cache_app = typer.Typer(help="HTTP cache management commands.")
+app.add_typer(cache_app, name="cache")
+
 
 def _make_settings() -> StareSettings:
     settings = StareSettings()
@@ -79,8 +83,11 @@ def _make_token_manager() -> TokenManager:
     return TokenManager(_make_settings())
 
 
-def _make_glance() -> Glance:
-    return Glance(settings=_make_settings())
+def _make_glance(no_cache: bool = False) -> Glance:
+    settings = _make_settings()
+    if no_cache:
+        settings = settings.model_copy(update={"cache_enabled": False})
+    return Glance(settings=settings)
 
 
 # ---------------------------------------------------------------------------
@@ -306,11 +313,15 @@ def analysis_search(
             help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
         ),
     ] = None,
+    no_cache: Annotated[
+        bool,
+        typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
+    ] = False,
 ) -> None:
     """Search analyses."""
     if output_json is None:
         output_json = not stdout_is_interactive()
-    g = _make_glance()
+    g = _make_glance(no_cache=no_cache)
     try:
         result = g.analyses.search(
             query=query,
@@ -353,11 +364,15 @@ def analysis_get(
             help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
         ),
     ] = None,
+    no_cache: Annotated[
+        bool,
+        typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
+    ] = False,
 ) -> None:
     """Fetch a single analysis by reference code."""
     if output_json is None:
         output_json = not stdout_is_interactive()
-    g = _make_glance()
+    g = _make_glance(no_cache=no_cache)
     try:
         result = g.analyses.get(ref_code)
     except StareError as exc:
@@ -406,11 +421,15 @@ def paper_search(
             help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
         ),
     ] = None,
+    no_cache: Annotated[
+        bool,
+        typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
+    ] = False,
 ) -> None:
     """Search papers."""
     if output_json is None:
         output_json = not stdout_is_interactive()
-    g = _make_glance()
+    g = _make_glance(no_cache=no_cache)
     try:
         result = g.papers.search(
             query=query,
@@ -453,11 +472,15 @@ def paper_get(
             help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
         ),
     ] = None,
+    no_cache: Annotated[
+        bool,
+        typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
+    ] = False,
 ) -> None:
     """Fetch a single paper by reference code."""
     if output_json is None:
         output_json = not stdout_is_interactive()
-    g = _make_glance()
+    g = _make_glance(no_cache=no_cache)
     try:
         result = g.papers.get(ref_code)
     except StareError as exc:
@@ -492,11 +515,15 @@ def conf_note(
             help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
         ),
     ] = None,
+    no_cache: Annotated[
+        bool,
+        typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
+    ] = False,
 ) -> None:
     """Fetch a single CONF note by temporary reference code."""
     if output_json is None:
         output_json = not stdout_is_interactive()
-    g = _make_glance()
+    g = _make_glance(no_cache=no_cache)
     try:
         result = g.conf_notes.get(ref_code)
     except StareError as exc:
@@ -531,11 +558,15 @@ def pub_note(
             help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
         ),
     ] = None,
+    no_cache: Annotated[
+        bool,
+        typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
+    ] = False,
 ) -> None:
     """Fetch a single PUB note by temporary reference code."""
     if output_json is None:
         output_json = not stdout_is_interactive()
-    g = _make_glance()
+    g = _make_glance(no_cache=no_cache)
     try:
         result = g.pub_notes.get(ref_code)
     except StareError as exc:
@@ -585,11 +616,15 @@ def publications_search(
             help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
         ),
     ] = None,
+    no_cache: Annotated[
+        bool,
+        typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
+    ] = False,
 ) -> None:
     """Search across all publication types."""
     if output_json is None:
         output_json = not stdout_is_interactive()
-    g = _make_glance()
+    g = _make_glance(no_cache=no_cache)
     try:
         results = g.publications.search(
             reference_codes=reference_code or None,
@@ -628,11 +663,15 @@ def groups(
             help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
         ),
     ] = None,
+    no_cache: Annotated[
+        bool,
+        typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
+    ] = False,
 ) -> None:
     """List all leading groups."""
     if output_json is None:
         output_json = not stdout_is_interactive()
-    g = _make_glance()
+    g = _make_glance(no_cache=no_cache)
     try:
         result = g.groups.list()
     except StareError as exc:
@@ -656,11 +695,15 @@ def subgroups(
             help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
         ),
     ] = None,
+    no_cache: Annotated[
+        bool,
+        typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
+    ] = False,
 ) -> None:
     """List all subgroups."""
     if output_json is None:
         output_json = not stdout_is_interactive()
-    g = _make_glance()
+    g = _make_glance(no_cache=no_cache)
     try:
         result = g.subgroups.list()
     except StareError as exc:
@@ -695,11 +738,15 @@ def triggers_search(
             help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
         ),
     ] = None,
+    no_cache: Annotated[
+        bool,
+        typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
+    ] = False,
 ) -> None:
     """Search triggers."""
     if output_json is None:
         output_json = not stdout_is_interactive()
-    g = _make_glance()
+    g = _make_glance(no_cache=no_cache)
     try:
         results = g.triggers.search(
             categories=category or None,
@@ -722,3 +769,40 @@ def triggers_search(
         cat_year = trigger.category.year if trigger.category else ""
         table.add_row(trigger.name or "", cat_name or "", cat_year or "")
     console.print(table)
+
+
+# ---------------------------------------------------------------------------
+# cache info / clear
+# ---------------------------------------------------------------------------
+
+
+@cache_app.command("info")
+def cache_info() -> None:
+    """Show cache directory, database path, TTL, and on-disk size."""
+    settings = _make_settings()
+    cache_dir = settings.get_cache_dir()
+    db_path = cache_dir / "cache.db"
+    size = db_path.stat().st_size if db_path.exists() else 0
+    console.print(f"Enabled:   {settings.cache_enabled}")
+    console.print(f"Directory: {cache_dir}")
+    console.print(f"Database:  {db_path}")
+    console.print(f"TTL:       {settings.cache_ttl_seconds} s")
+    console.print(f"Size:      {size} bytes")
+
+
+@cache_app.command("clear")
+def cache_clear(
+    confirm: Annotated[
+        bool, typer.Option("--yes", "-y", help="Skip confirmation prompt.")
+    ] = False,
+) -> None:
+    """Delete every cached response."""
+    settings = _make_settings()
+    db_path = settings.get_cache_dir() / "cache.db"
+    if not confirm and sys.stdin.isatty():
+        typer.confirm(f"Delete {db_path}?", abort=True)
+    if db_path.exists():
+        db_path.unlink()
+        console.print(f"[green]Cache cleared:[/green] {db_path}")
+    else:
+        console.print(f"[dim]Nothing to clear:[/dim] {db_path} does not exist.")

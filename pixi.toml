@@ -24,6 +24,7 @@ hatch-vcs = ">=0.4"
 [package.run-dependencies]
 python = ">=3.10"
 httpx = ">=0.27"
+hishel = ">=0.1"
 keyring = ">=25"
 pyjwt = ">=2.8"
 cryptography = "*"
@@ -85,6 +86,7 @@ mypy = "*"
 ruff = "*"
 python-build = "*"
 twine = "*"
+hishel = ">=0.1"
 [feature.dev.tasks]
 pre-commit = { cmd = "pre-commit run --all-files", description = "Run pre-commit hooks on all files" }
 pylint = { cmd = "pylint stare", description = "Run PyLint on stare package" }

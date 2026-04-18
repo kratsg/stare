@@ -7,6 +7,8 @@ from importlib.resources import as_file, files
 from typing import TYPE_CHECKING, Any
 
 import httpx
+from hishel import CacheOptions, SpecificationPolicy, SyncSqliteStorage
+from hishel.httpx import SyncCacheTransport
 
 from stare.auth import TokenManager
 from stare.exceptions import ApiError, ForbiddenError, NotFoundError, UnauthorizedError
@@ -247,9 +249,30 @@ class Glance:
         self._settings = settings or StareSettings()
         self._token_manager = token_manager or TokenManager(self._settings)
         self._token = token
+        ssl_ctx = _load_ssl_context(self._settings.ca_bundle)
+        base_transport = httpx.HTTPTransport(verify=ssl_ctx)
+        if self._settings.cache_enabled:
+            cache_dir = self._settings.get_cache_dir()
+            cache_dir.mkdir(parents=True, exist_ok=True)
+            transport: httpx.BaseTransport = SyncCacheTransport(
+                next_transport=base_transport,
+                storage=SyncSqliteStorage(
+                    database_path=cache_dir / "cache.db",
+                    default_ttl=float(self._settings.cache_ttl_seconds),
+                ),
+                policy=SpecificationPolicy(
+                    cache_options=CacheOptions(
+                        shared=False,
+                        supported_methods=["GET"],
+                        allow_stale=True,
+                    )
+                ),
+            )
+        else:
+            transport = base_transport
         self._http = httpx.Client(
             base_url=self._settings.base_url,
-            verify=_load_ssl_context(self._settings.ca_bundle),
+            transport=transport,
             event_hooks={"request": [self._inject_auth]},
         )
         self.analyses = AnalysisResource(self._http)

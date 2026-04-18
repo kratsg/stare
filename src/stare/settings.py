@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Literal
 
+import platformdirs
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -48,3 +50,14 @@ class StareSettings(BaseSettings):
     # Base URL for the ATLAS Glance web UI (used to build clickable hyperlinks in
     # CLI output). Override via STARE_WEB_BASE_URL for staging or other instances.
     web_base_url: str = "https://atlas-glance.cern.ch/atlas/analysis"
+    # HTTP response cache settings. Cache is on by default with an 8-hour TTL,
+    # stored as SQLite in the platform user-cache directory.
+    cache_enabled: bool = True
+    cache_ttl_seconds: int = 8 * 60 * 60
+    cache_dir: Path | None = None
+
+    def get_cache_dir(self) -> Path:
+        """Return the effective cache directory, defaulting to the platform user-cache dir."""
+        if self.cache_dir is not None:
+            return self.cache_dir
+        return Path(platformdirs.user_cache_dir("stare"))

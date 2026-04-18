@@ -48,6 +48,7 @@ def test_settings() -> StareSettings:
         scopes="openid",
         callback_port=18182,
         exchange_audience=None,
+        cache_enabled=False,
     )
 
 
