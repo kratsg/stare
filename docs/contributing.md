@@ -108,6 +108,8 @@ Tests live in `tests/`. The test layout mirrors the source:
 
 Key fixtures in `tests/conftest.py`:
 
-- `test_settings` — `StareSettings` pointing at a localhost mock URL
+- `test_settings` — `StareSettings` pointing at
+  `https://test-glance.example.com/api` with auth endpoints at
+  `https://auth.example.com/` and caching disabled
 - `stored_token_path` — temp file with a pre-written valid token
 - `tmp_token_path` — temp file path (does not exist yet)

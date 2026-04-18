@@ -85,6 +85,7 @@ class TokenManager:
         # Locking: thread lock guards in-process races; file lock guards
         # cross-process races (e.g. two CLI invocations refreshing at once).
         self._thread_lock = threading.Lock()
+        self._storage.lock_path.parent.mkdir(parents=True, exist_ok=True)
         self._file_lock = filelock.FileLock(self._storage.lock_path)
 
     @property
@@ -123,6 +124,10 @@ class TokenManager:
                     self.end_headers()
                     return
                 parsed = urlparse(self.path)
+                if parsed.path != "/callback":
+                    self.send_response(404)
+                    self.end_headers()
+                    return
                 params = parse_qs(parsed.query)
                 received["code"] = params.get("code", [""])[0]
                 received["state"] = params.get("state", [""])[0]

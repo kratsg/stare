@@ -1242,3 +1242,64 @@ def test_callback_handler_rejects_bad_host(
             manager.login(get_manual_code=_get_manual_code)
 
     assert bad_host_status == [403]
+
+
+def test_callback_handler_rejects_non_callback_path(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    """Callback server returns 404 for requests to paths other than /callback."""
+    captured_url: dict[str, str] = {}
+    non_callback_status: list[int] = []
+
+    def _fake_browser(url: str) -> bool:
+        captured_url["url"] = url
+        return True
+
+    def _get_manual_code() -> str | None:
+        deadline = time.time() + 5.0
+        while "url" not in captured_url and time.time() < deadline:
+            time.sleep(0.01)
+        url = captured_url.get("url", "")
+        if not url:
+            return None
+        parsed = urlparse(url)
+        redirect_uri = parse_qs(parsed.query).get("redirect_uri", [""])[0]
+        port = urlparse(redirect_uri).port
+
+        time.sleep(0.05)
+        try:
+            conn = http.client.HTTPConnection("127.0.0.1", port, timeout=5)
+            conn.request("GET", "/favicon.ico")
+            resp = conn.getresponse()
+            non_callback_status.append(resp.status)
+            resp.read()
+            conn.close()
+        except Exception:  # noqa: BLE001
+            pass
+
+        return "manual-code"
+
+    new_tokens = {
+        "access_token": "path-check-access",
+        "token_type": "Bearer",
+        "expires_in": 3600,
+    }
+
+    with respx.mock:
+        respx.post(test_settings.token_url).mock(
+            return_value=httpx.Response(200, json=new_tokens)
+        )
+        with patch("stare.auth.webbrowser.open", side_effect=_fake_browser):
+            manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+            manager.login(get_manual_code=_get_manual_code)
+
+    assert non_callback_status == [404]
+
+
+def test_token_manager_creates_lock_parent_directory(
+    tmp_path: Path, test_settings: StareSettings
+) -> None:
+    """TokenManager creates the lock file's parent directory if it doesn't exist."""
+    token_path = tmp_path / "nested" / "tokens.json"
+    manager = TokenManager(settings=test_settings, token_path=token_path)
+    assert manager._storage.lock_path.parent.exists()
