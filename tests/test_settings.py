@@ -28,12 +28,16 @@ class TestStareSettingsDefaults:
         s = StareSettings()
         assert s.scopes == "openid"
 
-    def test_default_auth_url_contains_cern(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_default_auth_url_contains_cern(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         monkeypatch.delenv("STARE_AUTH_URL", raising=False)
         s = StareSettings()
         assert "auth.cern.ch" in s.auth_url
 
-    def test_default_token_url_contains_cern(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_default_token_url_contains_cern(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         monkeypatch.delenv("STARE_TOKEN_URL", raising=False)
         s = StareSettings()
         assert "auth.cern.ch" in s.token_url
@@ -73,12 +77,16 @@ class TestStareSettingsEnvOverrides:
 
 
 class TestStareSettingsExpiry:
-    def test_default_exchange_token_buffer_seconds(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_default_exchange_token_buffer_seconds(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         monkeypatch.delenv("STARE_EXCHANGE_TOKEN_BUFFER_SECONDS", raising=False)
         s = StareSettings()
         assert s.exchange_token_buffer_seconds == 120
 
-    def test_default_token_expiry_margin_seconds(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_default_token_expiry_margin_seconds(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         monkeypatch.delenv("STARE_TOKEN_EXPIRY_MARGIN_SECONDS", raising=False)
         s = StareSettings()
         assert s.token_expiry_margin_seconds == 60
