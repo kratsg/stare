@@ -274,13 +274,14 @@ class TokenManager:
 
     def logout(self) -> None:
         """Revoke tokens server-side (best-effort) then delete local storage."""
-        token = self._storage.load()
-        if token is not None:
-            self._revoke_token(token.refresh_token, "refresh_token")
-            self._revoke_token(token.access_token, "access_token")
-        self._storage.delete()
-        self._exchanged_token = None
-        self._exchanged_expires_at = 0
+        with self._thread_lock, self._file_lock:
+            token = self._storage.load()
+            if token is not None:
+                self._revoke_token(token.refresh_token, "refresh_token")
+                self._revoke_token(token.access_token, "access_token")
+            self._storage.delete()
+            self._exchanged_token = None
+            self._exchanged_expires_at = 0
 
     def _revoke_token(self, token: str | None, token_type_hint: str) -> None:
         """POST token to the Keycloak revocation endpoint; never raises."""
@@ -357,6 +358,9 @@ class TokenManager:
         except httpx.RequestError as exc:
             msg = f"Token exchange failed (network error): {exc}. Run `stare login` again."
             raise TokenExpiredError(msg) from exc
+        except ValidationError as exc:
+            msg = f"Token exchange response invalid: {exc}. Run `stare login` again."
+            raise TokenExpiredError(msg) from exc
         self._exchanged_token = oauth_resp.access_token
         self._exchanged_expires_at = int(time.time()) + oauth_resp.expires_in
         return self._exchanged_token
@@ -382,6 +386,14 @@ class TokenManager:
             self._exchanged_token = None
             self._exchanged_expires_at = 0
             msg = f"Token refresh failed ({exc.response.status_code}). Run `stare login` again."
+            raise TokenExpiredError(msg) from exc
+        except httpx.RequestError as exc:
+            msg = (
+                f"Token refresh failed (network error): {exc}. Run `stare login` again."
+            )
+            raise TokenExpiredError(msg) from exc
+        except ValidationError as exc:
+            msg = f"Token refresh response invalid: {exc}. Run `stare login` again."
             raise TokenExpiredError(msg) from exc
 
         token = _StoredToken.from_response(oauth_resp)

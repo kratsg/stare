@@ -9,11 +9,17 @@ from typing import TYPE_CHECKING, Any, Literal
 import httpx
 from hishel import CacheOptions, SpecificationPolicy, SyncSqliteStorage
 from hishel.httpx import SyncCacheTransport
-from pydantic import TypeAdapter
+from pydantic import TypeAdapter, ValidationError
 
 from stare.auth import TokenManager
 from stare.dsl import Expression, parse_dsl
-from stare.exceptions import ApiError, ForbiddenError, NotFoundError, UnauthorizedError
+from stare.exceptions import (
+    ApiError,
+    ForbiddenError,
+    NotFoundError,
+    ResponseParseError,
+    UnauthorizedError,
+)
 from stare.models import (
     Analysis,
     AnalysisSearchResult,
@@ -222,7 +228,10 @@ class GroupResource:
         """List all leading groups."""
         response = self._client.get("/groups")
         _raise_for_status(response)
-        return TypeAdapter(list[str]).validate_python(response.json())
+        try:
+            return TypeAdapter(list[str]).validate_python(response.json())
+        except ValidationError as exc:
+            raise ResponseParseError(str(exc), raw_data=response.json()) from exc
 
 
 class SubgroupResource:
@@ -236,7 +245,10 @@ class SubgroupResource:
         """List all subgroups."""
         response = self._client.get("/subgroups")
         _raise_for_status(response)
-        return TypeAdapter(list[str]).validate_python(response.json())
+        try:
+            return TypeAdapter(list[str]).validate_python(response.json())
+        except ValidationError as exc:
+            raise ResponseParseError(str(exc), raw_data=response.json()) from exc
 
 
 class TriggerResource:

@@ -25,41 +25,27 @@ def clear_stare_env(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 class TestStareSettingsDefaults:
-    # pixi.toml sets STARE_BASE_URL to the staging endpoint in the activation
-    # environment; monkeypatch removes it so we can test the compiled default.
-    def test_default_base_url(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.delenv("STARE_BASE_URL", raising=False)
+    def test_default_base_url(self) -> None:
         s = StareSettings()
         assert s.base_url == "https://atlas-glance.cern.ch/atlas/analysis/api"
 
-    def test_default_client_id(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.delenv("STARE_CLIENT_ID", raising=False)
+    def test_default_client_id(self) -> None:
         s = StareSettings()
         assert s.client_id == "stare"
 
-    def test_default_scopes(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.delenv("STARE_SCOPES", raising=False)
+    def test_default_scopes(self) -> None:
         s = StareSettings()
         assert s.scopes == "openid"
 
-    def test_default_auth_url_contains_cern(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        monkeypatch.delenv("STARE_AUTH_URL", raising=False)
+    def test_default_auth_url_contains_cern(self) -> None:
         s = StareSettings()
         assert "auth.cern.ch" in s.auth_url
 
-    def test_default_token_url_contains_cern(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        monkeypatch.delenv("STARE_TOKEN_URL", raising=False)
+    def test_default_token_url_contains_cern(self) -> None:
         s = StareSettings()
         assert "auth.cern.ch" in s.token_url
 
-    def test_default_ca_bundle_is_sectigo(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        monkeypatch.delenv("STARE_CA_BUNDLE", raising=False)
+    def test_default_ca_bundle_is_sectigo(self) -> None:
         s = StareSettings()
         assert s.ca_bundle == "Sectigo"
 
@@ -92,16 +78,24 @@ class TestStareSettingsEnvOverrides:
 
 
 class TestStareSettingsExpiry:
-    def test_default_exchange_token_buffer_seconds(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        monkeypatch.delenv("STARE_EXCHANGE_TOKEN_BUFFER_SECONDS", raising=False)
+    def test_default_exchange_token_buffer_seconds(self) -> None:
         s = StareSettings()
         assert s.exchange_token_buffer_seconds == 120
 
-    def test_default_token_expiry_margin_seconds(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        monkeypatch.delenv("STARE_TOKEN_EXPIRY_MARGIN_SECONDS", raising=False)
+    def test_default_token_expiry_margin_seconds(self) -> None:
         s = StareSettings()
         assert s.token_expiry_margin_seconds == 60
+
+    def test_exchange_token_buffer_seconds_env_override(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("STARE_EXCHANGE_TOKEN_BUFFER_SECONDS", "300")
+        s = StareSettings()
+        assert s.exchange_token_buffer_seconds == 300
+
+    def test_token_expiry_margin_seconds_env_override(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("STARE_TOKEN_EXPIRY_MARGIN_SECONDS", "90")
+        s = StareSettings()
+        assert s.token_expiry_margin_seconds == 90
