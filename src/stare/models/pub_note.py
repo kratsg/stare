@@ -31,7 +31,7 @@ class PubNotePhase1(_Base):
     state: str | None = None
     start_date: str | None = None
     draft_cds_url: str | None = Field(default=None, alias="draftNoteCdsUrl")
-    readers: list[PubNoteReader] | None = None
+    readers: list[PubNoteReader] = Field(default_factory=list)
     presentation_date: str | None = None
     group_approval_on: str | None = None
     first_reader_draft_sign_off: str | None = None
@@ -57,7 +57,7 @@ class PubNote(_Base):
     full_title: str | None = None
     groups: Groups | None = None
     documentation: Documentation | None = None
-    analysis_team: list[TeamMember] | None = None
+    analysis_team: list[TeamMember] = Field(default_factory=list)
     metadata: Metadata | None = None
     associated_analysis: RelatedPublication | None = None
     superseded_by: RelatedPublication | None = None

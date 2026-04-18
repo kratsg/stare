@@ -171,12 +171,12 @@ class TestMetadata:
 
     def test_optional_fields(self) -> None:
         m = Metadata.model_validate({})
-        assert m.keywords is None
-        assert m.statistical_tools is None
-        assert m.mva_ml_tools is None
-        assert m.triggers is None
+        assert m.keywords == []
+        assert m.statistical_tools == []
+        assert m.mva_ml_tools == []
+        assert m.triggers == []
         assert m.analysis_frameworks is None
-        assert m.rivet_routines is None
+        assert m.rivet_routines == []
 
 
 class TestDocumentation:
@@ -263,7 +263,6 @@ class TestAnalysisPhase0:
                 "approvalMeeting": [],
             }
         )
-        assert p.eoi_meeting is not None
         assert len(p.eoi_meeting) == 1
         assert p.eoi_meeting[0].title == "EOI"
         assert p.approval_meeting == []
@@ -283,14 +282,13 @@ class TestAnalysisPhase0:
                 ]
             }
         )
-        assert p.editorial_board is not None
         assert len(p.editorial_board) == 1
         assert p.editorial_board[0].is_chair is True
 
     def test_optional_fields(self) -> None:
         p = AnalysisPhase0.model_validate({})
         assert p.state is None
-        assert p.eoi_meeting is None
+        assert p.eoi_meeting == []
 
 
 class TestAnalysis:
@@ -346,7 +344,6 @@ class TestAnalysis:
                 ],
             }
         )
-        assert a.analysis_team is not None
         assert len(a.analysis_team) == 1
         assert a.analysis_team[0].cern_ccid == "u1"
 

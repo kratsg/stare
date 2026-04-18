@@ -28,7 +28,7 @@ class ConfNotePhase1(_Base):
     state: str | None = None
     start_date: str | None = None
     cds_url: str | None = Field(default=None, alias="cdsDraftNoteUrl")
-    editorial_board: list[EditorialBoardMember] | None = None
+    editorial_board: list[EditorialBoardMember] = Field(default_factory=list)
     editorial_board_formed_on: str | None = None
     presentation_date: str | None = None
     pgc_approved_analysis_on: str | None = Field(
@@ -59,7 +59,7 @@ class ConfNote(_Base):
     full_title: str | None = None
     groups: Groups | None = None
     documentation: Documentation | None = None
-    analysis_team: list[TeamMember] | None = None
+    analysis_team: list[TeamMember] = Field(default_factory=list)
     metadata: Metadata | None = None
     associated_analysis: RelatedPublication | None = None
     superseded_by: RelatedPublication | None = None

@@ -94,8 +94,8 @@ class Groups(_Base):
     """Leading group, subgroups, and other groups for a publication."""
 
     leading_group: str | None = None
-    subgroups: list[str] | None = None
-    other_groups: list[str] | None = None
+    subgroups: list[str] = Field(default_factory=list)
+    other_groups: list[str] = Field(default_factory=list)
 
 
 class Collision(_Base):
@@ -116,15 +116,15 @@ class Metadata(_Base):
     Not all fields are populated for every resource type; absent fields are None.
     """
 
-    collisions: list[Collision] | None = None
-    keywords: list[str] | None = None
-    statistical_tools: list[str] | None = None
-    mva_ml_tools: list[str] | None = None
-    triggers: list[str] | None = None
-    # Analysis-specific
+    collisions: list[Collision] = Field(default_factory=list)
+    keywords: list[str] = Field(default_factory=list)
+    statistical_tools: list[str] = Field(default_factory=list)
+    mva_ml_tools: list[str] = Field(default_factory=list)
+    triggers: list[str] = Field(default_factory=list)
+    # Analysis-specific; None means no frameworks reported (distinct from empty dict)
     analysis_frameworks: dict[str, list[str]] | None = None
     # Paper-specific
-    rivet_routines: list[str] | None = None
+    rivet_routines: list[str] = Field(default_factory=list)
 
 
 class Repository(_Base):
