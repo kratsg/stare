@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import socket
 import time
 from typing import TYPE_CHECKING
 
@@ -34,6 +35,13 @@ def pytest_collection_modifyitems(
                 item.add_marker(skip_slow)
 
 
+def _free_port() -> int:
+    """Return an available TCP port on localhost."""
+    with socket.socket() as s:
+        s.bind(("", 0))
+        return int(s.getsockname()[1])
+
+
 @pytest.fixture
 def test_settings() -> StareSettings:
     """StareSettings pointing at a test base URL."""
@@ -46,7 +54,7 @@ def test_settings() -> StareSettings:
         jwks_url="https://auth.example.com/realms/test/certs",
         client_id="test-client",
         scopes="openid",
-        callback_port=18182,
+        callback_port=_free_port(),
         exchange_audience=None,
         cache_enabled=False,
     )
