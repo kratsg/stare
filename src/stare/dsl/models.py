@@ -25,7 +25,7 @@ class And(BaseModel):
 
     def to_dsl(self) -> str:
         left, right = self.clauses
-        return f"({left.to_dsl()}) and ({right.to_dsl()})"
+        return f"{_wrap(left)} and {_wrap(right)}"
 
 
 class Or(BaseModel):
@@ -33,4 +33,9 @@ class Or(BaseModel):
 
     def to_dsl(self) -> str:
         left, right = self.clauses
-        return f"{left.to_dsl()} or {right.to_dsl()}"
+        return f"{_wrap(left)} or {_wrap(right)}"
+
+
+def _wrap(expr: Expression) -> str:
+    dsl = expr.to_dsl()
+    return f"({dsl})" if isinstance(expr, (And, Or)) else dsl
