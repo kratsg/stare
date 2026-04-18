@@ -36,11 +36,10 @@ against CERN Keycloak built in.
 
 ## Features
 
-- **PKCE authentication** — no passwords stored; browser-based CERN SSO login
-- **Typed models** — all API responses are validated pydantic v2 models
-- **Rich CLI** — tables, coloured output, `--json` flag for scripting
-- **Context-manager client** — explicit connection lifecycle when needed
-- **Token refresh** — access tokens are refreshed automatically
+- **Analyses and papers** — search and retrieve ATLAS analyses, papers, CONF notes, and PUB notes
+- **Simple query language** — filter by reference code, status, leading group, keywords, and more
+- **Secure authentication** — browser-based CERN SSO login; no passwords stored, tokens refresh automatically
+- **CLI and library** — Rich tables for interactive use, auto-JSON when piping; full Python API for scripts and notebooks
 
 ---
 
