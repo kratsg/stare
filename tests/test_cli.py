@@ -357,6 +357,28 @@ def test_analysis_search_with_query() -> None:
     assert call_kwargs["query"] == "test"
 
 
+def test_analysis_search_no_validate_flag() -> None:
+    g = _mock_glance()
+    with patch("stare.cli._make_glance", return_value=g):
+        result = runner.invoke(
+            app, ["analysis", "search", "--query", "foo", "--no-validate"]
+        )
+    assert result.exit_code == 0
+    call_kwargs = g.analyses.search.call_args.kwargs
+    assert call_kwargs["validate_query"] is False
+
+
+def test_analysis_search_dsl_error_shown_as_bad_parameter() -> None:
+    from stare.dsl.errors import DSLValidationError
+
+    g = _mock_glance()
+    g.analyses.search.side_effect = DSLValidationError("unknown field 'foo'")
+    with patch("stare.cli._make_glance", return_value=g):
+        result = runner.invoke(app, ["analysis", "search", "--query", "foo = bar"])
+    assert result.exit_code != 0
+    assert "unknown field" in result.output
+
+
 def test_analysis_search_json_output() -> None:
     with patch("stare.cli._make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["analysis", "search", "--json"])
@@ -422,6 +444,28 @@ def test_paper_search_with_query() -> None:
     g.papers.search.assert_called_once()
     call_kwargs = g.papers.search.call_args.kwargs
     assert call_kwargs["query"] == "test"
+
+
+def test_paper_search_no_validate_flag() -> None:
+    g = _mock_glance()
+    with patch("stare.cli._make_glance", return_value=g):
+        result = runner.invoke(
+            app, ["paper", "search", "--query", "foo", "--no-validate"]
+        )
+    assert result.exit_code == 0
+    call_kwargs = g.papers.search.call_args.kwargs
+    assert call_kwargs["validate_query"] is False
+
+
+def test_paper_search_dsl_error_shown_as_bad_parameter() -> None:
+    from stare.dsl.errors import DSLValidationError
+
+    g = _mock_glance()
+    g.papers.search.side_effect = DSLValidationError("unknown field 'bar'")
+    with patch("stare.cli._make_glance", return_value=g):
+        result = runner.invoke(app, ["paper", "search", "--query", "bar = baz"])
+    assert result.exit_code != 0
+    assert "unknown field" in result.output
 
 
 def test_paper_search_json_output() -> None:

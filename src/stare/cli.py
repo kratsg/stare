@@ -19,6 +19,7 @@ from stare import __version__
 from stare._output import stdout_is_interactive
 from stare.auth import TokenManager
 from stare.client import Glance
+from stare.dsl.errors import DSLError
 from stare.exceptions import ResponseParseError, StareError
 from stare.settings import StareSettings
 from stare.urls import analysis_url, conf_note_url, paper_url, pub_note_url
@@ -318,7 +319,7 @@ def analysis_search(
         typer.Option(
             "--query",
             "-q",
-            help='Filter query (e.g. \'"referenceCode" ~= "HION"\'; ops: =, ~=, >, <, !=; combine with "and"/"or").',
+            help="Filter query (e.g. 'referenceCode = HION'; ops: =, !=, contain, not-contain; combine with and/or). See docs/query-dsl.md.",
         ),
     ] = None,
     limit: Annotated[
@@ -351,6 +352,13 @@ def analysis_search(
         bool,
         typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
     ] = False,
+    validate: Annotated[
+        bool,
+        typer.Option(
+            "--validate/--no-validate",
+            help="Validate and normalize the query string (default: on).",
+        ),
+    ] = True,
 ) -> None:
     """Search analyses via GET /searchAnalysis.
 
@@ -358,7 +366,8 @@ def analysis_search(
     Override with [cyan]--json[/cyan] or [cyan]--no-json[/cyan].
 
     [bold]Examples[/bold]
-      [green]stare analysis search -q '"referenceCode" ~= "HION"'[/green]
+      [green]stare analysis search -q 'referenceCode = HION'[/green]
+      [green]stare analysis search -q 'metadata.keywords contain jets and status = Active'[/green]
       [green]stare analysis search | jq '.results[].referenceCode'[/green]
       [green]stare analysis search | jq '[.results[] | select(.status=="Active")] | length'[/green]
 
@@ -375,7 +384,10 @@ def analysis_search(
             offset=offset,
             sort_by=sort_by,
             sort_desc=sort_desc,
+            validate_query=validate,
         )
+    except DSLError as exc:
+        raise typer.BadParameter(str(exc), param_hint="--query") from exc
     except StareError as exc:
         _handle_error(exc)
         raise typer.Exit(1) from exc
@@ -458,7 +470,7 @@ def paper_search(
         typer.Option(
             "--query",
             "-q",
-            help='Filter query (e.g. \'"referenceCode" ~= "HDBS"\'; ops: =, ~=, >, <, !=; combine with "and"/"or").',
+            help="Filter query (e.g. 'referenceCode = HDBS'; ops: =, !=, contain, not-contain; combine with and/or). See docs/query-dsl.md.",
         ),
     ] = None,
     limit: Annotated[
@@ -491,6 +503,13 @@ def paper_search(
         bool,
         typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
     ] = False,
+    validate: Annotated[
+        bool,
+        typer.Option(
+            "--validate/--no-validate",
+            help="Validate and normalize the query string (default: on).",
+        ),
+    ] = True,
 ) -> None:
     """Search papers via GET /searchPaper.
 
@@ -498,7 +517,8 @@ def paper_search(
     Override with [cyan]--json[/cyan] or [cyan]--no-json[/cyan].
 
     [bold]Examples[/bold]
-      [green]stare paper search -q '"referenceCode" ~= "HDBS"'[/green]
+      [green]stare paper search -q 'referenceCode = HDBS'[/green]
+      [green]stare paper search -q 'fullTitle contain Higgs'[/green]
       [green]stare paper search | jq '.results[].referenceCode'[/green]
 
     [bold]API reference[/bold]
@@ -514,7 +534,10 @@ def paper_search(
             offset=offset,
             sort_by=sort_by,
             sort_desc=sort_desc,
+            validate_query=validate,
         )
+    except DSLError as exc:
+        raise typer.BadParameter(str(exc), param_hint="--query") from exc
     except StareError as exc:
         _handle_error(exc)
         raise typer.Exit(1) from exc
