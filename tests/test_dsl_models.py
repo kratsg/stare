@@ -19,36 +19,36 @@ def test_condition_hyphenated_value() -> None:
 
 def test_and_two_clauses() -> None:
     expr = And(
-        clauses=[
+        clauses=(
             Condition(field="a", operator="=", value="x"),
             Condition(field="b", operator="contain", value="y"),
-        ]
+        )
     )
     assert expr.to_dsl() == "a = x and b contain y"
 
 
 def test_or_two_clauses() -> None:
     expr = Or(
-        clauses=[
+        clauses=(
             Condition(field="status", operator="=", value="ACTIVE"),
             Condition(field="status", operator="=", value="PENDING"),
-        ]
+        )
     )
     assert expr.to_dsl() == "status = ACTIVE or status = PENDING"
 
 
 def test_or_parenthesized_inside_and() -> None:
     inner = Or(
-        clauses=[
+        clauses=(
             Condition(field="status", operator="=", value="ACTIVE"),
             Condition(field="status", operator="=", value="PENDING"),
-        ]
+        )
     )
     outer = And(
-        clauses=[
+        clauses=(
             inner,
             Condition(field="keywords", operator="contain", value="jets"),
-        ]
+        )
     )
     assert outer.to_dsl() == (
         "(status = ACTIVE or status = PENDING) and keywords contain jets"
@@ -57,12 +57,12 @@ def test_or_parenthesized_inside_and() -> None:
 
 def test_and_inside_or_not_parenthesized() -> None:
     inner = And(
-        clauses=[
+        clauses=(
             Condition(field="a", operator="=", value="x"),
             Condition(field="b", operator="=", value="y"),
-        ]
+        )
     )
-    outer = Or(clauses=[inner, Condition(field="c", operator="=", value="z")])
+    outer = Or(clauses=(inner, Condition(field="c", operator="=", value="z")))
     assert outer.to_dsl() == "(a = x and b = y) or c = z"
 
 

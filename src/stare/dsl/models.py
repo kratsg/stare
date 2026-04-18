@@ -21,7 +21,7 @@ class Condition(BaseModel):
 
 
 class And(BaseModel):
-    clauses: list[Expression]
+    clauses: tuple[Expression, Expression]
 
     def to_dsl(self) -> str:
         left, right = self.clauses
@@ -29,7 +29,7 @@ class And(BaseModel):
 
 
 class Or(BaseModel):
-    clauses: list[Expression]
+    clauses: tuple[Expression, Expression]
 
     def to_dsl(self) -> str:
         left, right = self.clauses

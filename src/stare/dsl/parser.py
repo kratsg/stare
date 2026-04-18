@@ -38,11 +38,11 @@ class _DSLTransformer(Transformer[Any, Expression]):
 
     def or_expr(self, items: list[Expression]) -> Or:
         left, right = items
-        return Or(clauses=[left, right])
+        return Or(clauses=(left, right))
 
     def and_expr(self, items: list[Expression]) -> And:
         left, right = items
-        return And(clauses=[left, right])
+        return And(clauses=(left, right))
 
 
 def parse_dsl(source: str, *, mode: Literal["analysis", "paper"]) -> Expression:
