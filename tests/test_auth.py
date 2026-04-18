@@ -20,7 +20,7 @@ import pytest
 import respx
 
 from stare.auth import TokenManager, _decode_jwt_payload
-from stare.exceptions import AuthenticationError, TokenExpiredError
+from stare.exceptions import AuthenticationError, StareError, TokenExpiredError
 from stare.models.auth import JwtClaims, ResourceAccessEntry, TokenInfo, _StoredToken
 from stare.settings import StareSettings
 
@@ -1077,7 +1077,7 @@ def test_concurrent_get_token_does_not_raise(
     def _call() -> None:
         try:
             mock_token_manager.get_token()
-        except Exception as exc:  # noqa: BLE001
+        except StareError as exc:
             errors.append(exc)
 
     threads = [threading.Thread(target=_call) for _ in range(8)]
@@ -1222,7 +1222,7 @@ def test_callback_handler_rejects_bad_host(
             bad_host_status.append(resp.status)
             resp.read()
             conn.close()
-        except Exception:  # noqa: BLE001
+        except (OSError, http.client.HTTPException):
             pass
 
         return "manual-code"
@@ -1274,7 +1274,7 @@ def test_callback_handler_rejects_non_callback_path(
             non_callback_status.append(resp.status)
             resp.read()
             conn.close()
-        except Exception:  # noqa: BLE001
+        except (OSError, http.client.HTTPException):
             pass
 
         return "manual-code"

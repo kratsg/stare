@@ -1,4 +1,5 @@
 """Tests for FieldRegistry normalization and validation."""
+
 from __future__ import annotations
 
 import pytest
@@ -34,7 +35,10 @@ def test_nested_snake_normalizes(analysis_reg: FieldRegistry) -> None:
 
 
 def test_nested_deep_snake(analysis_reg: FieldRegistry) -> None:
-    assert analysis_reg.normalize("phase0.editorial_board_formed_on") == "phase0.editorialBoardFormedOn"
+    assert (
+        analysis_reg.normalize("phase0.editorial_board_formed_on")
+        == "phase0.editorialBoardFormedOn"
+    )
 
 
 def test_known_field_validates(analysis_reg: FieldRegistry) -> None:

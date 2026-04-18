@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import binascii
 import contextlib
 import hashlib
 import json
@@ -22,6 +23,8 @@ import jwt
 if TYPE_CHECKING:
     from collections.abc import Callable
     from pathlib import Path
+
+from pydantic import ValidationError
 
 from stare.exceptions import AuthenticationError, TokenExpiredError
 from stare.models.auth import JwtClaims, TokenInfo, _OAuthTokenResponse, _StoredToken
@@ -53,7 +56,13 @@ def _decode_jwt_payload(token: str) -> JwtClaims:
         payload = json.loads(base64.urlsafe_b64decode(payload_b64))
         if isinstance(payload, dict):
             return JwtClaims.model_validate(payload)
-    except Exception:  # noqa: BLE001 — best-effort decode, never raise to callers
+    except (
+        IndexError,
+        ValueError,
+        binascii.Error,
+        json.JSONDecodeError,
+        ValidationError,
+    ):
         pass
     return JwtClaims()
 

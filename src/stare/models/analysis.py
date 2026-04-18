@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import date
 from typing import Any
 
 from pydantic import Field, SerializationInfo, model_serializer, model_validator
@@ -44,13 +44,13 @@ class AnalysisPhase0(_Base):
     """
 
     state: LenientPhaseState | None = None
-    start_date: datetime | None = None
+    start_date: date | None = None
     main_physics_aim: str | None = None
     dataset_used: str | None = None
     model_tested: str | None = None
     methods: str | None = None
-    editorial_board_formed_on: datetime | None = None
-    pgc_or_sgc_sign_off_date: datetime | None = None
+    editorial_board_formed_on: date | None = None
+    pgc_or_sgc_sign_off_date: date | None = None
     analysis_contacts: list[AnalysisContact] = Field(default_factory=list)
     editorial_board: list[EditorialBoardMember] = Field(default_factory=list)
     meetings: list[TypedMeeting] = Field(default_factory=list)
@@ -97,7 +97,7 @@ class Analysis(_Base):
     """A single ATLAS analysis record."""
 
     reference_code: str | None = None
-    creation_date: datetime | None = None
+    creation_date: date | None = None
     status: LenientAnalysisStatus | None = None
     short_title: str | None = None
     public_short_title: str | None = None

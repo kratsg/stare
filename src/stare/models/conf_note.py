@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date
 
 from pydantic import Field
 
@@ -29,12 +29,12 @@ class ConfNotePhase1(_Base):
     """Phase 1 lifecycle metadata for a CONF note."""
 
     state: LenientPhaseState | None = None
-    start_date: datetime | None = None
+    start_date: date | None = None
     cds_url: str | None = Field(default=None, alias="cdsDraftNoteUrl")
     editorial_board: list[EditorialBoardMember] = Field(default_factory=list)
-    editorial_board_formed_on: datetime | None = None
-    presentation_date: datetime | None = None
-    pgc_approved_analysis_on: datetime | None = Field(
+    editorial_board_formed_on: date | None = None
+    presentation_date: date | None = None
+    pgc_approved_analysis_on: date | None = Field(
         default=None, alias="principalGroupCoordinatorApprovedAnalysisOn"
     )
     eb_draft_sign_off: str | None = Field(
@@ -47,7 +47,7 @@ class ConfNotePhase1(_Base):
     public_web_page_url: str | None = Field(
         default=None, alias="publicWebPageUrlForFiguresAndTables"
     )
-    release_date: datetime | None = None
+    release_date: date | None = None
 
 
 class ConfNote(_Base):

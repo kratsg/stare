@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import date
 
 from rich.console import Console
 
@@ -115,8 +115,8 @@ class TestAnalysisContact:
                 "endDate": "2024-01-01",
             }
         )
-        assert c.start_date == datetime(2023, 1, 1)  # noqa: DTZ001
-        assert c.end_date == datetime(2024, 1, 1)  # noqa: DTZ001
+        assert c.start_date == date(2023, 1, 1)
+        assert c.end_date == date(2024, 1, 1)
 
 
 class TestGroups:
@@ -272,7 +272,7 @@ class TestAnalysisPhase0:
             {"state": "Active", "startDate": "2022-01-01"}
         )
         assert p.state == "Active"
-        assert p.start_date == datetime(2022, 1, 1)  # noqa: DTZ001
+        assert p.start_date == date(2022, 1, 1)
 
     def test_meetings_parsed(self) -> None:
         p = AnalysisPhase0.model_validate(

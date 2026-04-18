@@ -1,10 +1,11 @@
 """Syntax-only tests for the DSL Lark grammar."""
+
 from __future__ import annotations
+
+from importlib.resources import files
 
 import pytest
 from lark import Lark, UnexpectedInput
-
-from importlib.resources import files
 
 
 @pytest.fixture

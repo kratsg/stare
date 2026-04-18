@@ -1,4 +1,5 @@
 """Exceptions for the stare query DSL."""
+
 from __future__ import annotations
 
 

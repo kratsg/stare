@@ -1,4 +1,5 @@
 """End-to-end tests for parse_dsl()."""
+
 from __future__ import annotations
 
 import pytest
