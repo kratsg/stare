@@ -9,14 +9,14 @@
 condition: field OP value              -> condition
 
 field: IDENT
-value: ESCAPED_STRING
+value: VALUE
 
 OP: "=" | "!=" | "contain"i | "not-contain"i
 AND: /[Aa][Nn][Dd]/
 OR:  /[Oo][Rr]/
 
 IDENT: /[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*/
-ESCAPED_STRING: /"([^"\\]|\\["\\])*"/
+VALUE: /[^\s()"]+/
 
 %import common.WS
 %ignore WS

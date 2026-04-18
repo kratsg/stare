@@ -14,8 +14,7 @@ class Condition(BaseModel):
     value: str
 
     def to_dsl(self) -> str:
-        escaped = self.value.replace("\\", "\\\\").replace('"', '\\"')
-        return f'{self.field} {self.operator} "{escaped}"'
+        return f"{self.field} {self.operator} {self.value}"
 
 
 class And(BaseModel):

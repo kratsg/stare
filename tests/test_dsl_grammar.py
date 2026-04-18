@@ -16,16 +16,17 @@ def parser() -> Lark:
 @pytest.mark.parametrize(
     "src",
     [
-        'referenceCode = "HION"',
-        'keywords contain "jets"',
-        'status != "ARCHIVED"',
-        'referenceCode contain "ANA" AND status = "ACTIVE"',
-        '(status = "ACTIVE" OR status = "PENDING") AND keywords contain "jets"',
-        'a.b.c = "x"',
-        'field not-contain "v"',
-        'f="x"',
-        'F = "x" and G = "y" or H = "z"',
-        r'shortTitle = "a \"quoted\" word"',
+        "referenceCode = HION",
+        "keywords contain jets",
+        "status != ARCHIVED",
+        "referenceCode contain ANA AND status = ACTIVE",
+        "(status = ACTIVE OR status = PENDING) AND keywords contain jets",
+        "a.b.c = x",
+        "field not-contain v",
+        "f=x",
+        "F = x and G = y or H = z",
+        "referenceCode = ANA-HION-2018-01",
+        "phase0.state = ACTIVE",
     ],
 )
 def test_parses_valid(parser: Lark, src: str) -> None:
@@ -37,13 +38,14 @@ def test_parses_valid(parser: Lark, src: str) -> None:
     [
         "",
         "referenceCode",
-        'referenceCode = HION',
         '= "x"',
-        'field === "x"',
-        'field = "x" AND',
-        '(field = "x"',
-        'field = "x" XOR field = "y"',
-        '"referenceCode" = "HION"',
+        "field === x",
+        "field = x AND",
+        "(field = x",
+        "field = x XOR field = y",
+        '"referenceCode" = HION',
+        'referenceCode = "HION"',
+        'shortTitle = "multiple words"',
     ],
 )
 def test_rejects_invalid(parser: Lark, src: str) -> None:

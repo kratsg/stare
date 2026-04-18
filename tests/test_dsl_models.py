@@ -8,17 +8,12 @@ from stare.dsl.models import And, Condition, Or
 
 def test_condition_to_dsl() -> None:
     c = Condition(field="referenceCode", operator="=", value="HION")
-    assert c.to_dsl() == 'referenceCode = "HION"'
+    assert c.to_dsl() == "referenceCode = HION"
 
 
-def test_condition_escapes_quotes() -> None:
-    c = Condition(field="shortTitle", operator="=", value='a "b"')
-    assert c.to_dsl() == r'shortTitle = "a \"b\""'
-
-
-def test_condition_escapes_backslash() -> None:
-    c = Condition(field="f", operator="=", value="a\\b")
-    assert c.to_dsl() == 'f = "a\\\\b"'
+def test_condition_hyphenated_value() -> None:
+    c = Condition(field="referenceCode", operator="=", value="ANA-HION-2018-01")
+    assert c.to_dsl() == "referenceCode = ANA-HION-2018-01"
 
 
 def test_and_two_clauses() -> None:
@@ -28,7 +23,7 @@ def test_and_two_clauses() -> None:
             Condition(field="b", operator="contain", value="y"),
         ]
     )
-    assert expr.to_dsl() == 'a = "x" and b contain "y"'
+    assert expr.to_dsl() == "a = x and b contain y"
 
 
 def test_or_two_clauses() -> None:
@@ -38,7 +33,7 @@ def test_or_two_clauses() -> None:
             Condition(field="status", operator="=", value="PENDING"),
         ]
     )
-    assert expr.to_dsl() == 'status = "ACTIVE" or status = "PENDING"'
+    assert expr.to_dsl() == "status = ACTIVE or status = PENDING"
 
 
 def test_or_parenthesized_inside_and() -> None:
@@ -55,12 +50,11 @@ def test_or_parenthesized_inside_and() -> None:
         ]
     )
     assert outer.to_dsl() == (
-        '(status = "ACTIVE" or status = "PENDING") and keywords contain "jets"'
+        "(status = ACTIVE or status = PENDING) and keywords contain jets"
     )
 
 
 def test_and_inside_or_not_parenthesized() -> None:
-    # And inside Or doesn't need extra parens — or is lower precedence
     inner = And(
         clauses=[
             Condition(field="a", operator="=", value="x"),
@@ -68,7 +62,7 @@ def test_and_inside_or_not_parenthesized() -> None:
         ]
     )
     outer = Or(clauses=[inner, Condition(field="c", operator="=", value="z")])
-    assert outer.to_dsl() == 'a = "x" and b = "y" or c = "z"'
+    assert outer.to_dsl() == "a = x and b = y or c = z"
 
 
 @pytest.mark.parametrize("op", ["=", "!=", "contain", "not-contain"])
