@@ -48,6 +48,7 @@ def configure_verbose_logging() -> None:
 
 
 def make_settings() -> StareSettings:
+    """Build a StareSettings instance, enabling verbose logging if requested."""
     settings = StareSettings()
     if settings.verbose:
         configure_verbose_logging()
@@ -55,10 +56,12 @@ def make_settings() -> StareSettings:
 
 
 def make_token_manager() -> TokenManager:
+    """Build a TokenManager from the current settings."""
     return TokenManager(make_settings())
 
 
 def make_glance(no_cache: bool = False) -> Glance:
+    """Build a Glance client, optionally bypassing the HTTP cache."""
     settings = make_settings()
     if no_cache:
         settings = settings.model_copy(update={"cache_enabled": False})
