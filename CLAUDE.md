@@ -100,12 +100,11 @@ pixi run build-check   # verify the built distributions with twine
 
 ## Development setup
 
-````bash
-pixi install           # install all dependencies
+```bash
+pixi install                 # install all dependencies
 pixi run pre-commit-install  # install git hooks
-pixi install           # install all dependencies
-pixi run pre-commit-install  # install git hooks
-stare auth login       # authenticate with CERN SSO
+pixi run stare auth login    # authenticate with CERN SSO
+```
 
 ## Model conventions
 
