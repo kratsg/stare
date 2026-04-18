@@ -1,0 +1,5 @@
+--ignore-directory=.pixi
+--ignore-directory=.mypy_cache
+--ignore-directory=dist
+--ignore-directory=site
+--ignore-directory=.cache
