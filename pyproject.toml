@@ -39,6 +39,7 @@ dependencies = [
   "typer[all]>=0.12",
   "rich>=13",
   "platformdirs>=4",
+  "lark>=1.2",
 ]
 
 [project.scripts]
