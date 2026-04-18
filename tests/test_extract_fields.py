@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from stare.dsl._extractor import extract_string_fields
+from stare.dsl._extractor import extract_string_fields, render_fields_table
 
 _MINI_SCHEMA: dict[str, Any] = {
     "type": "object",
@@ -109,3 +109,40 @@ def test_no_array_object_children() -> None:
 def test_output_is_sorted() -> None:
     fields = extract_string_fields(_MINI_SCHEMA)
     assert fields == sorted(fields)
+
+
+def test_render_fields_table_header() -> None:
+    table = render_fields_table(["referenceCode"])
+    lines = table.strip().split("\n")
+    assert lines[0] == "| Group | Fields |"
+    assert lines[1] == "| ----- | ------ |"
+
+
+def test_render_fields_table_top_level_only() -> None:
+    table = render_fields_table(["referenceCode", "status"])
+    assert "| Top-level |" in table
+    assert "`referenceCode`" in table
+    assert "`status`" in table
+
+
+def test_render_fields_table_grouped() -> None:
+    table = render_fields_table(["groups.leadingGroup", "groups.subgroups", "referenceCode"])
+    assert "| Top-level |" in table
+    assert "| `groups` |" in table
+    assert "`referenceCode`" in table
+    assert "`groups.leadingGroup`" in table
+
+
+def test_render_fields_table_groups_sorted() -> None:
+    table = render_fields_table(["z.field", "a.field", "top"])
+    lines = table.strip().split("\n")
+    assert "Top-level" in lines[2]
+    assert "`a`" in lines[3]
+    assert "`z`" in lines[4]
+
+
+def test_render_fields_table_no_top_level() -> None:
+    table = render_fields_table(["groups.leadingGroup", "phase0.state"])
+    assert "Top-level" not in table
+    assert "| `groups` |" in table
+    assert "| `phase0` |" in table

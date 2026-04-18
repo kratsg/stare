@@ -63,7 +63,9 @@ When the Glance/Fence API adds a new endpoint:
 7. Add a CLI command in `src/stare/cli.py`
 8. Write a failing test in `tests/test_cli.py`
 9. Make it pass
-10. Run `pixi run test` to confirm everything is green
+10. Add a live integration test in `tests/integration/test_live.py` (runs with `pixi run test-slow`)
+11. Add representative fixture JSON under `tests/fixtures/` and load it in the model tests
+12. Run `pixi run test` to confirm everything is green
 
 ## Model conventions
 

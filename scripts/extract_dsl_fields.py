@@ -14,7 +14,7 @@ from pathlib import Path
 import tomli_w
 import yaml  # type: ignore[import-untyped]
 
-from stare.dsl._extractor import extract_string_fields
+from stare.dsl._extractor import extract_string_fields, render_fields_table
 
 
 def _schema_for(spec: dict, schema_name: str) -> dict:
@@ -31,6 +31,9 @@ def main() -> None:
     out_dir = repo_root / "src" / "stare" / "dsl" / "data"
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    snippets_dir = repo_root / "snippets"
+    snippets_dir.mkdir(exist_ok=True)
+
     catalogue: dict[str, object] = {}
     for mode, schema_name in [
         ("analysis", "SearchAnalysisResponse"),
@@ -39,6 +42,10 @@ def main() -> None:
         fields = extract_string_fields(_schema_for(spec, schema_name))
         catalogue[mode] = {"fields": fields}
         print(f"{schema_name}: {len(fields)} fields")
+
+        snippet_path = snippets_dir / f"fields-{mode}.md"
+        snippet_path.write_text(render_fields_table(fields))
+        print(f"→ {snippet_path.relative_to(repo_root)}")
 
     out_path = out_dir / "fields.toml"
     out_path.write_bytes(tomli_w.dumps(catalogue).encode())

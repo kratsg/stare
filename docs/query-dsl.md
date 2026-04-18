@@ -42,10 +42,9 @@ stare analysis search -q 'reference_code = ANA-HION-2018-01'
 
 Nested fields use a dot separator: `metadata.keywords`, `phase0.state`.
 
-!!! note "Field catalogue mirrors `fields.toml`" The field tables below are
-extracted from the server's OpenAPI spec by `pixi run extract-fields`, which
-writes `src/stare/dsl/data/fields.toml`. Re-run after an API update and manually
-update the tables below to match.
+!!! note "Field catalogue is generated"
+    Run `pixi run extract-fields` after an API update to regenerate both
+    `src/stare/dsl/data/fields.toml` and the tables below.
 
 ## Values
 
@@ -97,25 +96,8 @@ stare analysis search -q 'someNewField = value' --no-validate
 
 ## Analysis fields
 
-| Group      | Fields                                                                                                                                                                                   |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Top-level  | `creationDate`, `publicShortTitle`, `referenceCode`, `shortTitle`, `status`                                                                                                              |
-| `groups`   | `groups.leadingGroup`, `groups.otherGroups`, `groups.subgroups`                                                                                                                          |
-| `metadata` | `metadata.keywords`, `metadata.mvaMlTools`, `metadata.triggers`                                                                                                                          |
-| `phase0`   | `phase0.datasetUsed`, `phase0.editorialBoardFormedOn`, `phase0.mainPhysicsAim`, `phase0.methods`, `phase0.modelTested`, `phase0.pgcOrSgcSignOffDate`, `phase0.startDate`, `phase0.state` |
+--8<-- "snippets/fields-analysis.md"
 
 ## Paper fields
 
-| Group             | Fields                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Top-level         | `fullTitle`, `publicShortTitle`, `referenceCode`, `rivetRoutinesUrl`, `shortTitle`, `status`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `groups`          | `groups.leadingGroup`, `groups.otherGroups`, `groups.subgroups`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `metadata`        | `metadata.keywords`, `metadata.mvaMlTools`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `phase1`          | `phase1.atlasMeetingDate`, `phase1.draftReleasedDate`, `phase1.editorialBoardDraftSignOffDate`, `phase1.editorialBoardFormedOn`, `phase1.languageEditorsSignOffDate`, `phase1.pgcApprovalDate`, `phase1.presentationDate`, `phase1.pubcommChairOrDeputyOrDelegated.cernCcid`, `phase1.pubcommChairOrDeputyOrDelegated.firstName`, `phase1.pubcommChairOrDeputyOrDelegated.lastName`, `phase1.pubcommSignOffDate`, `phase1.spokespersonOrDeputyOrDelegated.cernCcid`, `phase1.spokespersonOrDeputyOrDelegated.firstName`, `phase1.spokespersonOrDeputyOrDelegated.lastName`, `phase1.startDate`, `phase1.state` |
-| `phase2`          | `phase2.draft2CernSignOffDate`, `phase2.draft2ReleasedDate`, `phase2.draft2SentToCernDate`, `phase2.editorialBoardDraft2SignOffDate`, `phase2.editorialBoardRevisedSignOffDate`, `phase2.paperClosureDate`, `phase2.preliminaryPlotsAndResultsReleased`, `phase2.pubcommChairOrDeputyOrDelegated.cernCcid`, `phase2.pubcommChairOrDeputyOrDelegated.firstName`, `phase2.pubcommChairOrDeputyOrDelegated.lastName`, `phase2.pubcommChairOrDeputyOrDelegatedSignOffDate`, `phase2.spokespersonOrDeputyOrDelegatedSignOffDate`, `phase2.startDate`, `phase2.state`                                                |
-| `relatedAnalysis` | `relatedAnalysis.referenceCode`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `submission`      | `submission.arXivSubmissionDate`, `submission.dateOf1stProof`, `submission.dateOf1stRefereeReport`, `submission.finalSubmissionJournal`, `submission.finalTitleTex`, `submission.journalAcceptanceDate`, `submission.publishedOnlineOn`, `submission.startDate`, `submission.state`                                                                                                                                                                                                                                                                                                                            |
-
-!!! note "status field"
-
-    `status` is included in both catalogues. If the server rejects it as a filter field, re-generate without it or use `--no-validate` as a workaround.
+--8<-- "snippets/fields-paper.md"
