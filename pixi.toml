@@ -59,6 +59,12 @@ pytest = ">=9"
 pytest-cov = ">=3"
 respx = ">=0.21"
 
+[feature.test.activation.env]
+# Rich's Console checks FORCE_COLOR at construction time (module import), before
+# any test-level env patching can take effect. Clearing it here ensures pytest
+# runs with a non-TTY console so output contains no ANSI escape codes.
+FORCE_COLOR = ""
+
 [feature.test.tasks]
 test = { cmd = "pytest -m 'not slow'", description = "Run quick tests (skip slow)" }
 test-cov = { cmd = "pytest -m 'not slow' --cov=stare --cov-report=term --cov-report=html", description = "Run quick tests with coverage" }
