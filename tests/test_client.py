@@ -23,12 +23,12 @@ from stare.exceptions import (
 )
 from stare.models import (
     Analysis,
+    AnalysisSearchResult,
     ConfNote,
     Paper,
     PaperSearchResult,
     PublicationRef,
     PubNote,
-    SearchResult,
     Trigger,
 )
 from stare.models.common import _format_parse_error
@@ -63,7 +63,7 @@ SAMPLE_PAPER = {
 }
 
 SAMPLE_PAPER_SEARCH = {
-    "numberOfResults": "1",
+    "numberOfResults": 1,
     "results": [SAMPLE_PAPER],
 }
 
@@ -145,7 +145,7 @@ def test_analyses_search_returns_search_result(glance: Glance) -> None:
         )
         result = glance.analyses.search()
 
-    assert isinstance(result, SearchResult)
+    assert isinstance(result, AnalysisSearchResult)
     assert result.total_rows == 1
     assert len(result.results) == 1
     assert isinstance(result.results[0], Analysis)
@@ -257,7 +257,7 @@ def test_papers_search_returns_paper_search_result(glance: Glance) -> None:
         result = glance.papers.search()
 
     assert isinstance(result, PaperSearchResult)
-    assert result.number_of_results == "1"
+    assert result.total_rows == 1
     assert len(result.results) == 1
     assert isinstance(result.results[0], Paper)
     assert result.results[0].reference_code == "HDBS-2024-01"
@@ -267,7 +267,7 @@ def test_papers_search_passes_query_params(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
         rx.get("/searchPaper").mock(
             return_value=httpx.Response(
-                200, json={"numberOfResults": "0", "results": []}
+                200, json={"numberOfResults": 0, "results": []}
             )
         )
         glance.papers.search(query='"referenceCode" = "X"', limit=10, offset=5)
@@ -281,7 +281,7 @@ def test_papers_search_omits_none_params(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
         rx.get("/searchPaper").mock(
             return_value=httpx.Response(
-                200, json={"numberOfResults": "0", "results": []}
+                200, json={"numberOfResults": 0, "results": []}
             )
         )
         glance.papers.search()
@@ -436,7 +436,7 @@ def test_analyses_search_raises_response_parse_error(glance: Glance) -> None:
         with pytest.raises(ResponseParseError) as exc_info:
             glance.analyses.search()
     msg = str(exc_info.value)
-    assert "SearchResult" in msg
+    assert "AnalysisSearchResult" in msg
     assert "results" in msg
     assert "validation error" in msg.lower()
     # raw_data lets callers (e.g. CLI) display the offending JSON

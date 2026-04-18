@@ -14,15 +14,15 @@ from __future__ import annotations
 import pytest
 
 from stare import Glance
-from stare.models import Analysis, SearchResult
+from stare.models import Analysis, AnalysisSearchResult
 
 
 @pytest.mark.slow
 def test_search_analyses_returns_results() -> None:
-    """GET /searchAnalysis returns a non-empty SearchResult."""
+    """GET /searchAnalysis returns a non-empty AnalysisSearchResult."""
     with Glance() as g:
         result = g.analyses.search(limit=5)
-    assert isinstance(result, SearchResult)
+    assert isinstance(result, AnalysisSearchResult)
     assert result.total_rows is not None
     assert result.total_rows > 0
     assert len(result.results) > 0

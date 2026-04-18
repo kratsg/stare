@@ -12,12 +12,12 @@ from stare.cli import app
 from stare.exceptions import AuthenticationError, NotFoundError
 from stare.models import (
     Analysis,
+    AnalysisSearchResult,
     ConfNote,
     Paper,
     PaperSearchResult,
     PublicationRef,
     PubNote,
-    SearchResult,
     Trigger,
 )
 from stare.models.auth import JwtClaims, TokenInfo
@@ -60,7 +60,7 @@ SAMPLE_PUB_NOTE = PubNote.model_validate(
     }
 )
 
-SAMPLE_SEARCH = SearchResult.model_validate(
+SAMPLE_SEARCH = AnalysisSearchResult.model_validate(
     {
         "totalRows": 1,
         "results": [
@@ -75,7 +75,7 @@ SAMPLE_SEARCH = SearchResult.model_validate(
 
 SAMPLE_PAPER_SEARCH = PaperSearchResult.model_validate(
     {
-        "numberOfResults": "1",
+        "numberOfResults": 1,
         "results": [
             {
                 "referenceCode": "HDBS-2024-01",
@@ -362,7 +362,7 @@ def test_analysis_search_json_output() -> None:
         result = runner.invoke(app, ["analysis", "search", "--json"])
     assert result.exit_code == 0
     data = json.loads(result.output)
-    assert "totalRows" in data or "total_rows" in data
+    assert "numberOfResults" in data
 
 
 def test_analysis_search_with_limit_and_offset() -> None:
@@ -429,7 +429,7 @@ def test_paper_search_json_output() -> None:
         result = runner.invoke(app, ["paper", "search", "--json"])
     assert result.exit_code == 0
     data = json.loads(result.output)
-    assert "numberOfResults" in data or "number_of_results" in data
+    assert "numberOfResults" in data
 
 
 def test_paper_search_with_limit_and_offset() -> None:

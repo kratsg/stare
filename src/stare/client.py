@@ -12,12 +12,12 @@ from stare.auth import TokenManager
 from stare.exceptions import ApiError, ForbiddenError, NotFoundError, UnauthorizedError
 from stare.models import (
     Analysis,
+    AnalysisSearchResult,
     ConfNote,
     Paper,
     PaperSearchResult,
     PublicationRef,
     PubNote,
-    SearchResult,
     Trigger,
 )
 from stare.settings import StareSettings
@@ -85,7 +85,7 @@ class AnalysisResource:
         limit: int = 50,
         sort_by: str | None = None,
         sort_desc: bool = False,
-    ) -> SearchResult:
+    ) -> AnalysisSearchResult:
         """Search analyses via GET /searchAnalysis."""
         params: dict[str, Any] = {"offset": offset, "limit": limit}
         if query is not None:
@@ -95,7 +95,7 @@ class AnalysisResource:
             params["sortDesc"] = str(sort_desc).lower()
         response = self._client.get("/searchAnalysis", params=params)
         _raise_for_status(response)
-        return SearchResult.model_validate(response.json())
+        return AnalysisSearchResult.model_validate(response.json())
 
 
 class PaperResource:

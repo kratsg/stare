@@ -2,28 +2,40 @@
 
 from __future__ import annotations
 
-from pydantic import Field
+from typing import Generic, TypeVar
+
+from pydantic import AliasChoices, Field
 
 from stare.models.analysis import Analysis
 from stare.models.common import _Base
 from stare.models.paper import Paper
 
-
-class SearchResult(_Base):
-    """Top-level response from GET /searchAnalysis."""
-
-    total_rows: int | None = Field(default=None, alias="totalRows")
-    results: list[Analysis] = Field(default_factory=list, alias="results")
+T = TypeVar("T")
 
 
-class PaperSearchResult(_Base):
-    """Top-level response from GET /searchPaper.
+class _SearchResultsBase(_Base, Generic[T]):
+    """Generic search result container shared by all search endpoints.
 
-    Note: ``numberOfResults`` is returned as a string by the API, not an integer.
+    The two live endpoints return different JSON keys for the total count
+    (``totalRows`` from /searchAnalysis, ``numberOfResults`` from
+    /searchPaper).  Both are accepted and stored under the same Python
+    attribute ``total_rows``.
     """
 
-    number_of_results: str | None = Field(default=None, alias="numberOfResults")
-    results: list[Paper] = Field(default_factory=list, alias="results")
+    total_rows: int | None = Field(
+        default=None,
+        validation_alias=AliasChoices("totalRows", "numberOfResults"),
+        serialization_alias="numberOfResults",
+    )
+    results: list[T] = Field(default_factory=list)
+
+
+class AnalysisSearchResult(_SearchResultsBase[Analysis]):
+    """Top-level response from GET /searchAnalysis."""
+
+
+class PaperSearchResult(_SearchResultsBase[Paper]):
+    """Top-level response from GET /searchPaper."""
 
 
 class PublicationRef(_Base):

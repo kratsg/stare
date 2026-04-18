@@ -402,7 +402,7 @@ def paper_search(
         typer.echo(result.model_dump_json(by_alias=True))
         return
 
-    table = Table(title=f"Papers ({result.number_of_results} total)")
+    table = Table(title=f"Papers ({result.total_rows} total)")
     table.add_column("Reference Code", style="cyan")
     table.add_column("Status")
     table.add_column("Short Title")

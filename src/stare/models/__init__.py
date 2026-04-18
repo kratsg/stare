@@ -24,9 +24,9 @@ from stare.models.errors import ApiErrorResponse
 from stare.models.paper import Paper, PaperPhase1, PaperPhase2, SubmissionPhase
 from stare.models.pub_note import PubNote, PubNotePhase1, PubNoteReader
 from stare.models.search import (
+    AnalysisSearchResult,
     PaperSearchResult,
     PublicationRef,
-    SearchResult,
     Trigger,
     TriggerCategory,
 )
@@ -36,6 +36,7 @@ __all__ = [
     "Analysis",
     "AnalysisContact",
     "AnalysisPhase0",
+    "AnalysisSearchResult",
     "ApiErrorResponse",
     "Collision",
     "ConfNote",
@@ -58,7 +59,6 @@ __all__ = [
     "PublicationRef",
     "RelatedPublication",
     "Repository",
-    "SearchResult",
     "SubmissionPhase",
     "TeamMember",
     "TokenInfo",

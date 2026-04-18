@@ -17,7 +17,7 @@ from stare.models.common import (
     TeamMember,
 )
 from stare.models.errors import ApiErrorResponse
-from stare.models.search import PublicationRef, SearchResult, Trigger
+from stare.models.search import AnalysisSearchResult, PublicationRef, Trigger
 
 # ---------------------------------------------------------------------------
 # Common models
@@ -372,9 +372,9 @@ class TestAnalysis:
 # ---------------------------------------------------------------------------
 
 
-class TestSearchResult:
-    def test_parse(self) -> None:
-        r = SearchResult.model_validate(
+class TestAnalysisSearchResult:
+    def test_parse_totalrows_key(self) -> None:
+        r = AnalysisSearchResult.model_validate(
             {
                 "totalRows": 2,
                 "results": [
@@ -387,8 +387,14 @@ class TestSearchResult:
         assert len(r.results) == 2
         assert r.results[0].reference_code == "ANA-A"
 
+    def test_parse_numberofresults_key(self) -> None:
+        r = AnalysisSearchResult.model_validate(
+            {"numberOfResults": 5, "results": []}
+        )
+        assert r.total_rows == 5
+
     def test_empty_results(self) -> None:
-        r = SearchResult.model_validate({"totalRows": 0, "results": []})
+        r = AnalysisSearchResult.model_validate({"totalRows": 0, "results": []})
         assert r.total_rows == 0
         assert r.results == []
 
