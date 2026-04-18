@@ -42,7 +42,7 @@ class _DSLTransformer(Transformer[Any, Expression]):
         value: str = items[2]
 
         normalized = self._registry.normalize(raw_field)
-        self._registry.validate(raw_field)
+        self._registry.validate_normalized(normalized)
 
         return Condition(
             field=normalized,

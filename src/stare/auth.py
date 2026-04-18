@@ -217,19 +217,26 @@ class TokenManager:
             msg = "No authorization code received."
             raise AuthenticationError(msg)
 
-        with httpx.Client() as client:
-            response = client.post(
-                self._settings.token_url,
-                data={
-                    "grant_type": "authorization_code",
-                    "code": code,
-                    "redirect_uri": redirect_uri,
-                    "client_id": self._settings.client_id,
-                    "code_verifier": code_verifier,
-                },
-            )
-            response.raise_for_status()
-            oauth_resp = _OAuthTokenResponse.model_validate(response.json())
+        try:
+            with httpx.Client() as client:
+                response = client.post(
+                    self._settings.token_url,
+                    data={
+                        "grant_type": "authorization_code",
+                        "code": code,
+                        "redirect_uri": redirect_uri,
+                        "client_id": self._settings.client_id,
+                        "code_verifier": code_verifier,
+                    },
+                )
+                response.raise_for_status()
+                oauth_resp = _OAuthTokenResponse.model_validate(response.json())
+        except (httpx.RequestError, httpx.HTTPStatusError) as exc:
+            msg = f"Token request failed: {exc}"
+            raise AuthenticationError(msg) from exc
+        except ValidationError as exc:
+            msg = f"Unexpected token response format: {exc}"
+            raise AuthenticationError(msg) from exc
 
         if oauth_resp.id_token:
             self._validate_id_token(oauth_resp.id_token)

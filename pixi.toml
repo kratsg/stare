@@ -101,6 +101,7 @@ build-clean = { cmd = "rm -rf build dist", description = "Clean build artifacts"
 build = { cmd = "python -m build", depends-on = ["build-clean"], description = "Build SDist and wheel distributions", outputs = ["dist"] }
 build-check = { cmd = "twine check --strict ./dist/*", depends-on = ["build"], description = "Run twine to check" }
 extract-fields = { cmd = "python scripts/extract_dsl_fields.py", description = "Regenerate DSL field catalogues from api.yml" }
+
 [environments]
 docs = ["docs"]
 dev = ["dev"]

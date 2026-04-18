@@ -30,8 +30,8 @@ class FieldRegistry:
     @classmethod
     def for_mode(cls, mode: Mode) -> FieldRegistry:
         """Load the field catalogue for *mode* from the bundled TOML data file."""
-        data = files("stare.dsl.data").joinpath("fields.toml").read_bytes()
-        fields = tomllib.loads(data.decode())[mode]["fields"]
+        data = files("stare.dsl.data").joinpath("fields.toml").read_text()
+        fields = tomllib.loads(data)[mode]["fields"]
         return cls(frozenset(fields))
 
     def normalize(self, field: str) -> str:
@@ -41,9 +41,16 @@ class FieldRegistry:
             for segment in field.split(".")
         )
 
+    def fields(self) -> list[str]:
+        """Return sorted list of valid camelCase field names."""
+        return sorted(self._fields)
+
     def validate(self, field: str) -> None:
         """Raise DSLValidationError if the (normalized) field is not in the catalogue."""
-        normalized = self.normalize(field)
+        self.validate_normalized(self.normalize(field))
+
+    def validate_normalized(self, normalized: str) -> None:
+        """Raise DSLValidationError if an already-normalized field is not in the catalogue."""
         if normalized not in self._fields:
             suggestions = difflib.get_close_matches(normalized, self._fields, n=1)
             hint = f"; did you mean '{suggestions[0]}'?" if suggestions else ""

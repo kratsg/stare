@@ -119,10 +119,9 @@ class Analysis(_Base):
         if extra is not None and not isinstance(extra, dict):
             ref = data.get("referenceCode", "<unknown>")
             _logger.warning(
-                "extraMetadata for %r is not a dict (got %s %r) — coercing to {}",
+                "extraMetadata for %r is not a dict (got %s) — coercing to {}",
                 ref,
                 type(extra).__name__,
-                extra,
             )
             data["extraMetadata"] = {}
         return data

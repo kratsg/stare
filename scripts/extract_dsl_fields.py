@@ -9,6 +9,7 @@ Searchable fields are:
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import tomli_w
@@ -19,12 +20,30 @@ from stare.dsl._extractor import extract_string_fields, render_fields_table
 
 def _schema_for(spec: dict, schema_name: str) -> dict:
     """Return the items schema for results[] of a named search-response schema."""
-    return spec["components"]["schemas"][schema_name]["properties"]["results"]["items"]
+    try:
+        components = spec["components"]
+        schemas = components["schemas"]
+        schema = schemas[schema_name]
+        results = schema["properties"]["results"]
+        return results["items"]
+    except KeyError as exc:
+        msg = (
+            f"OpenAPI spec missing expected key {exc} while looking up schema "
+            f"'{schema_name}' → components.schemas.{schema_name}.properties.results.items"
+        )
+        raise ValueError(msg) from exc
+    except TypeError as exc:
+        msg = f"Unexpected structure in spec for schema '{schema_name}': {exc}"
+        raise ValueError(msg) from exc
 
 
 def main() -> None:
     repo_root = Path(__file__).parent.parent
     api_yml = repo_root / "api.yml"
+
+    if not api_yml.exists() or not api_yml.is_file():
+        print(f"Error: API spec not found at {api_yml}", file=sys.stderr)
+        sys.exit(1)
 
     spec: dict = yaml.safe_load(api_yml.read_text())
 

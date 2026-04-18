@@ -17,6 +17,7 @@ import pytest
 
 from stare import Glance
 from stare.dsl.registry import FieldRegistry
+from stare.exceptions import StareError
 from stare.models import Analysis, AnalysisSearchResult
 from stare.settings import StareSettings
 
@@ -25,8 +26,8 @@ from stare.settings import StareSettings
 _LIVE_SETTINGS = StareSettings(cache_enabled=False)
 
 # Load field catalogues at collection time (no network needed).
-_ANALYSIS_FIELDS = sorted(FieldRegistry.for_mode("analysis")._fields)
-_PAPER_FIELDS = sorted(FieldRegistry.for_mode("paper")._fields)
+_ANALYSIS_FIELDS = FieldRegistry.for_mode("analysis").fields()
+_PAPER_FIELDS = FieldRegistry.for_mode("paper").fields()
 
 _REFERENCE_ANALYSIS_CODE = "ANA-HION-2018-01"
 
@@ -49,10 +50,13 @@ def _get_nested_value(obj: dict[str, Any], path: str) -> str | None:
 
 @pytest.fixture(scope="session")
 def reference_analysis() -> Analysis:
-    with Glance(settings=_LIVE_SETTINGS) as g:
-        result = g.analyses.search(
-            query=f"referenceCode = {_REFERENCE_ANALYSIS_CODE}", limit=1
-        )
+    try:
+        with Glance(settings=_LIVE_SETTINGS) as g:
+            result = g.analyses.search(
+                query=f"referenceCode = {_REFERENCE_ANALYSIS_CODE}", limit=1
+            )
+    except StareError as exc:
+        pytest.skip(f"Live API unavailable: {exc}")
     assert result.total_rows is not None
     assert result.total_rows >= 1
     match = next(

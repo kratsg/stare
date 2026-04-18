@@ -130,6 +130,6 @@ git clone https://github.com/kratsg/stare
 cd stare
 pixi install
 pixi run pre-commit-install
-stare auth login
+pixi run stare auth login
 pixi run test
 ```

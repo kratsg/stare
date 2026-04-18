@@ -14,7 +14,7 @@ SQLite in a platform-appropriate user cache directory.
 | Setting   | Default                                |
 | --------- | -------------------------------------- |
 | Enabled   | `true`                                 |
-| TTL       | 8 hours (28 800 seconds)               |
+| TTL       | 8 hours (28,800 seconds)               |
 | Backend   | SQLite                                 |
 | Directory | `platformdirs.user_cache_dir("stare")` |
 
