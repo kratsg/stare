@@ -13,8 +13,8 @@ graph LR
     S -->|browser + local server| K[CERN Keycloak PKCE]
 ```
 
-The library uses **httpx** for HTTP, **authlib** for OAuth2 PKCE, **pydantic**
-for all data models, and **typer + rich** for the CLI.
+The library uses **httpx** for HTTP, **pydantic** for all data models, implements
+OAuth2 PKCE natively, and **typer + rich** for the CLI.
 
 ## Development setup
 

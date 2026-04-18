@@ -10,8 +10,8 @@ User <--typer/CLI--> stare <--HTTPS (httpx)--> ATLAS Glance API
                        +--browser + local server--> CERN Keycloak (PKCE)
 ```
 
-The library uses **httpx** for HTTP, **authlib** for OAuth2 PKCE, and
-**pydantic** for all data models. The CLI is built with **typer** and **rich**.
+The library uses **httpx** for HTTP, **pydantic** for all data models, and
+implements OAuth2 PKCE natively. The CLI is built with **typer** and **rich**.
 
 ## Project layout
 
