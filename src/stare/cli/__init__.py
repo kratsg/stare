@@ -32,6 +32,10 @@ app = typer.Typer(
         "[bold]Pipe to jq for field selection:[/bold]\n"
         "  [green]stare analysis search | jq '.results[].referenceCode'[/green]"
     ),
+    epilog=(
+        "[link=https://stare-atlas.readthedocs.io/en/latest/]:blue_book: stare-atlas.rtd.io[/link]\n\n\n\n"
+        "[deep_sky_blue1]:copyright: 2019 [link=https://giordonstark.com/]Giordon Stark[/link][/]"
+    ),
     no_args_is_help=True,
     rich_markup_mode="rich",
 )
