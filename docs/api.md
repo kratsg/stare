@@ -52,15 +52,23 @@ icon: lucide/code-2
 
 ## Models
 
+### Shared
+
+::: stare.models.Link
+
+::: stare.models.Meeting
+
 ### Analysis
 
 ::: stare.models.Analysis
 
-::: stare.models.SearchResult
+::: stare.models.AnalysisSearchResult
 
 ### Papers and notes
 
 ::: stare.models.Paper
+
+::: stare.models.PaperSearchResult
 
 ::: stare.models.ConfNote
 
