@@ -34,7 +34,7 @@ app = typer.Typer(
     ),
     epilog=(
         "[link=https://stare-atlas.readthedocs.io/en/latest/]:blue_book: stare-atlas.rtd.io[/link]\n\n\n\n"
-        "[deep_sky_blue1]:copyright: 2026 [link=https://giordonstark.com/]Giordon Stark[/link][/]"
+        "[deep_sky_blue1]:copyright: 2019 [link=https://giordonstark.com/]Giordon Stark[/link][/]"
     ),
     no_args_is_help=True,
     rich_markup_mode="rich",
