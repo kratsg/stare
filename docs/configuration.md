@@ -6,7 +6,7 @@ icon: lucide/settings
 
 ## Environment variables
 
-All settings come from `StareSettings`, which reads environment variables with
+All settings come from [StareSettings][stare.settings.StareSettings], which reads environment variables with
 the `STARE_` prefix. Override any default by setting the corresponding variable
 before running `stare` or importing the library.
 
