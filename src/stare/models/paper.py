@@ -15,6 +15,7 @@ from stare.models.common import (
     TeamMember,
     _Base,
 )
+from stare.models.enums import LenientPaperStatus, LenientPhaseState
 
 
 class _ArxivSubmissionDate(_Base):
@@ -25,7 +26,7 @@ class _ArxivSubmissionDate(_Base):
 class PaperPhase1(_Base):
     """Phase 1 of the paper lifecycle (review and approval)."""
 
-    state: str | None = None
+    state: LenientPhaseState | None = None
     start_date: str | None = None
     editorial_board: list[EditorialBoardMember] = Field(default_factory=list)
     editorial_board_formed_on: str | None = None
@@ -53,7 +54,7 @@ class PaperPhase1(_Base):
 class PaperPhase2(_Base):
     """Phase 2 of the paper lifecycle (CERN review, revision, closure)."""
 
-    state: str | None = None
+    state: LenientPhaseState | None = None
     start_date: str | None = None
     eb_draft2_sign_off_on: str | None = Field(
         default=None, alias="editorialBoardDraft2SignOffOn"
@@ -82,7 +83,7 @@ class PaperPhase2(_Base):
 class SubmissionPhase(_Base):
     """Submission phase: arXiv, journal, final publication."""
 
-    state: str | None = None
+    state: LenientPhaseState | None = None
     start_date: str | None = None
     arxiv_url: Link | None = Field(default=None, alias="arXivUrl")
     final_title: str | None = Field(default=None, alias="finalTitleTex")
@@ -102,7 +103,7 @@ class Paper(_Base):
     """A published ATLAS paper."""
 
     reference_code: str | None = None
-    status: str | None = None
+    status: LenientPaperStatus | None = None
     short_title: str | None = None
     public_short_title: str | None = None
     full_title: str | None = None

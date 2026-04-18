@@ -9,6 +9,11 @@ from pydantic.alias_generators import to_camel
 from rich.text import Text
 
 from stare.exceptions import ResponseParseError
+from stare.models.enums import (
+    LenientCollisionType,
+    LenientPublicationType,
+    LenientRepositoryType,
+)
 
 if TYPE_CHECKING:
     from typing import Any
@@ -120,7 +125,7 @@ class Groups(_Base):
 class Collision(_Base):
     """A collision dataset descriptor (centre-of-mass energy, luminosity, etc.)."""
 
-    type: str | None = None
+    type: LenientCollisionType | None = None
     year: str | None = None
     run: str | None = None
     ecm_value: str | None = None
@@ -150,7 +155,7 @@ class Repository(Link):
     """A code or documentation repository."""
 
     gitlab_id: str | None = None
-    type: str | None = None
+    type: LenientRepositoryType | None = None
 
 
 class Documentation(_Base):
@@ -187,4 +192,4 @@ class RelatedPublication(_Base):
     """A reference to a related publication (analysis, paper, CONF/PUB note)."""
 
     reference_code: str | None = None
-    type: str | None = None
+    type: LenientPublicationType | None = None

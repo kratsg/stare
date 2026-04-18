@@ -8,6 +8,7 @@ from pydantic import AliasChoices, Field
 
 from stare.models.analysis import Analysis
 from stare.models.common import _Base
+from stare.models.enums import LenientPublicationType
 from stare.models.paper import Paper
 
 T = TypeVar("T")
@@ -42,7 +43,7 @@ class PublicationRef(_Base):
     """A minimal publication reference returned by /publications/search."""
 
     reference_code: str | None = None
-    type: str | None = None
+    type: LenientPublicationType | None = None
 
 
 class TriggerCategory(_Base):

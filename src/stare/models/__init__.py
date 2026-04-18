@@ -21,6 +21,14 @@ from stare.models.common import (
     TeamMember,
 )
 from stare.models.conf_note import ConfNote, ConfNotePhase1
+from stare.models.enums import (
+    AnalysisStatus,
+    CollisionType,
+    PaperStatus,
+    PhaseState,
+    PublicationType,
+    RepositoryType,
+)
 from stare.models.errors import ApiErrorResponse
 from stare.models.paper import Paper, PaperPhase1, PaperPhase2, SubmissionPhase
 from stare.models.pub_note import PubNote, PubNotePhase1, PubNoteReader
@@ -35,11 +43,13 @@ from stare.models.search import (
 __all__ = [
     "AmiGlanceLink",
     "Analysis",
+    "AnalysisStatus",
     "AnalysisContact",
     "AnalysisPhase0",
     "AnalysisSearchResult",
     "ApiErrorResponse",
     "Collision",
+    "CollisionType",
     "ConfNote",
     "ConfNotePhase1",
     "Documentation",
@@ -52,6 +62,8 @@ __all__ = [
     "Metadata",
     "Paper",
     "PaperPhase1",
+    "PaperStatus",
+    "PhaseState",
     "PaperPhase2",
     "PaperSearchResult",
     "Person",
@@ -59,7 +71,9 @@ __all__ = [
     "PubNotePhase1",
     "PubNoteReader",
     "PublicationRef",
+    "PublicationType",
     "RelatedPublication",
+    "RepositoryType",
     "Repository",
     "SubmissionPhase",
     "TeamMember",

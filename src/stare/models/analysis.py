@@ -18,12 +18,13 @@ from stare.models.common import (
     TeamMember,
     _Base,
 )
+from stare.models.enums import LenientAnalysisStatus, LenientPhaseState
 
 
 class AnalysisPhase0(_Base):
     """Phase 0 lifecycle metadata for an analysis."""
 
-    state: str | None = None
+    state: LenientPhaseState | None = None
     start_date: str | None = None
     main_physics_aim: str | None = None
     dataset_used: str | None = None
@@ -44,7 +45,7 @@ class Analysis(_Base):
 
     reference_code: str | None = None
     creation_date: str | None = None
-    status: str | None = None
+    status: LenientAnalysisStatus | None = None
     short_title: str | None = None
     public_short_title: str | None = None
     groups: Groups | None = None
