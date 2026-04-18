@@ -94,8 +94,11 @@ when adding or renaming fields in `src/stare/settings.py`).
    with CERN Keycloak), opens the browser
 2. User authenticates with CERN SSO
 3. Keycloak redirects to `http://localhost:8182/callback`
-4. Tokens are stored as JSON in
-   `platformdirs.user_data_dir("stare")/tokens.json`
+4. Tokens are persisted by `TokenManager`, which uses the OS keyring (macOS
+   Keychain, Linux Secret Service, Windows Credential Locker) when available and
+   falls back to a JSON file at
+   `platformdirs.user_data_dir("stare")/tokens.json` when no functional keyring
+   is present (e.g. headless servers, CI)
 5. Subsequent requests auto-refresh the access token using the refresh token
 
 ## Build and test commands
@@ -203,31 +206,33 @@ endpoints remain planned. When an endpoint goes live, add representative
 response JSON as fixtures under `tests/fixtures/` and update the tests to load
 from those files.
 
-## SSL certificate bundle (`src/stare/data/CERN_chain.pem`)
+## SSL certificate bundles (`src/stare/data/`)
 
-The bundled `CERN_chain.pem` is passed as `verify=` to every `httpx.Client` that
-talks to `atlas-glance.cern.ch`. It is needed because the server does not
-include its intermediate CA in the TLS handshake (a server-side misconfiguration
-that Python's SSL layer cannot work around on its own).
+There are two bundles under `src/stare/data/`, one per endpoint:
 
-**Current bundle contents (as of 2026-04):**
+| File                | Used by (`STARE_CA_BUNDLE=`) | Endpoint                             |
+| ------------------- | ---------------------------- | ------------------------------------ |
+| `Sectigo_chain.pem` | `Sectigo` (default)          | `atlas-glance.cern.ch` (production)  |
+| `CERN_chain.pem`    | `CERN`                       | `glance-staging01.cern.ch` (staging) |
 
-- **Sectigo Public Server Authentication CA OV R36** (intermediate, ~2036
-  expiry)
-- **Sectigo Public Server Authentication Root R46** (root, ~2046 expiry)
+`StareSettings.ca_bundle` selects the active bundle; `_load_ssl_context()` in
+`client.py` maps the name to the file. Neither endpoint sends the full
+intermediate CA chain in the TLS handshake, so we bundle the missing CA(s).
 
-`atlas-glance.cern.ch` switched from CERN Grid CA certificates to Sectigo
-commercial certificates in early 2025. The Sectigo root is in standard OS trust
-stores but the intermediate is not sent by the server, so we bundle it.
+### Regenerating a bundle (maintainer task)
 
-### Regenerating the bundle (maintainer task)
+Run this when the certificate chain for a particular endpoint changes. **Do not
+overwrite the other bundle.**
 
-Run this when the server's certificate chain changes (check with
-`openssl s_client -connect atlas-glance.cern.ch:443 -showcerts`).
+Replace `<HOST>` with the relevant hostname and `<NAME>` with `Sectigo` or
+`CERN` to match the bundle you are regenerating.
 
 ```bash
+HOST=atlas-glance.cern.ch   # or glance-staging01.cern.ch
+NAME=Sectigo                 # or CERN
+
 # 1. Get the leaf cert AIA URL for the intermediate
-echo | openssl s_client -connect atlas-glance.cern.ch:443 2>/dev/null \
+echo | openssl s_client -connect $HOST:443 2>/dev/null \
   | openssl x509 -noout -text | grep "CA Issuers"
 
 # 2. Download intermediate (DER) and convert to PEM
@@ -241,17 +246,16 @@ openssl pkcs7 -in root.p7c -inform der -print_certs \
   | awk '/BEGIN CERT/{f=1;c++} f&&c==1{print} /END CERT/&&c==1{f=0}' > root.pem
 
 # 4. Build bundle (intermediate first, root second)
-cat intermediate.pem root.pem > src/stare/data/CERN_chain.pem
+cat intermediate.pem root.pem > src/stare/data/${NAME}_chain.pem
 
 # 5. Verify — should print "OK"
-echo | openssl s_client -connect atlas-glance.cern.ch:443 2>/dev/null \
+echo | openssl s_client -connect $HOST:443 2>/dev/null \
   | openssl x509 > /tmp/leaf.pem
-openssl verify -CAfile src/stare/data/CERN_chain.pem /tmp/leaf.pem
+openssl verify -CAfile src/stare/data/${NAME}_chain.pem /tmp/leaf.pem
 ```
 
-Commit `src/stare/data/CERN_chain.pem` — it is tracked in git because it is
-bundled with the wheel and loaded at runtime via
-`importlib.resources.as_file()`.
+Ensure `StareSettings.ca_bundle` (or `STARE_CA_BUNDLE`) is set to `$NAME` for
+the endpoint you regenerated. Commit only the bundle file you changed.
 
 ## API endpoints
 

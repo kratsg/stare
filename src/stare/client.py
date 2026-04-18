@@ -53,8 +53,10 @@ def _raise_for_status(response: httpx.Response) -> None:
     if response.is_success:
         return
     try:
-        body: dict[str, Any] = response.json()
+        body = response.json()
     except ValueError:
+        body = {}
+    if not isinstance(body, dict):
         body = {}
     status_code = response.status_code
     title = str(body.get("title", response.reason_phrase or "Error"))
@@ -270,8 +272,11 @@ class Glance:
     ) -> None:
         """Build the httpx client, attach the cache transport, and wire up resource accessors."""
         self._settings = settings or StareSettings()
-        self._token_manager = token_manager or TokenManager(self._settings)
         self._token = token
+        if token_manager is None and token is None:
+            self._token_manager: TokenManager | None = TokenManager(self._settings)
+        else:
+            self._token_manager = token_manager
         ssl_ctx = _load_ssl_context(self._settings.ca_bundle)
         base_transport = httpx.HTTPTransport(verify=ssl_ctx)
         if self._settings.cache_enabled:
@@ -308,7 +313,9 @@ class Glance:
         self.triggers = TriggerResource(self._http)
 
     def _inject_auth(self, request: httpx.Request) -> None:
-        token = self._token or self._token_manager.get_token()
+        token = self._token or (
+            self._token_manager.get_token() if self._token_manager else None
+        )
         request.headers["Authorization"] = f"Bearer {token}"
 
     def __enter__(self) -> Glance:
