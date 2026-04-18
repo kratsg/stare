@@ -5,7 +5,7 @@ site_name = "stare"
 site_description = "Python library and CLI for the CERN ATLAS Glance/Fence API"
 site_author = "Giordon Stark"
 copyright = """
-Copyright &copy; 2026 Giordon Stark
+Copyright &copy; 2019 Giordon Stark
 """
 
 nav = [
