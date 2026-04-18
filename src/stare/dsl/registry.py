@@ -1,4 +1,5 @@
 """Field registry for semantic validation of DSL queries."""
+
 from __future__ import annotations
 
 import difflib
@@ -8,7 +9,7 @@ from typing import Literal
 if sys.version_info >= (3, 11):
     import tomllib
 else:
-    import tomli as tomllib  # type: ignore[no-redefine]
+    import tomli as tomllib
 
 from importlib.resources import files
 

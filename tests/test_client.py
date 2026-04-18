@@ -13,6 +13,8 @@ from pydantic import BaseModel as PydanticBase
 from pydantic import ValidationError
 
 from stare.client import Glance
+from stare.dsl import DSLValidationError
+from stare.dsl.models import Condition
 from stare.exceptions import (
     ApiError,
     ForbiddenError,
@@ -188,8 +190,6 @@ def test_analyses_search_omits_none_params(glance: Glance) -> None:
 
 
 def test_analyses_search_accepts_expression(glance: Glance) -> None:
-    from stare.dsl.models import Condition
-
     with respx.mock(base_url=_BASE) as rx:
         rx.get("/searchAnalysis").mock(
             return_value=httpx.Response(200, json={"totalRows": 0, "results": []})
@@ -212,8 +212,6 @@ def test_analyses_search_normalizes_snake_case_query(glance: Glance) -> None:
 
 
 def test_analyses_search_rejects_unknown_field(glance: Glance) -> None:
-    from stare.dsl import DSLValidationError
-
     with pytest.raises(DSLValidationError, match="unknown field"):
         glance.analyses.search(query="foo = bar")
 
@@ -229,8 +227,6 @@ def test_analyses_search_validate_false_passes_raw(glance: Glance) -> None:
 
 
 def test_papers_search_rejects_analysis_field(glance: Glance) -> None:
-    from stare.dsl import DSLValidationError
-
     with pytest.raises(DSLValidationError):
         glance.papers.search(query="phase0.state = ACTIVE")
 

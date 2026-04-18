@@ -184,6 +184,7 @@ runtime-evaluated-base-classes = ["pydantic.BaseModel", "stare.models.common._Ba
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["T20"]
+"scripts/**" = ["T20"]
 
 
 [tool.codespell]

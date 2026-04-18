@@ -1,15 +1,16 @@
 """Lark → pydantic AST transformer and public parse_dsl() entry point."""
+
 from __future__ import annotations
 
 from importlib.resources import files
-from typing import Literal
+from typing import Any, Literal, cast
 
 from lark import Lark, Token, Transformer, UnexpectedInput
 from lark.exceptions import VisitError
 
 from stare.dsl.errors import DSLSyntaxError, DSLValidationError
-from stare.dsl.models import And, Condition, Expression, Or
-from stare.dsl.registry import FieldRegistry, Mode
+from stare.dsl.models import And, Condition, Expression, Operator, Or
+from stare.dsl.registry import FieldRegistry
 
 _GRAMMAR = files("stare.dsl").joinpath("grammar.lark").read_text()
 _LARK = Lark(_GRAMMAR, start="expression", parser="lalr")
@@ -20,7 +21,7 @@ class _DSLTransformer(Transformer):  # type: ignore[type-arg]
         super().__init__()
         self._registry = registry
 
-    def condition(self, items: list) -> Condition:
+    def condition(self, items: list[Any]) -> Condition:
         field_token: Token = items[0].children[0]
         op_token: Token = items[1]
         value_token: Token = items[2].children[0]
@@ -31,15 +32,15 @@ class _DSLTransformer(Transformer):  # type: ignore[type-arg]
 
         return Condition(
             field=normalized,
-            operator=str(op_token).lower(),
+            operator=cast("Operator", str(op_token).lower()),
             value=str(value_token),
         )
 
-    def or_expr(self, items: list) -> Or | Expression:
+    def or_expr(self, items: list[Any]) -> Or | Expression:
         clauses = [item for item in items if not isinstance(item, Token)]
         return clauses[0] if len(clauses) == 1 else Or(clauses=clauses)
 
-    def and_expr(self, items: list) -> And | Expression:
+    def and_expr(self, items: list[Any]) -> And | Expression:
         clauses = [item for item in items if not isinstance(item, Token)]
         return clauses[0] if len(clauses) == 1 else And(clauses=clauses)
 
@@ -59,7 +60,7 @@ def parse_dsl(source: str, *, mode: Literal["analysis", "paper"]) -> Expression:
 
     registry = FieldRegistry.for_mode(mode)
     try:
-        return _DSLTransformer(registry).transform(tree)
+        return cast("Expression", _DSLTransformer(registry).transform(tree))
     except VisitError as exc:
         if isinstance(exc.__context__, DSLValidationError):
             raise exc.__context__ from exc

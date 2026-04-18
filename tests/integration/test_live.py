@@ -11,7 +11,6 @@ or pass ``--runslow`` directly to pytest.
 
 from __future__ import annotations
 
-import sys
 from typing import Any
 
 import pytest
@@ -20,11 +19,6 @@ from stare import Glance
 from stare.dsl.registry import FieldRegistry
 from stare.models import Analysis, AnalysisSearchResult
 from stare.settings import StareSettings
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib  # type: ignore[no-redefine]
 
 # Disable the on-disk HTTP cache for all live tests so results are always
 # fetched fresh from the API rather than replayed from a stale SQLite entry.
@@ -59,7 +53,8 @@ def reference_analysis() -> Analysis:
         result = g.analyses.search(
             query=f"referenceCode = {_REFERENCE_ANALYSIS_CODE}", limit=1
         )
-    assert result.total_rows is not None and result.total_rows >= 1
+    assert result.total_rows is not None
+    assert result.total_rows >= 1
     match = next(
         (a for a in result.results if a.reference_code == _REFERENCE_ANALYSIS_CODE),
         None,
@@ -103,16 +98,16 @@ def test_search_result_items_are_analysis_models() -> None:
 
 @pytest.mark.slow
 @pytest.mark.parametrize("field", _ANALYSIS_FIELDS)
-def test_analysis_field_is_searchable(
-    field: str, reference_analysis: Analysis
-) -> None:
+def test_analysis_field_is_searchable(field: str, reference_analysis: Analysis) -> None:
     """Each catalogue field can be used in a live query without a server error."""
     record = reference_analysis.model_dump(by_alias=True)
     value = _get_nested_value(record, field)
     if value is None:
         pytest.skip(f"field '{field}' has no value in reference record")
     if " " in value:
-        pytest.skip(f"field '{field}' value contains spaces — not expressible in bare-value DSL")
+        pytest.skip(
+            f"field '{field}' value contains spaces — not expressible in bare-value DSL"
+        )
 
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.analyses.search(

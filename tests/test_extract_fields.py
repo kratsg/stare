@@ -1,16 +1,12 @@
 """Tests for the OpenAPI field extractor."""
+
 from __future__ import annotations
 
-import sys
-from pathlib import Path
+from typing import Any
 
-import pytest
+from stare.dsl._extractor import extract_string_fields
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
-from extract_dsl_fields import extract_string_fields  # noqa: E402
-
-
-_MINI_SCHEMA: dict = {
+_MINI_SCHEMA: dict[str, Any] = {
     "type": "object",
     "properties": {
         "referenceCode": {"type": "string"},

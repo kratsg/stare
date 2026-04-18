@@ -6,57 +6,25 @@ Searchable fields are:
 - type: string leaves that are NOT inside an array-of-objects path
 - type: array with items.type: string (arrays of primitive strings)
 """
+
 from __future__ import annotations
 
 from pathlib import Path
 
+import tomli_w
+import yaml  # type: ignore[import-untyped]
 
-def extract_string_fields(schema: dict, _prefix: str = "") -> list[str]:
-    """Recursively collect searchable field paths from an OpenAPI object schema.
-
-    Returns a sorted list of dot-separated paths.
-    """
-    results: list[str] = []
-    properties: dict = schema.get("properties") or {}
-
-    for name, prop in properties.items():
-        path = f"{_prefix}.{name}" if _prefix else name
-        kind = prop.get("type")
-
-        if kind == "string":
-            results.append(path)
-        elif kind == "array":
-            items = prop.get("items", {})
-            if items.get("type") == "string":
-                # Array of primitive strings — searchable
-                results.append(path)
-            # Array of objects — skip (not searchable at sub-field level)
-        elif kind == "object":
-            if "properties" in prop:
-                results.extend(extract_string_fields(prop, path))
-            # Object without properties (e.g. extraMetadata) — skip
-
-    return sorted(results)
+from stare.dsl._extractor import extract_string_fields
 
 
 def _schema_for(spec: dict, schema_name: str) -> dict:
     """Return the items schema for results[] of a named search-response schema."""
-    return (
-        spec["components"]["schemas"][schema_name]["properties"]["results"]["items"]
-    )
+    return spec["components"]["schemas"][schema_name]["properties"]["results"]["items"]
 
 
 def main() -> None:
     repo_root = Path(__file__).parent.parent
     api_yml = repo_root / "api.yml"
-
-    try:
-        import yaml  # type: ignore[import-untyped]
-    except ImportError as e:
-        msg = "PyYAML is required to run this script: pip install PyYAML"
-        raise SystemExit(msg) from e
-
-    import tomli_w
 
     spec: dict = yaml.safe_load(api_yml.read_text())
 

@@ -1,7 +1,8 @@
 """Pydantic AST nodes for the stare query DSL."""
+
 from __future__ import annotations
 
-from typing import Annotated, Literal, Union
+from typing import Annotated, Literal
 
 from pydantic import BaseModel
 
@@ -31,7 +32,7 @@ class Or(BaseModel):
         return " or ".join(c.to_dsl() for c in self.clauses)
 
 
-Expression = Union[Condition, And, Or]
+Expression = Condition | And | Or
 
 And.model_rebuild()
 Or.model_rebuild()

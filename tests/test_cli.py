@@ -9,6 +9,7 @@ from typer.testing import CliRunner
 
 from stare import __version__
 from stare.cli import app
+from stare.dsl.errors import DSLValidationError
 from stare.exceptions import AuthenticationError, NotFoundError
 from stare.models import (
     Analysis,
@@ -369,8 +370,6 @@ def test_analysis_search_no_validate_flag() -> None:
 
 
 def test_analysis_search_dsl_error_shown_as_bad_parameter() -> None:
-    from stare.dsl.errors import DSLValidationError
-
     g = _mock_glance()
     g.analyses.search.side_effect = DSLValidationError("unknown field 'foo'")
     with patch("stare.cli._make_glance", return_value=g):
@@ -458,8 +457,6 @@ def test_paper_search_no_validate_flag() -> None:
 
 
 def test_paper_search_dsl_error_shown_as_bad_parameter() -> None:
-    from stare.dsl.errors import DSLValidationError
-
     g = _mock_glance()
     g.papers.search.side_effect = DSLValidationError("unknown field 'bar'")
     with patch("stare.cli._make_glance", return_value=g):
