@@ -441,28 +441,6 @@ def test_paper_search_with_limit_and_offset() -> None:
     assert call_kwargs["offset"] == 5
 
 
-def test_analysis_search_projection() -> None:
-    g = _mock_glance()
-    with patch("stare.cli._make_glance", return_value=g):
-        result = runner.invoke(
-            app, ["analysis", "search", "--projection", "reference_code,status"]
-        )
-    assert result.exit_code == 0
-    assert "reference_code" in result.output
-    assert "ANA-TEST-2024-01" in result.output
-
-
-def test_paper_search_projection() -> None:
-    g = _mock_glance()
-    with patch("stare.cli._make_glance", return_value=g):
-        result = runner.invoke(
-            app, ["paper", "search", "--projection", "reference_code,status:st"]
-        )
-    assert result.exit_code == 0
-    assert "HDBS-2024-01" in result.output
-    assert "st" in result.output  # aliased column header
-
-
 # ---------------------------------------------------------------------------
 # paper get
 # ---------------------------------------------------------------------------

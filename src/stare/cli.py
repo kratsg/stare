@@ -6,7 +6,7 @@ import json
 import logging
 import time
 from datetime import datetime, timezone
-from typing import Annotated, Any
+from typing import Annotated
 
 import typer
 from rich.console import Console
@@ -18,21 +18,11 @@ from stare import __version__
 from stare.auth import TokenManager
 from stare.client import Glance
 from stare.exceptions import ResponseParseError, StareError
-from stare.projection import parse_specs, resolve
 from stare.settings import StareSettings
 from stare.urls import analysis_url, conf_note_url, paper_url, pub_note_url
 
 console = Console()
 err_console = Console(stderr=True)
-
-
-def _render(value: object) -> Any:
-    """Convert a resolved projection value to something Rich can render in a table cell."""
-    if value is None:
-        return ""
-    if hasattr(value, "__rich__"):
-        return value  # Rich-aware objects (e.g. Link) render themselves
-    return str(value)
 
 
 def _handle_error(exc: StareError) -> None:
@@ -311,14 +301,6 @@ def analysis_search(
     output_json: Annotated[
         bool, typer.Option("--json", help="Output raw JSON")
     ] = False,
-    projection: Annotated[
-        str | None,
-        typer.Option(
-            "--projection",
-            "-p",
-            help="Comma-separated field paths, e.g. referenceCode,groups.leadingGroup",
-        ),
-    ] = None,
 ) -> None:
     """Search analyses."""
     g = _make_glance()
@@ -340,24 +322,17 @@ def analysis_search(
 
     settings = StareSettings()
     table = Table(title=f"Analyses ({result.total_rows} total)")
-    if projection:
-        specs = parse_specs(projection)
-        for spec in specs:
-            table.add_column(spec.header)
-        for item in result.results:
-            table.add_row(*[_render(resolve(item, s.path)) for s in specs])
-    else:
-        table.add_column("Reference Code", style="cyan")
-        table.add_column("Status")
-        table.add_column("Short Title")
-        for item in result.results:
-            ref = item.reference_code or ""
-            ref_cell = (
-                f"[link={analysis_url(ref, web_base=settings.web_base_url)}]{ref}[/link]"
-                if ref
-                else ""
-            )
-            table.add_row(ref_cell, item.status or "", item.short_title or "")
+    table.add_column("Reference Code", style="cyan")
+    table.add_column("Status")
+    table.add_column("Short Title")
+    for item in result.results:
+        ref = item.reference_code or ""
+        ref_cell = (
+            f"[link={analysis_url(ref, web_base=settings.web_base_url)}]{ref}[/link]"
+            if ref
+            else ""
+        )
+        table.add_row(ref_cell, item.status or "", item.short_title or "")
     console.print(table)
 
 
@@ -414,14 +389,6 @@ def paper_search(
     output_json: Annotated[
         bool, typer.Option("--json", help="Output raw JSON")
     ] = False,
-    projection: Annotated[
-        str | None,
-        typer.Option(
-            "--projection",
-            "-p",
-            help="Comma-separated field paths, e.g. referenceCode,phase1.state",
-        ),
-    ] = None,
 ) -> None:
     """Search papers."""
     g = _make_glance()
@@ -443,24 +410,17 @@ def paper_search(
 
     settings = StareSettings()
     table = Table(title=f"Papers ({result.total_rows} total)")
-    if projection:
-        specs = parse_specs(projection)
-        for spec in specs:
-            table.add_column(spec.header)
-        for item in result.results:
-            table.add_row(*[_render(resolve(item, s.path)) for s in specs])
-    else:
-        table.add_column("Reference Code", style="cyan")
-        table.add_column("Status")
-        table.add_column("Short Title")
-        for item in result.results:
-            ref = item.reference_code or ""
-            ref_cell = (
-                f"[link={paper_url(ref, web_base=settings.web_base_url)}]{ref}[/link]"
-                if ref
-                else ""
-            )
-            table.add_row(ref_cell, item.status or "", item.short_title or "")
+    table.add_column("Reference Code", style="cyan")
+    table.add_column("Status")
+    table.add_column("Short Title")
+    for item in result.results:
+        ref = item.reference_code or ""
+        ref_cell = (
+            f"[link={paper_url(ref, web_base=settings.web_base_url)}]{ref}[/link]"
+            if ref
+            else ""
+        )
+        table.add_row(ref_cell, item.status or "", item.short_title or "")
     console.print(table)
 
 
