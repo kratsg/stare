@@ -299,8 +299,7 @@ class TokenManager:
             > int(time.time()) + self._settings.exchange_token_buffer_seconds
         ):
             return self._exchanged_token
-        self._exchange_token(base_token)
-        return self._exchanged_token  # type: ignore[return-value]  # set by _exchange_token
+        return self._exchange_token(base_token)
 
     def _get_base_token(self) -> str:
         """Return the raw PKCE access token, refreshing via refresh_token if expired."""
@@ -318,10 +317,9 @@ class TokenManager:
 
             return token.access_token
 
-    def _exchange_token(self, subject_token: str) -> None:
+    def _exchange_token(self, subject_token: str) -> str:
         """Exchange a PKCE access token for an audience-scoped token (RFC 8693).
 
-        The result is stored in ``_exchanged_token`` / ``_exchanged_expires_at``.
         Raises :exc:`~stare.exceptions.TokenExpiredError` on HTTP failure.
         """
         try:
@@ -344,6 +342,7 @@ class TokenManager:
             raise TokenExpiredError(msg) from exc
         self._exchanged_token = oauth_resp.access_token
         self._exchanged_expires_at = int(time.time()) + oauth_resp.expires_in
+        return self._exchanged_token
 
     def _refresh(self, refresh_token: str) -> _StoredToken:
         """Exchange a refresh token for new tokens and persist them."""

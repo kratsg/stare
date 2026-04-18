@@ -2,8 +2,10 @@
 // Syntax only; field/operator semantics validated downstream.
 
 ?expression: or_expr
-?or_expr: and_expr (OR and_expr)*      -> or_expr
-?and_expr: term (AND term)*            -> and_expr
+?or_expr: and_expr
+        | or_expr _OR and_expr          -> or_expr
+?and_expr: term
+         | and_expr _AND term           -> and_expr
 ?term: condition
      | "(" expression ")"
 condition: field OP value              -> condition
@@ -12,8 +14,8 @@ field: IDENT
 value: VALUE
 
 OP: "=" | "!=" | "contain"i | "not-contain"i
-AND: /[Aa][Nn][Dd]/
-OR:  /[Oo][Rr]/
+_AND: /[Aa][Nn][Dd]/
+_OR:  /[Oo][Rr]/
 
 IDENT: /[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*/
 VALUE: /[^\s()"]+/

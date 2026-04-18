@@ -10,19 +10,24 @@ from __future__ import annotations
 
 import logging
 from enum import Enum
-from typing import Annotated
+from typing import Annotated, Any, TypeVar
 
 from pydantic import BeforeValidator
 
 _logger = logging.getLogger("stare")
+
+_E = TypeVar("_E", bound="StrEnum")
 
 
 class StrEnum(str, Enum):
     """Python 3.10-compatible string enum base (StrEnum was added in 3.11)."""
 
 
-def _lenient(enum_cls: type) -> Annotated:  # type: ignore[valid-type]
-    """Return an Annotated validator that coerces str→enum or falls back to str."""
+def _lenient(enum_cls: type[_E]) -> Any:
+    """Return ``Annotated[EnumCls | str, BeforeValidator]`` for use in model fields.
+
+    Unknown string values fall back to the raw string and log a warning.
+    """
 
     def _validate(v: object) -> object:
         if not isinstance(v, str):

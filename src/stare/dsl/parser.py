@@ -16,7 +16,7 @@ _GRAMMAR = files("stare.dsl").joinpath("grammar.lark").read_text()
 _LARK = Lark(_GRAMMAR, start="expression", parser="lalr")
 
 
-class _DSLTransformer(Transformer):  # type: ignore[type-arg]
+class _DSLTransformer(Transformer[Any, Expression]):
     def __init__(self, registry: FieldRegistry) -> None:
         super().__init__()
         self._registry = registry
@@ -36,13 +36,13 @@ class _DSLTransformer(Transformer):  # type: ignore[type-arg]
             value=str(value_token),
         )
 
-    def or_expr(self, items: list[Any]) -> Or | Expression:
-        clauses = [item for item in items if not isinstance(item, Token)]
-        return clauses[0] if len(clauses) == 1 else Or(clauses=clauses)
+    def or_expr(self, items: list[Expression]) -> Or:
+        left, right = items
+        return Or(clauses=[left, right])
 
-    def and_expr(self, items: list[Any]) -> And | Expression:
-        clauses = [item for item in items if not isinstance(item, Token)]
-        return clauses[0] if len(clauses) == 1 else And(clauses=clauses)
+    def and_expr(self, items: list[Expression]) -> And:
+        left, right = items
+        return And(clauses=[left, right])
 
 
 def parse_dsl(source: str, *, mode: Literal["analysis", "paper"]) -> Expression:
@@ -60,7 +60,7 @@ def parse_dsl(source: str, *, mode: Literal["analysis", "paper"]) -> Expression:
 
     registry = FieldRegistry.for_mode(mode)
     try:
-        return cast("Expression", _DSLTransformer(registry).transform(tree))
+        return _DSLTransformer(registry).transform(tree)
     except VisitError as exc:
         if isinstance(exc.__context__, DSLValidationError):
             raise exc.__context__ from exc
