@@ -36,16 +36,16 @@ refreshed automatically.
 ```bash
 # Search analyses — Rich table in terminal, JSON when piped
 stare analysis search
-stare analysis search --query '"referenceCode" = "ANA-HION-2018-01"'
-stare analysis search -q '"keywords" contain "Higgs"' --limit 20
+stare analysis search --query 'referenceCode = ANA-HION-2018-01'
+stare analysis search -q 'keywords contain Higgs' --limit 20
 
 # Pipe to jq for field selection (JSON is auto-emitted)
 stare analysis search | jq '.results[].referenceCode'
-stare analysis search -q '"referenceCode" ~= "HION"' \
+stare analysis search -q 'referenceCode contain HION' \
   | jq -r '.results[] | select(.status == "Active") | .referenceCode'
 
 # Search papers
-stare paper search --query '"referenceCode" = "HDBS-2018-33"'
+stare paper search --query 'referenceCode = HDBS-2018-33'
 
 # Get individual resources
 stare analysis get ANA-HION-2018-01
@@ -81,13 +81,13 @@ from stare import Glance
 g = Glance()
 
 # Search analyses (currently live)
-result = g.analyses.search(query='"referenceCode" = "ANA-HION-2018-01"')
+result = g.analyses.search(query='referenceCode = ANA-HION-2018-01')
 print(f"Found {result.total_rows} analyses")
 for analysis in result.results:
     print(analysis.reference_code, analysis.short_title)
 
 # Search papers (currently live)
-paper_result = g.papers.search(query='"referenceCode" = "HDBS-2018-33"')
+paper_result = g.papers.search(query='referenceCode = HDBS-2018-33')
 print(f"Found {paper_result.total_rows} papers")
 for paper in paper_result.results:
     print(paper.reference_code, paper.short_title)
@@ -102,7 +102,7 @@ Use as a context manager for explicit connection lifecycle:
 
 ```python
 with Glance() as g:
-    result = g.analyses.search(query='"status" = "Active"')
+    result = g.analyses.search(query='status = Active')
 ```
 
 Inject a token directly (useful in CI/automated scripts):

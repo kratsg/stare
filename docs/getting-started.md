@@ -35,29 +35,40 @@ lifecycle, token exchange, and security properties.
 
 ## CLI usage
 
-### Search analyses
+### Search
+
+Every resource that supports server-side search exposes a `stare <resource> search`
+subcommand with a common set of flags:
+
+| Flag                       | Short | Meaning                                        |
+| -------------------------- | ----- | ---------------------------------------------- |
+| `--query`                  | `-q`  | DSL filter; see [Query DSL](query-dsl.md)      |
+| `--limit`                  | `-n`  | Max results returned (default: 50)             |
+| `--offset`                 |       | Pagination offset                              |
+| `--sort-by`                |       | camelCase API field to sort by                 |
+| `--sort-desc`              |       | Sort descending                                |
+| `--json` / `--no-json`     |       | Force or suppress JSON output                  |
+| `--no-cache`               |       | Bypass the 8-hour cache for this invocation    |
+| `--validate` / `--no-validate` |   | Enable/disable client-side DSL field checking  |
+
+Today `--query` applies to `stare analysis search` and `stare paper search`; more
+search commands will appear as the server rolls out new endpoints.
 
 ```bash
 # List recent analyses (default limit: 50)
 stare analysis search
-
-# Filter by a query string (see docs/query-dsl.md for the full grammar)
-stare analysis search --query 'referenceCode = ANA-HION-2018-01'
-stare analysis search -q 'metadata.keywords contain Higgs' --limit 20
+stare analysis search -q 'referenceCode = ANA-HION-2018-01'
+stare analysis search -q 'keywords contain Higgs' -n 20
 
 # Paginate
 stare analysis search --offset 50 --limit 25
 
-# Machine-readable JSON output (also the default when piped)
+# Machine-readable JSON (also the default when stdout is a pipe)
 stare analysis search --json
-```
 
-### Search papers
-
-```bash
+# Papers work the same way
 stare paper search
-stare paper search -q 'status = Active' --limit 10
-stare paper search --json
+stare paper search -q 'status = Active' -n 10
 ```
 
 ### Piping output
@@ -96,9 +107,10 @@ Add `--json` to any command for JSON output.
 ### Publications, groups, and triggers
 
 ```bash
-# Search across all publication types
+# Search across all publication types (filter flags: --ref --type --group --subgroup --status)
 stare publications search
 stare publications search --type Paper --group HDBS
+stare publications search --subgroup Boosted --status Active
 
 # List all leading groups / subgroups
 stare groups
@@ -108,6 +120,37 @@ stare subgroups
 stare triggers search --category electron --year 2024
 ```
 
+These commands return `NotFoundError` until the server rolls out the corresponding
+endpoints. See [endpoint status](#current-api-endpoint-availability) for current availability.
+
+### Utility commands
+
+```bash
+stare version          # print the installed stare version
+stare auth login       # authenticate with CERN SSO
+stare auth logout      # revoke tokens and delete local storage
+stare auth status      # check whether a valid token is stored
+stare auth info        # decode and display stored JWT claims
+stare cache info       # show cache path, TTL, and size
+stare cache clear      # delete all cached responses
+```
+
+`stare auth info` flags: `--access-token` (print raw PKCE access token),
+`--id-token` (print raw id token), `--exchange` (show exchanged token claims).
+Note: `--exchange` and `--id-token` are mutually exclusive.
+
+### Pointing at staging
+
+Use the `staging` pixi environment to point all requests at the Glance staging server:
+
+```bash
+pixi run -e staging stare analysis search
+pixi run -e staging stare auth login
+```
+
+This sets `STARE_BASE_URL`, `STARE_CA_BUNDLE=CERN`, and
+`STARE_EXCHANGE_AUDIENCE` to the staging values automatically.
+
 ## Library usage
 
 ```python
@@ -115,21 +158,30 @@ from stare import Glance
 
 g = Glance()
 
-# Search analyses
-result = g.analyses.search(query='"referenceCode" = "ANA-HION-2018-01"')
+# Search analyses (live)
+result = g.analyses.search(query='referenceCode = ANA-HION-2018-01')
 print(f"Found {result.total_rows} analyses")
 for analysis in result.results:
     print(analysis.reference_code, analysis.short_title)
 
-# Search papers
-paper_result = g.papers.search(query='"status" = "Active"')
+# Search papers (live)
+paper_result = g.papers.search(query='status = Active')
 for paper in paper_result.results:
     print(paper.reference_code, paper.status)
 
-# Individual resource lookups
+# Individual resource lookups (planned — return NotFoundError until live)
 analysis = g.analyses.get("ANA-HION-2018-01")
 paper = g.papers.get("HDBS-2018-33")
+conf_note = g.conf_notes.get("ATLAS-CONF-2024-001")
+pub_note = g.pub_notes.get("ATL-PHYS-PUB-2024-001")
+
+# Publications search (planned)
+pubs = g.publications.search(types=["Paper"], leading_groups=["HDBS"])
+
+# Metadata (planned)
 groups = g.groups.list()
+subgroups = g.subgroups.list()
+triggers = g.triggers.search(category="electron")
 ```
 
 ### Context manager
@@ -139,7 +191,7 @@ connection lifecycle:
 
 ```python
 with Glance() as g:
-    result = g.analyses.search(query='"status" = "Active"')
+    result = g.analyses.search(query='status = Active')
     for a in result.results:
         print(a.reference_code)
 ```
@@ -154,7 +206,6 @@ import os
 from stare import Glance
 
 g = Glance(token=os.environ["GLANCE_TOKEN"])
-result = g.analyses.search()
 ```
 
 ## Current API endpoint availability

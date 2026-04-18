@@ -88,7 +88,7 @@ PKCE access token. Set `STARE_EXCHANGE_AUDIENCE` to enable:
 
 ```bash
 export STARE_EXCHANGE_AUDIENCE=atlas-analysis-api
-stare analysis search --query '"referenceCode" = "ANA-HION-2018-01"'
+stare analysis search --query 'referenceCode = ANA-HION-2018-01'
 ```
 
 The exchanged token is kept in memory only — never written to disk or keyring.

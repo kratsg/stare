@@ -47,7 +47,7 @@ g = Glance(settings=StareSettings(cache_enabled=False))
 Every CLI command accepts `--no-cache` to bypass the cache for that run:
 
 ```bash
-stare analysis search -q '"referenceCode" ~= "HION"' --no-cache
+stare analysis search -q 'referenceCode contain HION' --no-cache
 ```
 
 ## Cache management

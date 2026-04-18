@@ -17,15 +17,15 @@ against CERN Keycloak built in.
 
 ```bash
 pip install stare
-stare login          # opens CERN SSO in your browser
-stare search         # list recent analyses
+stare auth login          # opens CERN SSO in your browser
+stare analysis search --limit 10
 ```
 
 ```python
 from stare import Glance
 
 with Glance() as g:
-    result = g.analyses.search(query='"referenceCode" = "ANA-HION-2018-01"')
+    result = g.analyses.search(query='referenceCode = ANA-HION-2018-01')
     for a in result.results:
         print(a.reference_code, a.short_title)
 ```

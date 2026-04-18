@@ -14,6 +14,7 @@ nav = [
   { "Query DSL" = "query-dsl.md" },
   { "Authentication" = "auth.md" },
   { "Configuration" = "configuration.md" },
+  { "Caching" = "caching.md" },
   { "API reference" = "api.md" },
   { "Contributing" = "contributing.md" },
 ]

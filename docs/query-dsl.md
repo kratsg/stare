@@ -4,9 +4,11 @@ icon: lucide/search
 
 # Query DSL
 
-The `--query` / `-q` flag on `stare analysis search` and `stare paper search`
-accepts a simple filter expression validated and normalized client-side before
-being sent to the server.
+The `--query` / `-q` flag on `stare` **search commands** accepts a simple filter
+expression validated and normalized client-side before being sent to the server.
+Each search command validates against the field catalogue for its own record type.
+See the [endpoint status table](getting-started.md#current-api-endpoint-availability)
+for which commands currently accept `--query`.
 
 ## Grammar
 
@@ -22,7 +24,7 @@ op     = "=" | "!=" | "contain" | "not-contain"
 value  = bare token     # one word, no spaces, no quotes
 ```
 
-`and` / `or` are case-insensitive at parse time; canonical output is lowercase.
+`and` / `or` are case-insensitive at parse time; canonical output is uppercase (`AND`, `OR`).
 
 ## Operators
 
@@ -46,6 +48,11 @@ stare analysis search -q 'reference_code = ANA-HION-2018-01'
 
 Nested fields use a dot separator: `metadata.keywords`, `phase0.state`.
 
+!!! note "Field catalogue mirrors `fields.toml`"
+    The field tables below are extracted from the server's OpenAPI spec by
+    `pixi run extract-fields`, which writes `src/stare/dsl/data/fields.toml`.
+    Re-run after an API update and manually update the tables below to match.
+
 ## Values
 
 Values are bare tokens (no quotes, no spaces). A value like `ANA-HION-2018-01`
@@ -64,10 +71,14 @@ stare analysis search -q 'status = Active and groups.leadingGroup = HDBS'
 
 # OR (either may match)
 stare analysis search -q 'status = Active or status = Approved'
-
-# Parentheses for grouping
-stare analysis search -q '(status = Active or status = Approved) and groups.leadingGroup = HION'
 ```
+
+`AND` binds tighter than `OR`: `a = 1 AND b = 2 OR c = 3` is parsed as `(a = 1 AND b = 2) OR c = 3`.
+
+!!! note "Parentheses are not supported by the server"
+    The grammar accepts parentheses, but the Glance API ignores them. `stare` will
+    log a warning and send the query without parentheses. Rely on `AND` binding
+    tighter than `OR` instead of explicit grouping.
 
 ## Sorting
 
@@ -109,10 +120,6 @@ stare analysis search -q 'someNewField = value' --no-validate
 | `phase2`          | `phase2.draft2CernSignOffDate`, `phase2.draft2ReleasedDate`, `phase2.draft2SentToCernDate`, `phase2.editorialBoardDraft2SignOffDate`, `phase2.editorialBoardRevisedSignOffDate`, `phase2.paperClosureDate`, `phase2.preliminaryPlotsAndResultsReleased`, `phase2.pubcommChairOrDeputyOrDelegated.cernCcid`, `phase2.pubcommChairOrDeputyOrDelegated.firstName`, `phase2.pubcommChairOrDeputyOrDelegated.lastName`, `phase2.pubcommChairOrDeputyOrDelegatedSignOffDate`, `phase2.spokespersonOrDeputyOrDelegatedSignOffDate`, `phase2.startDate`, `phase2.state`                                                |
 | `relatedAnalysis` | `relatedAnalysis.referenceCode`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `submission`      | `submission.arXivSubmissionDate`, `submission.dateOf1stProof`, `submission.dateOf1stRefereeReport`, `submission.finalSubmissionJournal`, `submission.finalTitleTex`, `submission.journalAcceptanceDate`, `submission.publishedOnlineOn`, `submission.startDate`, `submission.state`                                                                                                                                                                                                                                                                                                                            |
-
-!!! note "Field catalogue is generated" The lists above are extracted from the
-server's OpenAPI spec by `pixi run extract-fields`. Re-run this command after an
-API update and commit the resulting `src/stare/dsl/data/fields.toml`.
 
 !!! note "status field" `status` is included in both catalogues. If the server
 rejects it as a filter field, re-generate without it or use `--no-validate` as a
