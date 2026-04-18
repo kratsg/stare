@@ -181,14 +181,13 @@ class PublicationResource:
         statuses: list[str] | None = None,
     ) -> list[PublicationRef]:
         """Search across all publication types."""
-        params: list[tuple[str, str | int | float | bool | None]] = (
-            [("referenceCodes", val) for val in reference_codes or []]
-            + [("types", val) for val in types or []]
-            + [("shortTitles", val) for val in short_titles or []]
-            + [("leadingGroups", val) for val in leading_groups or []]
-            + [("subgroups", val) for val in subgroups or []]
-            + [("statuses", val) for val in statuses or []]
-        )
+        params: list[tuple[str, str | int | float | bool | None]] = []
+        params += [("referenceCodes", val) for val in reference_codes or []]
+        params += [("types", val) for val in types or []]
+        params += [("shortTitles", val) for val in short_titles or []]
+        params += [("leadingGroups", val) for val in leading_groups or []]
+        params += [("subgroups", val) for val in subgroups or []]
+        params += [("statuses", val) for val in statuses or []]
         response = self._client.get("/publications/search", params=params)
         _raise_for_status(response)
         return [PublicationRef.model_validate(item) for item in response.json()]
@@ -236,9 +235,9 @@ class TriggerResource:
         years: list[str] | None = None,
     ) -> list[Trigger]:
         """Search triggers by category and/or year."""
-        params: list[tuple[str, str]] = [
-            ("categories", val) for val in categories or []
-        ] + [("years", val) for val in years or []]
+        params: list[tuple[str, str | int | float | bool | None]] = []
+        params += [("categories", val) for val in categories or []]
+        params += [("years", val) for val in years or []]
         response = self._client.get("/triggers/search", params=params)
         _raise_for_status(response)
         return [Trigger.model_validate(item) for item in response.json()]
