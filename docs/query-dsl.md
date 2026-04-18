@@ -116,6 +116,6 @@ stare analysis search -q 'someNewField = value' --no-validate
 | `relatedAnalysis` | `relatedAnalysis.referenceCode`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `submission`      | `submission.arXivSubmissionDate`, `submission.dateOf1stProof`, `submission.dateOf1stRefereeReport`, `submission.finalSubmissionJournal`, `submission.finalTitleTex`, `submission.journalAcceptanceDate`, `submission.publishedOnlineOn`, `submission.startDate`, `submission.state`                                                                                                                                                                                                                                                                                                                            |
 
-!!! note "status field" `status` is included in both catalogues. If the server
-rejects it as a filter field, re-generate without it or use `--no-validate` as a
-workaround.
+!!! note "status field"
+
+    `status` is included in both catalogues. If the server rejects it as a filter field, re-generate without it or use `--no-validate` as a workaround.

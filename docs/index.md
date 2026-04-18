@@ -36,10 +36,14 @@ against CERN Keycloak built in.
 
 ## Features
 
-- **Analyses and papers** — search and retrieve ATLAS analyses, papers, CONF notes, and PUB notes
-- **Simple query language** — filter by reference code, status, leading group, keywords, and more
-- **Secure authentication** — browser-based CERN SSO login; no passwords stored, tokens refresh automatically
-- **CLI and library** — Rich tables for interactive use, auto-JSON when piping; full Python API for scripts and notebooks
+- **Analyses and papers** — search and retrieve ATLAS analyses, papers, CONF
+  notes, and PUB notes
+- **Simple query language** — filter by reference code, status, leading group,
+  keywords, and more
+- **Secure authentication** — browser-based CERN SSO login; no passwords stored,
+  tokens refresh automatically
+- **CLI and library** — Rich tables for interactive use, auto-JSON when piping;
+  full Python API for scripts and notebooks
 
 ---
 
