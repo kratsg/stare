@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 from pydantic.alias_generators import to_camel
+from rich.text import Text
 
 from stare.exceptions import ResponseParseError
 
@@ -59,6 +60,24 @@ class _Base(BaseModel):
             raise ResponseParseError(
                 _format_parse_error(cls.__name__, exc), raw_data=obj
             ) from exc
+
+
+class Link(_Base):
+    """A labelled URL, optionally rendered as a Rich clickable hyperlink."""
+
+    label: str | None = None
+    url: str | None = None
+
+    def __rich__(self) -> Text:
+        display = self.label or self.url or ""
+        if self.url:
+            return Text(display, style=f"link {self.url}")
+        return Text(display)
+
+
+# Backward-compat aliases so existing imports keep working.
+AmiGlanceLink = Link
+InternalDocument = Link
 
 
 class Person(_Base):
@@ -127,44 +146,41 @@ class Metadata(_Base):
     rivet_routines: list[str] = Field(default_factory=list)
 
 
-class Repository(_Base):
+class Repository(Link):
     """A code or documentation repository."""
 
     gitlab_id: str | None = None
-    label: str | None = None
     type: str | None = None
-    url: str | None = None
-
-
-class InternalDocument(_Base):
-    """A supporting internal document (e.g. CDS note)."""
-
-    label: str | None = None
-    url: str | None = None
 
 
 class Documentation(_Base):
     """Repositories and supporting documents for a publication."""
 
     repositories: list[Repository] = Field(default_factory=list)
-    supporting_internal_documents: list[InternalDocument] = Field(default_factory=list)
+    supporting_internal_documents: list[Link] = Field(default_factory=list)
 
 
 class Meeting(_Base):
-    """A recorded meeting (EOI, editorial board request, pre-approval, approval, etc.)."""
+    """A recorded meeting (EOI, editorial board request, pre-approval, approval, etc.).
+
+    The API sends a flat ``linkLabel`` / ``link`` pair; we fold them into a
+    single nested ``Link`` object on ingestion.
+    """
 
     title: str | None = None
     date: str | None = None
     comments: str | None = None
-    link_label: str | None = None
-    link: str | None = None
+    link: Link | None = None
 
-
-class AmiGlanceLink(_Base):
-    """An AMI/Glance cross-reference link."""
-
-    label: str | None = None
-    url: str | None = None
+    @model_validator(mode="before")
+    @classmethod
+    def _fold_link_fields(cls, data: Any) -> Any:
+        if isinstance(data, dict) and isinstance(data.get("link"), str):
+            link_url = data.pop("link", None)
+            link_label = data.pop("linkLabel", None)
+            if link_url is not None or link_label is not None:
+                data["link"] = {"label": link_label, "url": link_url}
+        return data
 
 
 class RelatedPublication(_Base):

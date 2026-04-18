@@ -8,19 +8,13 @@ from stare.models.common import (
     Documentation,
     EditorialBoardMember,
     Groups,
+    Link,
     Metadata,
     Person,
     RelatedPublication,
     TeamMember,
     _Base,
 )
-
-
-class _Link(_Base):
-    """A labelled URL (used for arXiv, paper closure, final publication, etc.)."""
-
-    label: str | None = None
-    url: str | None = None
 
 
 class _ArxivSubmissionDate(_Base):
@@ -67,7 +61,7 @@ class PaperPhase2(_Base):
     released_on: str | None = None
     sent_draft2_to_cern_on: str | None = None
     signed_off_by_cern_on: str | None = None
-    paper_closure_meeting_urls: list[_Link] = Field(default_factory=list)
+    paper_closure_meeting_urls: list[Link] = Field(default_factory=list)
     preliminary_plots_released: str | None = Field(
         default=None, alias="preliminaryPlotsAndResultsReleased"
     )
@@ -90,17 +84,17 @@ class SubmissionPhase(_Base):
 
     state: str | None = None
     start_date: str | None = None
-    arxiv_url: _Link | None = Field(default=None, alias="arXivUrl")
+    arxiv_url: Link | None = Field(default=None, alias="arXivUrl")
     final_title: str | None = Field(default=None, alias="finalTitleTex")
     final_submission_journal: str | None = None
     arxiv_submission_date: _ArxivSubmissionDate | None = Field(
         default=None, alias="arXivSubmissionDate"
     )
-    physics_briefing: _Link | None = None
+    physics_briefing: Link | None = None
     date_of_1st_referee_report: str | None = None
     journal_acceptance_date: str | None = None
     date_of_1st_proof: str | None = None
-    final_journal_publication: _Link | None = None
+    final_journal_publication: Link | None = None
     published_online_on: str | None = None
 
 

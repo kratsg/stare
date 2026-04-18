@@ -10,6 +10,7 @@ from stare.models.common import (
     Documentation,
     EditorialBoardMember,
     Groups,
+    Link,
     Meeting,
     Metadata,
     Person,
@@ -211,7 +212,9 @@ class TestMeeting:
             }
         )
         assert m.title == "EOI"
-        assert m.link_label == "Indico"
+        assert m.link is not None
+        assert m.link.label == "Indico"
+        assert m.link.url == "https://indico.cern.ch/e/1"
 
     def test_all_optional(self) -> None:
         m = Meeting.model_validate({})
@@ -219,11 +222,30 @@ class TestMeeting:
         assert m.link is None
 
 
-class TestAmiGlanceLink:
+class TestLink:
     def test_parse(self) -> None:
+        link = Link.model_validate({"label": "AMI", "url": "https://ami.cern.ch"})
+        assert link.label == "AMI"
+        assert link.url == "https://ami.cern.ch"
+
+    def test_rich_with_url(self) -> None:
+        from rich.console import Console
+
+        link = Link.model_validate({"label": "Indico", "url": "https://indico.cern.ch"})
+        console = Console(record=True, force_terminal=True, width=120)
+        console.print(link)
+        output = console.export_text(styles=True)
+        assert "Indico" in output
+
+    def test_rich_no_url(self) -> None:
+        link = Link(label="No link", url=None)
+        rendered = link.__rich__()
+        assert str(rendered) == "No link"
+
+    def test_ami_glance_link_is_link(self) -> None:
         a = AmiGlanceLink.model_validate({"label": "AMI", "url": "https://ami.cern.ch"})
+        assert isinstance(a, Link)
         assert a.label == "AMI"
-        assert a.url == "https://ami.cern.ch"
 
 
 class TestRelatedPublication:
