@@ -455,9 +455,10 @@ class TokenManager:
         # get_token() populates _exchanged_token / _exchanged_expires_at
         self.get_token()
         if self._exchanged_token is None:
-            raise RuntimeError(
+            msg = (
                 "get_token() completed but _exchanged_token was not set; this is a bug."
             )
+            raise RuntimeError(msg)
         claims = _decode_jwt_payload(self._exchanged_token)
         return TokenInfo(
             is_expired=self._exchanged_expires_at < int(time.time()) + 60,

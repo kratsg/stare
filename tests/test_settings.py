@@ -26,7 +26,7 @@ def clear_stare_env(monkeypatch: pytest.MonkeyPatch) -> None:
 
 class TestStareSettingsDefaults:
     @pytest.mark.parametrize(
-        "attr,expected",
+        ("attr", "expected"),
         [
             ("base_url", "https://atlas-glance.cern.ch/atlas/analysis/api"),
             ("client_id", "stare"),
@@ -49,7 +49,7 @@ class TestStareSettingsDefaults:
 
 class TestStareSettingsEnvOverrides:
     @pytest.mark.parametrize(
-        "env_var,value,attr",
+        ("env_var", "value", "attr"),
         [
             ("STARE_BASE_URL", "https://custom.example.com/api", "base_url"),
             ("STARE_CLIENT_ID", "my-client", "client_id"),
@@ -72,7 +72,7 @@ class TestStareSettingsEnvOverrides:
 
 class TestStareSettingsExpiry:
     @pytest.mark.parametrize(
-        "attr,expected",
+        ("attr", "expected"),
         [
             ("exchange_token_buffer_seconds", 120),
             ("token_expiry_margin_seconds", 60),
@@ -83,7 +83,7 @@ class TestStareSettingsExpiry:
         assert getattr(s, attr) == expected
 
     @pytest.mark.parametrize(
-        "env_var,attr,value",
+        ("env_var", "attr", "value"),
         [
             (
                 "STARE_EXCHANGE_TOKEN_BUFFER_SECONDS",
