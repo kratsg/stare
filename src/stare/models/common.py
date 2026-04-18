@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
@@ -110,8 +111,8 @@ class EditorialBoardMember(Person):
 class AnalysisContact(Person):
     """An analysis contact with a start/end assignment period."""
 
-    start_date: str | None = None
-    end_date: str | None = None
+    start_date: datetime | None = None
+    end_date: datetime | None = None
 
 
 class Groups(_Base):
@@ -173,7 +174,7 @@ class Meeting(_Base):
     """
 
     title: str | None = None
-    date: str | None = None
+    date: datetime | None = None
     comments: str | None = None
     link: Link | None = None
 

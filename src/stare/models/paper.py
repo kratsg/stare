@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from pydantic import Field
+from datetime import datetime
+
+from pydantic import Field, field_validator
 
 from stare.models.common import (
     Documentation,
@@ -18,35 +20,30 @@ from stare.models.common import (
 from stare.models.enums import LenientPaperStatus, LenientPhaseState
 
 
-class _ArxivSubmissionDate(_Base):
-    date: str | None = None
-    time: str | None = None
-
-
 class PaperPhase1(_Base):
     """Phase 1 of the paper lifecycle (review and approval)."""
 
     state: LenientPhaseState | None = None
-    start_date: str | None = None
+    start_date: datetime | None = None
     editorial_board: list[EditorialBoardMember] = Field(default_factory=list)
-    editorial_board_formed_on: str | None = None
-    signed_off_by_language_editors_on: str | None = None
-    presentation_date: str | None = None
-    pgc_approved_analysis_on: str | None = Field(
+    editorial_board_formed_on: datetime | None = None
+    signed_off_by_language_editors_on: datetime | None = None
+    presentation_date: datetime | None = None
+    pgc_approved_analysis_on: datetime | None = Field(
         default=None, alias="principalGroupCoordinatorApprovedAnalysisOn"
     )
     eb_draft_sign_off: str | None = Field(
         default=None, alias="editorialBoardDraftSignOff"
     )
-    released_on: str | None = None
+    released_on: datetime | None = None
     pub_committee_chair: Person | None = Field(
         default=None, alias="publicationCommitteeChairDeputyOrDelegatedTo"
     )
     spokesperson: Person | None = Field(
         default=None, alias="spokespersonDeputyOrDelegatedTo"
     )
-    atlas_meeting_date: str | None = None
-    phase1_signed_off_by_pub_committee_on: str | None = Field(
+    atlas_meeting_date: datetime | None = None
+    phase1_signed_off_by_pub_committee_on: datetime | None = Field(
         default=None, alias="phase1SignedOffByPublicationCommitteeChairOn"
     )
 
@@ -55,48 +52,59 @@ class PaperPhase2(_Base):
     """Phase 2 of the paper lifecycle (CERN review, revision, closure)."""
 
     state: LenientPhaseState | None = None
-    start_date: str | None = None
-    eb_draft2_sign_off_on: str | None = Field(
+    start_date: datetime | None = None
+    eb_draft2_sign_off_on: datetime | None = Field(
         default=None, alias="editorialBoardDraft2SignOffOn"
     )
-    released_on: str | None = None
-    sent_draft2_to_cern_on: str | None = None
-    signed_off_by_cern_on: str | None = None
+    released_on: datetime | None = None
+    sent_draft2_to_cern_on: datetime | None = None
+    signed_off_by_cern_on: datetime | None = None
     paper_closure_meeting_urls: list[Link] = Field(default_factory=list)
     preliminary_plots_released: str | None = Field(
         default=None, alias="preliminaryPlotsAndResultsReleased"
     )
-    date_of_paper_closure: str | None = None
-    revised_draft_signed_off_by_eb_chair_on: str | None = Field(
+    date_of_paper_closure: datetime | None = None
+    revised_draft_signed_off_by_eb_chair_on: datetime | None = Field(
         default=None, alias="revisedDraftSignedOffByEditorialBoardChairOn"
     )
     pub_committee_chair_or_deputy: Person | None = Field(
         default=None, alias="publicationCommitteeChairOrDeputy"
     )
-    revised_draft_signed_off_by_pub_committee_on: str | None = Field(
+    revised_draft_signed_off_by_pub_committee_on: datetime | None = Field(
         default=None, alias="revisedDraftSignedOffByPublicationCommitteeChairOrDeputyOn"
     )
-    revised_draft_signed_off_by_spokesperson_delegated_on: str | None = None
-    revised_draft_signed_off_by_spokesperson_or_deputy_on: str | None = None
+    revised_draft_signed_off_by_spokesperson_delegated_on: datetime | None = None
+    revised_draft_signed_off_by_spokesperson_or_deputy_on: datetime | None = None
 
 
 class SubmissionPhase(_Base):
     """Submission phase: arXiv, journal, final publication."""
 
     state: LenientPhaseState | None = None
-    start_date: str | None = None
+    start_date: datetime | None = None
     arxiv_url: Link | None = Field(default=None, alias="arXivUrl")
     final_title: str | None = Field(default=None, alias="finalTitleTex")
     final_submission_journal: str | None = None
-    arxiv_submission_date: _ArxivSubmissionDate | None = Field(
+    arxiv_submission_date: datetime | None = Field(
         default=None, alias="arXivSubmissionDate"
     )
     physics_briefing: Link | None = None
-    date_of_1st_referee_report: str | None = None
-    journal_acceptance_date: str | None = None
-    date_of_1st_proof: str | None = None
+    date_of_1st_referee_report: datetime | None = None
+    journal_acceptance_date: datetime | None = None
+    date_of_1st_proof: datetime | None = None
     final_journal_publication: Link | None = None
-    published_online_on: str | None = None
+    published_online_on: datetime | None = None
+
+    @field_validator("arxiv_submission_date", mode="before")
+    @classmethod
+    def _parse_arxiv_date(cls, v: object) -> object:
+        if isinstance(v, dict):
+            date_str = v.get("date")
+            time_str = v.get("time")
+            if date_str and time_str:
+                return f"{date_str}T{time_str}"
+            return date_str
+        return v
 
 
 class Paper(_Base):

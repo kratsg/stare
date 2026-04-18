@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
 from stare.models.analysis import Analysis, AnalysisPhase0
 from stare.models.common import (
     AmiGlanceLink,
@@ -109,8 +111,8 @@ class TestAnalysisContact:
                 "endDate": "2024-01-01",
             }
         )
-        assert c.start_date == "2023-01-01"
-        assert c.end_date == "2024-01-01"
+        assert c.start_date == datetime(2023, 1, 1)
+        assert c.end_date == datetime(2024, 1, 1)
 
 
 class TestGroups:
@@ -268,7 +270,7 @@ class TestAnalysisPhase0:
             {"state": "Active", "startDate": "2022-01-01"}
         )
         assert p.state == "Active"
-        assert p.start_date == "2022-01-01"
+        assert p.start_date == datetime(2022, 1, 1)
 
     def test_meetings_parsed(self) -> None:
         p = AnalysisPhase0.model_validate(

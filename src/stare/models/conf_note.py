@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
 from pydantic import Field
 
 from stare.models.common import (
@@ -27,12 +29,12 @@ class ConfNotePhase1(_Base):
     """Phase 1 lifecycle metadata for a CONF note."""
 
     state: LenientPhaseState | None = None
-    start_date: str | None = None
+    start_date: datetime | None = None
     cds_url: str | None = Field(default=None, alias="cdsDraftNoteUrl")
     editorial_board: list[EditorialBoardMember] = Field(default_factory=list)
-    editorial_board_formed_on: str | None = None
-    presentation_date: str | None = None
-    pgc_approved_analysis_on: str | None = Field(
+    editorial_board_formed_on: datetime | None = None
+    presentation_date: datetime | None = None
+    pgc_approved_analysis_on: datetime | None = Field(
         default=None, alias="principalGroupCoordinatorApprovedAnalysisOn"
     )
     eb_draft_sign_off: str | None = Field(
@@ -45,7 +47,7 @@ class ConfNotePhase1(_Base):
     public_web_page_url: str | None = Field(
         default=None, alias="publicWebPageUrlForFiguresAndTables"
     )
-    release_date: str | None = None
+    release_date: datetime | None = None
 
 
 class ConfNote(_Base):

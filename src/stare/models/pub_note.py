@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
 from pydantic import Field
 
 from stare.models.common import (
@@ -30,20 +32,20 @@ class PubNotePhase1(_Base):
     """Phase 1 lifecycle metadata for a PUB note."""
 
     state: LenientPhaseState | None = None
-    start_date: str | None = None
+    start_date: datetime | None = None
     draft_cds_url: str | None = Field(default=None, alias="draftNoteCdsUrl")
     readers: list[PubNoteReader] = Field(default_factory=list)
-    presentation_date: str | None = None
-    group_approval_on: str | None = None
+    presentation_date: datetime | None = None
+    group_approval_on: datetime | None = None
     first_reader_draft_sign_off: str | None = None
-    date_of_atlas_circulation: str | None = None
-    proceed_to_sign_off_on: str | None = None
+    date_of_atlas_circulation: datetime | None = None
+    proceed_to_sign_off_on: datetime | None = None
     first_reader_sign_off: str | None = None
     second_reader_sign_off: str | None = None
     public_web_page_url: str | None = Field(
         default=None, alias="publicWebPageUrlForFiguresAndTables"
     )
-    release_date: str | None = None
+    release_date: datetime | None = None
 
 
 class PubNote(_Base):
