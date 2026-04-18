@@ -41,9 +41,9 @@ lifecycle, token exchange, and security properties.
 # List recent analyses (default limit: 50)
 stare analysis search
 
-# Filter by a query string
-stare analysis search --query '"referenceCode" = "ANA-HION-2018-01"'
-stare analysis search -q '"keywords" contain "Higgs"' --limit 20
+# Filter by a query string (see docs/query-dsl.md for the full grammar)
+stare analysis search --query 'referenceCode = ANA-HION-2018-01'
+stare analysis search -q 'metadata.keywords contain Higgs' --limit 20
 
 # Paginate
 stare analysis search --offset 50 --limit 25
@@ -56,7 +56,7 @@ stare analysis search --json
 
 ```bash
 stare paper search
-stare paper search -q '"status" = "Active"' --limit 10
+stare paper search -q 'status = Active' --limit 10
 stare paper search --json
 ```
 
@@ -68,7 +68,7 @@ tool:
 
 ```bash
 # List reference codes for active HION analyses
-stare analysis search -q '"referenceCode" ~= "HION"' \
+stare analysis search -q 'referenceCode contain HION' \
   | jq -r '.results[] | select(.status == "Active") | .referenceCode'
 
 # Emit (ref_code, leading_group) pairs as TSV
@@ -76,7 +76,7 @@ stare analysis search \
   | jq -r '.results[] | [.referenceCode, .groups.leadingGroup] | @tsv'
 
 # Save a full result set to disk for repeated analysis
-stare analysis search -q '"referenceCode" ~= "HION"' > results.json
+stare analysis search -q 'referenceCode contain HION' > results.json
 ```
 
 Override the auto-detection with `--json` (force JSON in a terminal) or
