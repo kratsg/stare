@@ -42,6 +42,4 @@ def cache_clear(
         db_path.unlink()
         utils.console.print(f"[green]Cache cleared:[/green] {db_path}")
     else:
-        utils.console.print(
-            f"[dim]Nothing to clear:[/dim] {db_path} does not exist."
-        )
+        utils.console.print(f"[dim]Nothing to clear:[/dim] {db_path} does not exist.")
