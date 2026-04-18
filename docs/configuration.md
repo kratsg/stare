@@ -27,6 +27,9 @@ library.
 | `STARE_TOKEN_EXPIRY_MARGIN_SECONDS`   | `60`                                                                   | Trigger refresh this many seconds before the access token expires     |
 | `STARE_CA_BUNDLE`                     | `Sectigo`                                                              | TLS CA bundle: `Sectigo` (production) or `CERN` (staging)             |
 | `STARE_WEB_BASE_URL`                  | `https://atlas-glance.cern.ch/atlas/analysis`                          | Web UI base URL for clickable hyperlinks in CLI output                |
+| `STARE_CACHE_ENABLED`                 | `true`                                                                 | Enable on-disk HTTP response cache                                    |
+| `STARE_CACHE_TTL_SECONDS`             | `28800`                                                                | Cache TTL in seconds (default: 8 hours)                               |
+| `STARE_CACHE_DIR`                     | _(platform user cache dir)_                                            | Override the cache directory path                                     |
 
 ## Using a custom settings object
 

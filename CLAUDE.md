@@ -260,16 +260,36 @@ bundled with the wheel and loaded at runtime via
 Analysis and paper commands are sub-apps with `search` and `get` subcommands:
 
 ```bash
-stare analysis search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json]
-stare analysis get REF_CODE [--json]
-stare paper search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json]
-stare paper get REF_CODE [--json]
+stare analysis search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json/--no-json] [--no-cache]
+stare analysis get REF_CODE [--json/--no-json] [--no-cache]
+stare paper search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json/--no-json] [--no-cache]
+stare paper get REF_CODE [--json/--no-json] [--no-cache]
 ```
 
 CONF notes and PUB notes have only `get` (no search endpoint exists yet) and
 remain flat top-level commands:
 
 ```bash
-stare conf-note TEMP_REF_CODE [--json]
-stare pub-note TEMP_REF_CODE [--json]
+stare conf-note TEMP_REF_CODE [--json/--no-json] [--no-cache]
+stare pub-note TEMP_REF_CODE [--json/--no-json] [--no-cache]
 ```
+
+### Output format auto-detection
+
+Every command auto-detects whether stdout is a terminal. When piped or
+redirected, JSON is emitted automatically. Use `--json` to force JSON in a
+terminal, or `--no-json` to force the Rich table when piping.
+
+```bash
+# JSON auto-emitted when piped
+stare analysis search | jq '.results[].referenceCode'
+
+# Force Rich table in a pipe (e.g. for debugging)
+stare analysis search --no-json | cat
+```
+
+### HTTP cache
+
+All `GET` responses are cached on disk (SQLite, 8-hour default TTL). Use
+`--no-cache` to bypass the cache for a single invocation. Manage the cache with
+`stare cache info` and `stare cache clear`.

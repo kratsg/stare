@@ -48,11 +48,8 @@ stare analysis search -q '"keywords" contain "Higgs"' --limit 20
 # Paginate
 stare analysis search --offset 50 --limit 25
 
-# Machine-readable output
+# Machine-readable JSON output (also the default when piped)
 stare analysis search --json
-
-# Project arbitrary fields into the table columns
-stare analysis search -p "reference_code,groups.leading_group,documentation.repositories[0].url"
 ```
 
 ### Search papers
@@ -61,8 +58,29 @@ stare analysis search -p "reference_code,groups.leading_group,documentation.repo
 stare paper search
 stare paper search -q '"status" = "Active"' --limit 10
 stare paper search --json
-stare paper search -p "reference_code,status,phase1.state"
 ```
+
+### Piping output
+
+`stare` auto-detects when stdout is a pipe or regular file and emits JSON
+instead of a Rich table, so you can chain `jq`, `grep`, `awk`, or any other UNIX
+tool:
+
+```bash
+# List reference codes for active HION analyses
+stare analysis search -q '"referenceCode" ~= "HION"' \
+  | jq -r '.results[] | select(.status == "Active") | .referenceCode'
+
+# Emit (ref_code, leading_group) pairs as TSV
+stare analysis search \
+  | jq -r '.results[] | [.referenceCode, .groups.leadingGroup] | @tsv'
+
+# Save a full result set to disk for repeated analysis
+stare analysis search -q '"referenceCode" ~= "HION"' > results.json
+```
+
+Override the auto-detection with `--json` (force JSON in a terminal) or
+`--no-json` (force the Rich table when piping).
 
 ### Get individual resources
 

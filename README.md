@@ -25,7 +25,7 @@ pip install stare
 `stare` uses PKCE (no passwords stored). Run once to authenticate:
 
 ```bash
-stare login
+stare auth login
 ```
 
 Your browser will open CERN SSO. After approval, tokens are stored locally and
@@ -34,14 +34,20 @@ refreshed automatically.
 ## CLI usage
 
 ```bash
-# Search analyses
+# Search analyses — Rich table in terminal, JSON when piped
+stare analysis search
 stare analysis search --query '"referenceCode" = "ANA-HION-2018-01"'
 stare analysis search -q '"keywords" contain "Higgs"' --limit 20
+
+# Pipe to jq for field selection (JSON is auto-emitted)
+stare analysis search | jq '.results[].referenceCode'
+stare analysis search -q '"referenceCode" ~= "HION"' \
+  | jq -r '.results[] | select(.status == "Active") | .referenceCode'
 
 # Search papers
 stare paper search --query '"referenceCode" = "HDBS-2018-33"'
 
-# Get individual resources (once endpoints go live)
+# Get individual resources
 stare analysis get ANA-HION-2018-01
 stare paper get HDBS-2018-33
 
@@ -54,12 +60,18 @@ stare groups
 stare subgroups
 
 # Auth management
-stare login
-stare logout
+stare auth login
+stare auth logout
 stare auth status
+
+# Cache management
+stare cache info
+stare cache clear --yes
 ```
 
-Add `--json` to any command for machine-readable output.
+Output is a Rich table when stdout is a terminal and JSON when piped or
+redirected. Use `--json` / `--no-json` to override. Every command accepts
+`--no-cache` to bypass the 8-hour on-disk response cache.
 
 ## Library usage
 
