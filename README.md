@@ -7,7 +7,8 @@ Python library and CLI for the
 [![Documentation Status][rtd-badge]][rtd-link]
 [![PyPI version][pypi-version]][pypi-link]
 
-[actions-badge]: https://github.com/kratsg/stare/actions/workflows/ci.yml/badge.svg
+[actions-badge]:
+  https://github.com/kratsg/stare/actions/workflows/ci.yml/badge.svg
 [actions-link]: https://github.com/kratsg/stare/actions/workflows/ci.yml
 [rtd-badge]: https://readthedocs.org/projects/stare-atlas/badge/?version=latest
 [rtd-link]: https://stare-atlas.readthedocs.io/en/latest/?badge=latest
