@@ -8,8 +8,6 @@ from typing import Any
 
 from pydantic import Field, SerializationInfo, model_serializer, model_validator
 
-_logger = logging.getLogger("stare")
-
 from stare.models.common import (
     AmiGlanceLink,
     AnalysisContact,
@@ -23,6 +21,8 @@ from stare.models.common import (
     _Base,
 )
 from stare.models.enums import LenientAnalysisStatus, LenientPhaseState, MeetingType
+
+_logger = logging.getLogger("stare")
 
 # Maps API JSON keys to meeting type tags (and reverse).
 _MEETING_API_KEYS: dict[str, str] = {

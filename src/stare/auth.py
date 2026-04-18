@@ -114,7 +114,7 @@ class TokenManager:
         code_queue: queue.Queue[str] = queue.Queue(maxsize=1)
 
         class _CallbackHandler(BaseHTTPRequestHandler):
-            def do_GET(self) -> None:
+            def do_GET(self) -> None:  # pylint: disable=invalid-name
                 host = self.headers.get("Host", "")
                 if not host.startswith(
                     ("localhost:", "127.0.0.1:", "localhost", "127.0.0.1")
