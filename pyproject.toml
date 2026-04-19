@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling>=1.26"]
+requires = ["hatchling>=1.26", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
@@ -70,7 +70,8 @@ docs = [
 
 
 [tool.hatch]
-version.path = "src/stare/__init__.py"
+version.source = "vcs"
+build.hooks.vcs.version-file = "src/stare/_version.py"
 
 [tool.hatch.envs.default]
 dependency-groups = ["dev"]
