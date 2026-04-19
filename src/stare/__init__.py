@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-__version__ = "0.2.0"
-
+from stare._version import version as __version__
 from stare.client import Glance
 
 __all__ = ["Glance", "__version__"]
