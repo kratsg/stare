@@ -35,7 +35,7 @@ class PaperPhase1(_Base):
     eb_draft_sign_off: str | None = Field(
         default=None, alias="editorialBoardDraftSignOff"
     )
-    released_on: date | None = None
+    draft_released_on: date | None = Field(default=None, alias="draftReleasedDate")
     pub_committee_chair: Person | None = Field(
         default=None, alias="publicationCommitteeChairDeputyOrDelegatedTo"
     )
@@ -56,11 +56,13 @@ class PaperPhase2(_Base):
     eb_draft2_sign_off_on: date | None = Field(
         default=None, alias="editorialBoardDraft2SignOffOn"
     )
-    released_on: date | None = None
+    draft2_released_on: date | None = Field(default=None, alias="draft2ReleasedDate")
     sent_draft2_to_cern_on: date | None = None
-    signed_off_by_cern_on: date | None = None
+    draft2_cern_sign_off_on: date | None = Field(
+        default=None, alias="draft2CernSignOffDate"
+    )
     paper_closure_meeting_urls: list[Link] = Field(default_factory=list)
-    preliminary_plots_released: str | None = Field(
+    preliminary_plots_released: bool | None = Field(
         default=None, alias="preliminaryPlotsAndResultsReleased"
     )
     date_of_paper_closure: date | None = None
@@ -82,17 +84,19 @@ class SubmissionPhase(_Base):
 
     state: LenientPhaseState | None = None
     start_date: date | None = None
-    arxiv_url: Link | None = Field(default=None, alias="arXivUrl")
+    arxiv_urls: list[Link] = Field(default_factory=list, alias="arXivUrls")
     final_title: str | None = Field(default=None, alias="finalTitleTex")
     final_submission_journal: str | None = None
     arxiv_submission_date: AwareDatetime | None = Field(
         default=None, alias="arXivSubmissionDate"
     )
-    physics_briefing: Link | None = None
+    physics_briefings: list[Link] = Field(default_factory=list, alias="physicsBriefing")
     date_of_1st_referee_report: date | None = None
     journal_acceptance_date: date | None = None
     date_of_1st_proof: date | None = None
-    final_journal_publication: Link | None = None
+    final_journal_publications: list[Link] = Field(
+        default_factory=list, alias="finalJournalPublication"
+    )
     published_online_on: date | None = None
 
     @field_validator("arxiv_submission_date", mode="before")
@@ -122,4 +126,4 @@ class Paper(_Base):
     associated_analysis: RelatedPublication | None = None
     phase1: PaperPhase1 | None = None
     phase2: PaperPhase2 | None = None
-    submission_phase: SubmissionPhase | None = None
+    submission: SubmissionPhase | None = None

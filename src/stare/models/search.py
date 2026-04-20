@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Generic, TypeVar
 
-from pydantic import AliasChoices, Field
+from pydantic import Field
 
 from stare.models.analysis import Analysis
 from stare.models.common import _Base
@@ -15,19 +15,9 @@ T = TypeVar("T")
 
 
 class _SearchResultsBase(_Base, Generic[T]):
-    """Generic search result container shared by all search endpoints.
+    """Generic search result container shared by all search endpoints."""
 
-    The two live endpoints return different JSON keys for the total count
-    (``totalRows`` from /searchAnalysis, ``numberOfResults`` from
-    /searchPaper).  Both are accepted and stored under the same Python
-    attribute ``total_rows``.
-    """
-
-    total_rows: int | None = Field(
-        default=None,
-        validation_alias=AliasChoices("totalRows", "numberOfResults"),
-        serialization_alias="numberOfResults",
-    )
+    number_of_results: int | None = Field(default=None, alias="numberOfResults")
     results: list[T] = Field(default_factory=list)
 
 

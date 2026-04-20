@@ -57,8 +57,8 @@ def reference_analysis() -> Analysis:
             )
     except StareError as exc:
         pytest.skip(f"Live API unavailable: {exc}")
-    assert result.total_rows is not None
-    assert result.total_rows >= 1
+    assert result.number_of_results is not None
+    assert result.number_of_results >= 1
     match = next(
         (a for a in result.results if a.reference_code == _REFERENCE_ANALYSIS_CODE),
         None,
@@ -73,8 +73,8 @@ def test_search_analyses_returns_results() -> None:
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.analyses.search(limit=5)
     assert isinstance(result, AnalysisSearchResult)
-    assert result.total_rows is not None
-    assert result.total_rows > 0
+    assert result.number_of_results is not None
+    assert result.number_of_results > 0
     assert len(result.results) > 0
 
 
@@ -85,8 +85,8 @@ def test_search_analyses_by_reference_code() -> None:
         result = g.analyses.search(
             query=f"referenceCode = {_REFERENCE_ANALYSIS_CODE}", limit=1
         )
-    assert result.total_rows is not None
-    assert result.total_rows >= 1
+    assert result.number_of_results is not None
+    assert result.number_of_results >= 1
     assert any(a.reference_code == _REFERENCE_ANALYSIS_CODE for a in result.results)
 
 
@@ -119,5 +119,5 @@ def test_analysis_field_is_searchable(field: str, reference_analysis: Analysis) 
             limit=1,
             validate_query=False,
         )
-    assert result.total_rows is not None
-    assert result.total_rows >= 1
+    assert result.number_of_results is not None
+    assert result.number_of_results >= 1

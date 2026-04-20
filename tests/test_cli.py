@@ -63,7 +63,7 @@ SAMPLE_PUB_NOTE = PubNote.model_validate(
 
 SAMPLE_SEARCH = AnalysisSearchResult.model_validate(
     {
-        "totalRows": 1,
+        "numberOfResults": 1,
         "results": [
             {
                 "referenceCode": "ANA-TEST-2024-01",
@@ -636,7 +636,7 @@ def test_auto_detect_non_tty_emits_json() -> None:
         result = runner.invoke(app, ["analysis", "search"])
     assert result.exit_code == 0
     data = json.loads(result.output)
-    assert "numberOfResults" in data or "totalRows" in data
+    assert "numberOfResults" in data
 
 
 def test_no_json_forces_rich_table() -> None:

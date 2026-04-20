@@ -103,7 +103,7 @@ def paper_search(
         return
 
     settings = StareSettings()
-    table = Table(title=f"Papers ({result.total_rows} total)")
+    table = Table(title=f"Papers ({result.number_of_results} total)")
     table.add_column("Reference Code", style="cyan")
     table.add_column("Status")
     table.add_column("Short Title")

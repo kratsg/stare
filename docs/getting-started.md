@@ -149,7 +149,7 @@ g = Glance()
 
 # Search analyses (live)
 result = g.analyses.search(query="referenceCode = ANA-HION-2018-01")
-print(f"Found {result.total_rows} analyses")
+print(f"Found {result.number_of_results} analyses")
 for analysis in result.results:
     print(analysis.reference_code, analysis.short_title)
 
