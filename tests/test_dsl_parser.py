@@ -126,3 +126,34 @@ def test_analysis_field_rejected_in_paper_mode() -> None:
 def test_paper_field_rejected_in_analysis_mode() -> None:
     with pytest.raises(DSLValidationError):
         parse_dsl("fullTitle contain Higgs", mode="analysis")
+
+
+def test_quoted_value_stripped() -> None:
+    """A double-quoted value is stripped to the inner string."""
+    expr = parse_dsl('shortTitle = "Phase Closed"', mode="analysis")
+    assert isinstance(expr, Condition)
+    assert expr.field == "shortTitle"
+    assert expr.value == "Phase Closed"
+
+
+def test_quoted_field_stripped() -> None:
+    """A double-quoted field is stripped and normalized as usual."""
+    expr = parse_dsl('"phase0.state" = ACTIVE', mode="analysis")
+    assert isinstance(expr, Condition)
+    assert expr.field == "phase0.state"
+    assert expr.value == "ACTIVE"
+
+
+def test_quoted_field_and_value() -> None:
+    """Both field and value may be double-quoted simultaneously."""
+    expr = parse_dsl('"phase0.state" = "ACTIVE"', mode="analysis")
+    assert isinstance(expr, Condition)
+    assert expr.field == "phase0.state"
+    assert expr.value == "ACTIVE"
+
+
+def test_quoted_snake_case_field_normalizes() -> None:
+    """A quoted snake_case field still normalizes to camelCase."""
+    expr = parse_dsl('"reference_code" = HION', mode="analysis")
+    assert isinstance(expr, Condition)
+    assert expr.field == "referenceCode"

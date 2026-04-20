@@ -26,7 +26,7 @@ def analysis_search(
         typer.Option(
             "--query",
             "-q",
-            help="Filter query (e.g. 'referenceCode = HION'; ops: =, !=, contain, not-contain; combine with and/or). See docs/query-dsl.md.",
+            help="Filter query (e.g. 'referenceCode = HION'; ops: =, !=, contain, not-contain; combine with and/or; quote values with spaces: 'shortTitle = \"Phase Closed\"'). See docs/query-dsl.md.",
         ),
     ] = None,
     limit: Annotated[
@@ -75,6 +75,7 @@ def analysis_search(
     [bold]Examples[/bold]
       [green]stare analysis search -q 'referenceCode = HION'[/green]
       [green]stare analysis search -q 'metadata.keywords contain jets and status = Active'[/green]
+      [green]stare analysis search -q 'shortTitle = "Phase Closed"'[/green]
       [green]stare analysis search | jq '.results[].referenceCode'[/green]
       [green]stare analysis search | jq '[.results[] | select(.status=="Active")] | length'[/green]
 

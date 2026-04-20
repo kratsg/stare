@@ -39,6 +39,7 @@ refreshed automatically.
 stare analysis search
 stare analysis search --query 'referenceCode = ANA-HION-2018-01'
 stare analysis search -q 'keywords contain Higgs' --limit 20
+stare analysis search -q 'shortTitle = "Phase Closed"'
 
 # Pipe to jq for field selection (JSON is auto-emitted)
 stare analysis search | jq '.results[].referenceCode'
