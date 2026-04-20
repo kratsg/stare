@@ -152,9 +152,7 @@ def test_paginate_through_results(glance: Glance) -> None:
             limit=limit,
             offset=offset,
         )
-        all_codes.extend(
-            a.reference_code for a in result.results if a.reference_code
-        )
+        all_codes.extend(a.reference_code for a in result.results if a.reference_code)
         offset += len(result.results)
         if offset >= (result.number_of_results or 0):
             break

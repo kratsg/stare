@@ -117,9 +117,7 @@ handled automatically from your stored token (run `stare auth login` once). See
 from stare import Glance
 
 g = Glance()
-result = g.analyses.search(
-    query="referenceCode = ANA-HION-2018-01", limit=1
-)
+result = g.analyses.search(query="referenceCode = ANA-HION-2018-01", limit=1)
 analysis = result.results[0]
 
 editors = [m for m in analysis.analysis_team if m.is_contact_editor]  # (1)!
@@ -140,9 +138,7 @@ from stare import Glance
 from stare.models.enums import MeetingType
 
 g = Glance()
-result = g.analyses.search(
-    query="referenceCode = ANA-HION-2018-01", limit=1
-)
+result = g.analyses.search(query="referenceCode = ANA-HION-2018-01", limit=1)
 analysis = result.results[0]
 
 if analysis.phase0:
@@ -197,9 +193,7 @@ if analysis.phase0:
     from stare import Glance
 
     g = Glance()
-    result = g.papers.search(
-        query="referenceCode = EXOT-2018-14", limit=1
-    )
+    result = g.papers.search(query="referenceCode = EXOT-2018-14", limit=1)
     paper = result.results[0]
 
     if paper.submission:  # (1)!
@@ -248,9 +242,7 @@ if analysis.phase0:
             limit=limit,
             offset=offset,
         )
-        all_codes.extend(
-            a.reference_code for a in result.results if a.reference_code
-        )
+        all_codes.extend(a.reference_code for a in result.results if a.reference_code)
         offset += len(result.results)
         if offset >= (result.number_of_results or 0):  # (1)!
             break

@@ -481,7 +481,10 @@ class TestSubmissionPhase:
         s = SubmissionPhase.model_validate(
             {
                 "arXivUrls": [
-                    {"label": "arXiv:2501.00001", "url": "https://arxiv.org/abs/2501.00001"}
+                    {
+                        "label": "arXiv:2501.00001",
+                        "url": "https://arxiv.org/abs/2501.00001",
+                    }
                 ]
             }
         )
