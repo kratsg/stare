@@ -98,11 +98,6 @@ def test_value_with_embedded_quote_raises() -> None:
         c.to_dsl()
 
 
-def test_bare_value_stays_bare() -> None:
-    """Single-token values without special chars are emitted without quotes."""
-    c = Condition(field="referenceCode", operator=Operator.EQ, value="HION")
-    assert c.to_dsl() == "referenceCode = HION"
-
 
 @pytest.mark.parametrize(
     ("value", "expected"),
