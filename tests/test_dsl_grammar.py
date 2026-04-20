@@ -53,6 +53,10 @@ def test_parses_valid(parser: Lark, src: str) -> None:
         "field = x XOR field = y",
         # unterminated double-quoted string
         'field = "unterminated',
+        # non-space whitespace inside a quoted string
+        'field = "has\nnewline"',
+        'field = "has\ttab"',
+        'field = "has\ffeed"',
     ],
 )
 def test_rejects_invalid(parser: Lark, src: str) -> None:

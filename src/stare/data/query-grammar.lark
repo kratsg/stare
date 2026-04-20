@@ -19,7 +19,7 @@ _OR:  /[Oo][Rr]/
 
 IDENT: /[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*/
 VALUE: /[^\s()"]+/
-STRING: /"[^"]*"/
+STRING: /"[^"\n\r\t\f\v]*"/
 
 %import common.WS
 %ignore WS
