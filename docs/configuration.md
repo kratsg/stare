@@ -23,7 +23,7 @@ library.
 | `STARE_SCOPES`                        | `openid`                                                               | Space-separated OAuth2 scopes                                         |
 | `STARE_CALLBACK_PORT`                 | `8182`                                                                 | Local port for the PKCE redirect callback; must match Keycloak config |
 | `STARE_VERBOSE`                       | `false`                                                                | Set to `1` to enable DEBUG-level request logging (httpx/httpcore)     |
-| `STARE_EXCHANGE_AUDIENCE`             | _(not set)_                                                            | RFC 8693 target audience; enables token exchange when set             |
+| `STARE_EXCHANGE_AUDIENCE`             | `atlas-glance-analysis-api-prod`                                       | RFC 8693 target audience for token exchange; set for production by default |
 | `STARE_EXCHANGE_TOKEN_BUFFER_SECONDS` | `120`                                                                  | Re-exchange the token this many seconds before expiry                 |
 | `STARE_TOKEN_EXPIRY_MARGIN_SECONDS`   | `60`                                                                   | Trigger refresh this many seconds before the access token expires     |
 | `STARE_CA_BUNDLE`                     | `Sectigo`                                                              | TLS CA bundle: `Sectigo` (production) or `CERN` (staging)             |

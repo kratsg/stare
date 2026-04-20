@@ -26,9 +26,9 @@ class StareSettings(BaseSettings):
     # Set STARE_VERBOSE=1 to enable DEBUG-level httpx/httpcore request logging.
     verbose: bool = False
     # RFC 8693 token exchange: exchange the PKCE access token for a token
-    # scoped to this audience before each API call. Disabled by default; set
-    # STARE_EXCHANGE_AUDIENCE=atlas-analysis-api (or similar) to enable.
-    exchange_audience: str | None = None
+    # scoped to this audience before each API call. Defaults to the production
+    # audience; set STARE_EXCHANGE_AUDIENCE='' to disable exchange entirely.
+    exchange_audience: str | None = "atlas-glance-analysis-api-prod"
     revocation_url: str = (
         "https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/revoke"
     )
