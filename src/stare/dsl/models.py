@@ -32,7 +32,7 @@ class Condition(BaseModel):
     value: str
 
     def to_dsl(self) -> str:
-        """Serialize to DSL string, quoting the value when it contains whitespace or parens."""
+        """Serialize to DSL string, quoting the value when it contains spaces or parens."""
         if '"' in self.value:
             # The grammar's string token (STRING: /"[^"]*"/) does not support embedded
             # double-quotes, so emitting a quoted string would produce invalid DSL.
@@ -41,9 +41,13 @@ class Condition(BaseModel):
                 "in a quoted DSL string; escaped-quote support is not yet implemented"
             )
             raise ValueError(msg)
+        bad_ws = next((c for c in self.value if c != " " and c.isspace()), None)
+        if bad_ws is not None:
+            msg = f"to_dsl: self.value {self.value!r} contains non-space whitespace {bad_ws!r}, which is not supported"
+            raise ValueError(msg)
         value = (
             f'"{self.value}"'
-            if self.value == "" or any(c.isspace() or c in "()[]" for c in self.value)
+            if self.value == "" or any(c in " ()[]" for c in self.value)
             else self.value
         )
         return f"{self.field} {self.operator} {value}"

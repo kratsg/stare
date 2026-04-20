@@ -109,16 +109,22 @@ def test_bare_value_stays_bare() -> None:
     [
         ("", '""'),
         ("Phase Closed", '"Phase Closed"'),
-        ("has\nnewline", '"has\nnewline"'),
-        ("has\ffeed", '"has\ffeed"'),
         ("has(paren)", '"has(paren)"'),
         ("has[bracket]", '"has[bracket]"'),
     ],
 )
 def test_value_quoted_when_needed(value: str, expected: str) -> None:
-    """to_dsl wraps values that are empty, contain any whitespace, or contain delimiter chars."""
+    """to_dsl wraps values that are empty, contain spaces, or contain delimiter chars."""
     c = Condition(field="f", operator=Operator.EQ, value=value)
     assert c.to_dsl() == f"f = {expected}"
+
+
+@pytest.mark.parametrize("value", ["has\nnewline", "has\ffeed", "has\ttab"])
+def test_value_with_non_space_whitespace_raises(value: str) -> None:
+    """to_dsl raises ValueError for non-space whitespace characters."""
+    c = Condition(field="f", operator=Operator.EQ, value=value)
+    with pytest.raises(ValueError, match="non-space whitespace"):
+        c.to_dsl()
 
 
 def test_multiword_value_round_trips() -> None:
