@@ -187,6 +187,6 @@ def test_context_manager() -> None:
 
 
 @pytest.mark.slow
-def test_error_handling_auth_error_type(glance: Glance) -> None:
+def test_error_handling_auth_error_type() -> None:
     """docs/examples.md — AuthenticationError is a subclass of StareError."""
     assert issubclass(AuthenticationError, StareError)

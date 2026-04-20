@@ -24,6 +24,7 @@ from stare.models.common import (
 )
 from stare.models.enums import MeetingType
 from stare.models.errors import ApiErrorResponse
+from stare.models.paper import PaperPhase1, PaperPhase2, SubmissionPhase
 from stare.models.search import AnalysisSearchResult, PublicationRef, Trigger
 
 # ---------------------------------------------------------------------------
@@ -433,15 +434,10 @@ class TestAnalysis:
 # ---------------------------------------------------------------------------
 
 
-from stare.models.paper import PaperPhase1, PaperPhase2, SubmissionPhase
-
-
 class TestPaperPhase1:
     def test_draft_released_on(self) -> None:
         p = PaperPhase1.model_validate({"draftReleasedDate": "2024-06-01"})
         assert p.draft_released_on is not None
-        from datetime import date
-
         assert p.draft_released_on == date(2024, 6, 1)
 
     def test_all_optional(self) -> None:
@@ -459,8 +455,6 @@ class TestPaperPhase2:
                 "preliminaryPlotsAndResultsReleased": True,
             }
         )
-        from datetime import date
-
         assert p.draft2_released_on == date(2024, 7, 1)
         assert p.draft2_cern_sign_off_on == date(2024, 8, 1)
         assert p.preliminary_plots_released is True
