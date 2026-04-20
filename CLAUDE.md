@@ -78,6 +78,9 @@ g = Glance()
 
 # Currently live: GET /searchAnalysis
 result = g.analyses.search(query="referenceCode = ANA-HION-2018-01")
+result = g.analyses.search(
+    query='shortTitle = "Phase Closed"'
+)  # multi-word value → quotes
 
 # Currently live: GET /searchPaper
 paper_result = g.papers.search(query="referenceCode = HDBS-2018-33")
