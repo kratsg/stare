@@ -32,10 +32,10 @@ class Condition(BaseModel):
     value: str
 
     def to_dsl(self) -> str:
-        """Serialize to DSL string.
+        r"""Serialize to DSL string.
 
         Raises ValueError for values that cannot be represented in the grammar's
-        STRING token (/"[^"\\n\\r\\t\\f\\v]*"/):
+        STRING token `(/"[^"\n\r\t\f\v]*"/)`:
         - embedded double-quotes are unsupported (escaped-quote support not yet implemented)
         - non-space whitespace (tabs, newlines, etc.) is excluded by the grammar
 
