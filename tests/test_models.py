@@ -71,11 +71,11 @@ class TestTeamMember:
                 "firstName": "X",
                 "lastName": "Y",
                 "email": "x@y.com",
-                "isContactEditor": "true",
+                "isContactEditor": True,
             }
         )
         assert m.cern_ccid == "x"
-        assert m.is_contact_editor == "true"
+        assert m.is_contact_editor is True
 
     def test_is_contact_editor_optional(self) -> None:
         m = TeamMember.model_validate({})
@@ -213,8 +213,8 @@ class TestMeeting:
                 "title": "EOI",
                 "date": "2023-01-15",
                 "comments": "ok",
-                "linkLabel": "Indico",
-                "link": "https://indico.cern.ch/e/1",
+                "label": "Indico",
+                "url": "https://indico.cern.ch/e/1",
             }
         )
         assert m.title == "EOI"
@@ -282,8 +282,8 @@ class TestAnalysisPhase0:
                         "title": "EOI",
                         "date": "2022-03-01",
                         "comments": "",
-                        "linkLabel": "Indico",
-                        "link": "https://indico.cern.ch",
+                        "label": "Indico",
+                        "url": "https://indico.cern.ch",
                     }
                 ],
                 "approvalMeeting": [],
@@ -381,7 +381,7 @@ class TestAnalysis:
                         "firstName": "A",
                         "lastName": "B",
                         "email": "a@b.com",
-                        "isContactEditor": "true",
+                        "isContactEditor": True,
                     }
                 ],
             }
@@ -429,32 +429,117 @@ class TestAnalysis:
 
 
 # ---------------------------------------------------------------------------
+# Paper models
+# ---------------------------------------------------------------------------
+
+
+from stare.models.paper import PaperPhase1, PaperPhase2, SubmissionPhase
+
+
+class TestPaperPhase1:
+    def test_draft_released_on(self) -> None:
+        p = PaperPhase1.model_validate({"draftReleasedDate": "2024-06-01"})
+        assert p.draft_released_on is not None
+        from datetime import date
+
+        assert p.draft_released_on == date(2024, 6, 1)
+
+    def test_all_optional(self) -> None:
+        p = PaperPhase1.model_validate({})
+        assert p.state is None
+        assert p.draft_released_on is None
+
+
+class TestPaperPhase2:
+    def test_draft2_fields(self) -> None:
+        p = PaperPhase2.model_validate(
+            {
+                "draft2ReleasedDate": "2024-07-01",
+                "draft2CernSignOffDate": "2024-08-01",
+                "preliminaryPlotsAndResultsReleased": True,
+            }
+        )
+        from datetime import date
+
+        assert p.draft2_released_on == date(2024, 7, 1)
+        assert p.draft2_cern_sign_off_on == date(2024, 8, 1)
+        assert p.preliminary_plots_released is True
+
+    def test_preliminary_plots_false(self) -> None:
+        p = PaperPhase2.model_validate({"preliminaryPlotsAndResultsReleased": False})
+        assert p.preliminary_plots_released is False
+
+    def test_all_optional(self) -> None:
+        p = PaperPhase2.model_validate({})
+        assert p.draft2_released_on is None
+        assert p.draft2_cern_sign_off_on is None
+        assert p.preliminary_plots_released is None
+
+
+class TestSubmissionPhase:
+    def test_arxiv_urls(self) -> None:
+        s = SubmissionPhase.model_validate(
+            {
+                "arXivUrls": [
+                    {"label": "arXiv:2501.00001", "url": "https://arxiv.org/abs/2501.00001"}
+                ]
+            }
+        )
+        assert len(s.arxiv_urls) == 1
+        assert s.arxiv_urls[0].label == "arXiv:2501.00001"
+
+    def test_physics_briefings(self) -> None:
+        s = SubmissionPhase.model_validate(
+            {
+                "physicsBriefing": [
+                    {"label": "Physics Briefing", "url": "https://atlas.cern/pb/1"}
+                ]
+            }
+        )
+        assert len(s.physics_briefings) == 1
+        assert s.physics_briefings[0].label == "Physics Briefing"
+
+    def test_final_journal_publications(self) -> None:
+        s = SubmissionPhase.model_validate(
+            {
+                "finalJournalPublication": [
+                    {"label": "JHEP 01 (2025) 001", "url": "https://doi.org/10.1007/x"}
+                ]
+            }
+        )
+        assert len(s.final_journal_publications) == 1
+        assert s.final_journal_publications[0].label == "JHEP 01 (2025) 001"
+
+    def test_all_optional(self) -> None:
+        s = SubmissionPhase.model_validate({})
+        assert s.arxiv_urls == []
+        assert s.physics_briefings == []
+        assert s.final_journal_publications == []
+
+
+# ---------------------------------------------------------------------------
 # Search / wrapper models
 # ---------------------------------------------------------------------------
 
 
 class TestAnalysisSearchResult:
-    def test_parse_totalrows_key(self) -> None:
+    def test_parse(self) -> None:
         r = AnalysisSearchResult.model_validate(
             {
-                "totalRows": 2,
+                "numberOfResults": 2,
                 "results": [
                     {"referenceCode": "ANA-A", "status": "Active"},
                     {"referenceCode": "ANA-B", "status": "Closed"},
                 ],
             }
         )
-        assert r.total_rows == 2
+        assert r.number_of_results == 2
         assert len(r.results) == 2
         assert r.results[0].reference_code == "ANA-A"
 
-    def test_parse_numberofresults_key(self) -> None:
-        r = AnalysisSearchResult.model_validate({"numberOfResults": 5, "results": []})
-        assert r.total_rows == 5
-
     def test_empty_results(self) -> None:
-        r = AnalysisSearchResult.model_validate({"totalRows": 0, "results": []})
-        assert r.total_rows == 0
+        r = AnalysisSearchResult.model_validate({"numberOfResults": 0, "results": []})
+        assert r.number_of_results == 0
         assert r.results == []
 
 

@@ -139,7 +139,7 @@ class Person(_Base):
 class TeamMember(Person):
     """A member of an analysis team."""
 
-    is_contact_editor: str | None = None
+    is_contact_editor: bool | None = None
 
 
 class EditorialBoardMember(Person):
@@ -222,11 +222,14 @@ class Meeting(_Base):
     @model_validator(mode="before")
     @classmethod
     def _fold_link_fields(cls, data: Any) -> Any:
-        if isinstance(data, dict) and isinstance(data.get("link"), str):
-            link_url = data.pop("link", None)
-            link_label = data.pop("linkLabel", None)
-            if link_url is not None or link_label is not None:
-                data["link"] = {"label": link_label, "url": link_url}
+        if not isinstance(data, dict):
+            return data
+        # API sends flat label/url fields; fold them into a nested Link object.
+        if "link" not in data and ("label" in data or "url" in data):
+            label = data.pop("label", None)
+            url = data.pop("url", None)
+            if label is not None or url is not None:
+                data["link"] = {"label": label, "url": url}
         return data
 
 

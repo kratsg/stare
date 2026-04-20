@@ -54,7 +54,7 @@ SAMPLE_ANALYSIS = {
 }
 
 SAMPLE_SEARCH = {
-    "totalRows": 1,
+    "numberOfResults": 1,
     "results": [SAMPLE_ANALYSIS],
 }
 
@@ -148,7 +148,7 @@ def test_analyses_search_returns_search_result(glance: Glance) -> None:
         result = glance.analyses.search()
 
     assert isinstance(result, AnalysisSearchResult)
-    assert result.total_rows == 1
+    assert result.number_of_results == 1
     assert len(result.results) == 1
     assert isinstance(result.results[0], Analysis)
     assert result.results[0].reference_code == "ANA-TEST-2024-01"
@@ -157,7 +157,7 @@ def test_analyses_search_returns_search_result(glance: Glance) -> None:
 def test_analyses_search_passes_query_params(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
         rx.get("/searchAnalysis").mock(
-            return_value=httpx.Response(200, json={"totalRows": 0, "results": []})
+            return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
         )
         glance.analyses.search(query="referenceCode = X", limit=10, offset=5)
         params = dict(rx.calls[0].request.url.params)
@@ -169,7 +169,7 @@ def test_analyses_search_passes_query_params(glance: Glance) -> None:
 def test_analyses_search_sort_params(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
         rx.get("/searchAnalysis").mock(
-            return_value=httpx.Response(200, json={"totalRows": 0, "results": []})
+            return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
         )
         glance.analyses.search(sort_by="referenceCode", sort_desc=True)
         params = dict(rx.calls[0].request.url.params)
@@ -180,7 +180,7 @@ def test_analyses_search_sort_params(glance: Glance) -> None:
 def test_analyses_search_omits_none_params(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
         rx.get("/searchAnalysis").mock(
-            return_value=httpx.Response(200, json={"totalRows": 0, "results": []})
+            return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
         )
         glance.analyses.search()  # no query, no sort
         params = dict(rx.calls[0].request.url.params)
@@ -192,7 +192,7 @@ def test_analyses_search_omits_none_params(glance: Glance) -> None:
 def test_analyses_search_accepts_expression(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
         rx.get("/searchAnalysis").mock(
-            return_value=httpx.Response(200, json={"totalRows": 0, "results": []})
+            return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
         )
         glance.analyses.search(
             query=Condition(field="referenceCode", operator=Operator.EQ, value="X")
@@ -204,7 +204,7 @@ def test_analyses_search_accepts_expression(glance: Glance) -> None:
 def test_analyses_search_normalizes_snake_case_query(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
         rx.get("/searchAnalysis").mock(
-            return_value=httpx.Response(200, json={"totalRows": 0, "results": []})
+            return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
         )
         glance.analyses.search(query="reference_code = X")
         params = dict(rx.calls[0].request.url.params)
@@ -219,7 +219,7 @@ def test_analyses_search_rejects_unknown_field(glance: Glance) -> None:
 def test_analyses_search_validate_false_passes_raw(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
         rx.get("/searchAnalysis").mock(
-            return_value=httpx.Response(200, json={"totalRows": 0, "results": []})
+            return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
         )
         glance.analyses.search(query="foo = bar", validate_query=False)
         params = dict(rx.calls[0].request.url.params)
@@ -301,7 +301,7 @@ def test_papers_search_returns_paper_search_result(glance: Glance) -> None:
         result = glance.papers.search()
 
     assert isinstance(result, PaperSearchResult)
-    assert result.total_rows == 1
+    assert result.number_of_results == 1
     assert len(result.results) == 1
     assert isinstance(result.results[0], Paper)
     assert result.results[0].reference_code == "HDBS-2024-01"
