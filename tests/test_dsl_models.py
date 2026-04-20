@@ -98,7 +98,6 @@ def test_value_with_embedded_quote_raises() -> None:
         c.to_dsl()
 
 
-
 @pytest.mark.parametrize(
     ("value", "expected"),
     [
