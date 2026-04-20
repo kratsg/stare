@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+from stare.dsl import parse_dsl
 from stare.dsl.models import And, Condition, Operator, Or
 
 
@@ -82,3 +83,23 @@ def test_and_inside_or_no_parens() -> None:
 def test_all_operators(op: Operator) -> None:
     c = Condition(field="f", operator=op, value="v")
     assert op.value in c.to_dsl()
+
+
+def test_multiword_value_quoted_in_dsl() -> None:
+    """Values containing whitespace are wrapped in double-quotes by to_dsl()."""
+    c = Condition(field="shortTitle", operator=Operator.EQ, value="Phase Closed")
+    assert c.to_dsl() == 'shortTitle = "Phase Closed"'
+
+
+def test_bare_value_stays_bare() -> None:
+    """Single-token values without special chars are emitted without quotes."""
+    c = Condition(field="referenceCode", operator=Operator.EQ, value="HION")
+    assert c.to_dsl() == "referenceCode = HION"
+
+
+def test_multiword_value_round_trips() -> None:
+    """parse_dsl → to_dsl is idempotent for double-quoted multi-word values."""
+    src = 'shortTitle = "Phase Closed"'
+    expr = parse_dsl(src, mode="analysis")
+    assert expr.to_dsl() == src
+    assert parse_dsl(expr.to_dsl(), mode="analysis").to_dsl() == src

@@ -81,6 +81,39 @@ handled automatically from your stored token (run `stare auth login` once). See
 
 ---
 
+## Filter by a multi-word value
+
+Values that contain spaces must be wrapped in **double quotes**. This also works
+with the quoted-field form.
+
+=== "Python"
+
+    ```python
+    from stare import Glance
+
+    g = Glance()
+    result = g.analyses.search(
+        query='shortTitle = "Phase Closed"',  # (1)!
+    )
+    for analysis in result.results:
+        print(analysis.reference_code, analysis.short_title)
+    ```
+
+    1. Double-quote the value when it contains whitespace. Single-word values
+       can be written bare (e.g. `status = Active`).
+
+=== "CLI"
+
+    ```bash
+    # Double-quote values that contain spaces (outer single-quote protects the expression)
+    stare analysis search -q 'shortTitle = "Phase Closed"'
+
+    # Both sides may be quoted:
+    stare paper search -q '"phase2.state" = "Phase Closed"'
+    ```
+
+---
+
 ## Look up a specific analysis
 
 === "Python"

@@ -46,13 +46,37 @@ Nested fields use a dot separator: `metadata.keywords`, `phase0.state`.
 
     Run `pixi run extract-fields` after an API update to regenerate both `src/stare/dsl/data/fields.toml` and the tables below.
 
-## Values
+## Quoting
 
-Values are bare tokens (no quotes, no spaces). A value like `ANA-HION-2018-01`
-or `Active` works; a multi-word title does not — use `contain` instead:
+Both the field name and the value may optionally be wrapped in **double
+quotes**. Quotes are required on the value when it contains whitespace,
+parentheses, or double-quote characters; for everything else they are optional.
 
 ```bash
-# Can't express a multi-word value directly — use contain:
+# These are equivalent:
+stare analysis search -q 'referenceCode = HION'
+stare analysis search -q '"referenceCode" = HION'
+stare analysis search -q 'referenceCode = "HION"'
+
+# Multi-word values require quotes:
+stare analysis search -q 'shortTitle = "Phase Closed"'
+stare paper search -q '"phase2.state" = "Phase Closed"'
+```
+
+Canonical output (`to_dsl()`) emits quotes on the value only when they are
+required; bare single-token values are always emitted unquoted. Fields are
+always emitted bare after normalization.
+
+Only `"` (double quotes) are accepted — single quotes are not special.
+
+## Values
+
+Values are bare tokens or double-quoted strings. A bare value like
+`ANA-HION-2018-01` or `Active` works without quotes. Wrap the value in double
+quotes when it contains spaces:
+
+```bash
+stare analysis search -q 'shortTitle = "Phase Closed"'
 stare analysis search -q 'metadata.keywords contain jets'
 ```
 

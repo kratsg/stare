@@ -32,8 +32,11 @@ class Condition(BaseModel):
     value: str
 
     def to_dsl(self) -> str:
-        """Serialize to DSL string."""
-        return f"{self.field} {self.operator} {self.value}"
+        """Serialize to DSL string, quoting the value when it contains whitespace or parens."""
+        value = (
+            f'"{self.value}"' if any(c in self.value for c in ' \t()"') else self.value
+        )
+        return f"{self.field} {self.operator} {value}"
 
 
 class And(BaseModel):

@@ -26,7 +26,7 @@ def paper_search(
         typer.Option(
             "--query",
             "-q",
-            help="Filter query (e.g. 'referenceCode = HDBS'; ops: =, !=, contain, not-contain; combine with and/or). See docs/query-dsl.md.",
+            help="Filter query (e.g. 'referenceCode = HDBS'; ops: =, !=, contain, not-contain; combine with and/or; quote values with spaces: 'phase2.state = \"Phase Closed\"'). See docs/query-dsl.md.",
         ),
     ] = None,
     limit: Annotated[
@@ -75,6 +75,7 @@ def paper_search(
     [bold]Examples[/bold]
       [green]stare paper search -q 'referenceCode = HDBS'[/green]
       [green]stare paper search -q 'fullTitle contain Higgs'[/green]
+      [green]stare paper search -q 'phase2.state = "Phase Closed"'[/green]
       [green]stare paper search | jq '.results[].referenceCode'[/green]
 
     [bold]API reference[/bold]

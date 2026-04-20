@@ -28,6 +28,13 @@ def parser() -> Lark:
         "F = x and G = y or H = z",
         "referenceCode = ANA-HION-2018-01",
         "phase0.state = ACTIVE",
+        # quoted fields and/or values (double-quotes only)
+        '"referenceCode" = HION',
+        'referenceCode = "HION"',
+        'shortTitle = "multiple words"',
+        '"phase2.state" = "Phase Closed"',
+        '"shortTitle" contain "Higgs"',
+        'status = "Phase Closed" AND referenceCode = HION',
     ],
 )
 def test_parses_valid(parser: Lark, src: str) -> None:
@@ -44,9 +51,8 @@ def test_parses_valid(parser: Lark, src: str) -> None:
         "field = x AND",
         "(field = x",
         "field = x XOR field = y",
-        '"referenceCode" = HION',
-        'referenceCode = "HION"',
-        'shortTitle = "multiple words"',
+        # unterminated double-quoted string
+        'field = "unterminated',
     ],
 )
 def test_rejects_invalid(parser: Lark, src: str) -> None:

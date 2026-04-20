@@ -22,18 +22,26 @@ _LARK = Lark(_GRAMMAR, start="expression", parser="lalr")
 _VALID_OPS = tuple(op.value for op in Operator)
 
 
+def _unquote(token: Any) -> str:
+    """Strip surrounding double-quotes from a STRING token, or return bare."""
+    s = str(token)
+    if len(s) >= 2 and s[0] == '"' and s[-1] == '"':
+        return s[1:-1]
+    return s
+
+
 class _DSLTransformer(Transformer[Any, Expression]):
     def __init__(self, registry: FieldRegistry) -> None:
         super().__init__()
         self._registry = registry
 
     def field(self, items: list[Any]) -> str:
-        """Return the field name token as a plain string."""
-        return str(items[0])
+        """Return the field name token as a plain string, stripping optional quotes."""
+        return _unquote(items[0])
 
     def value(self, items: list[Any]) -> str:
-        """Return the value token as a plain string."""
-        return str(items[0])
+        """Return the value token as a plain string, stripping optional quotes."""
+        return _unquote(items[0])
 
     def condition(self, items: list[Any]) -> Condition:
         """Build a Condition from (field_str, op_token, value_str)."""
