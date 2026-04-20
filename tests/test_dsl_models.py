@@ -94,7 +94,7 @@ def test_multiword_value_quoted_in_dsl() -> None:
 def test_value_with_embedded_quote_raises() -> None:
     """to_dsl raises ValueError when self.value contains a double-quote."""
     c = Condition(field="shortTitle", operator=Operator.EQ, value='has"quote')
-    with pytest.raises(ValueError, match="embedded.*quote|not.*supported|to_dsl"):
+    with pytest.raises(ValueError, match=r"embedded.*quote|not.*supported|to_dsl"):
         c.to_dsl()
 
 

@@ -36,11 +36,14 @@ class Condition(BaseModel):
         if '"' in self.value:
             # The grammar's string token (STRING: /"[^"]*"/) does not support embedded
             # double-quotes, so emitting a quoted string would produce invalid DSL.
-            raise ValueError(
+            msg = (
                 f"to_dsl: self.value {self.value!r} contains '\"', which is not supported "
                 "in a quoted DSL string; escaped-quote support is not yet implemented"
             )
-        value = f'"{self.value}"' if any(c in self.value for c in " \t()") else self.value
+            raise ValueError(msg)
+        value = (
+            f'"{self.value}"' if any(c in self.value for c in " \t()") else self.value
+        )
         return f"{self.field} {self.operator} {value}"
 
 
