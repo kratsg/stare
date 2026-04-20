@@ -11,6 +11,7 @@ Copyright &copy; 2019 Giordon Stark
 nav = [
   { "Home" = "index.md" },
   { "Getting started" = "getting-started.md" },
+  { "Examples" = "examples.md" },
   { "Query DSL" = "query-dsl.md" },
   { "Authentication" = "auth.md" },
   { "Configuration" = "configuration.md" },
