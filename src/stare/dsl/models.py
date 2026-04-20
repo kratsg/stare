@@ -42,7 +42,9 @@ class Condition(BaseModel):
             )
             raise ValueError(msg)
         value = (
-            f'"{self.value}"' if any(c in self.value for c in " \t()") else self.value
+            f'"{self.value}"'
+            if self.value == "" or any(c.isspace() or c in "()[]" for c in self.value)
+            else self.value
         )
         return f"{self.field} {self.operator} {value}"
 
