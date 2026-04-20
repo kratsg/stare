@@ -49,8 +49,14 @@ Nested fields use a dot separator: `metadata.keywords`, `phase0.state`.
 ## Quoting
 
 Both the field name and the value may optionally be wrapped in **double
-quotes**. Quotes are required on the value when it contains whitespace,
-parentheses, or double-quote characters; for everything else they are optional.
+quotes**. Quotes are required on the value when it contains whitespace or
+parentheses; for everything else they are optional.
+
+The grammar's string token (`STRING: /"[^"]*"/`) does not permit embedded
+double-quote characters, so values containing `"` are not supported even when
+wrapped in double quotes. If your value contains a literal `"`, use `contain`
+with a substring that avoids it, or reach out — escaped-quote support is not
+yet implemented.
 
 ```bash
 # These are equivalent:

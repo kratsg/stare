@@ -91,6 +91,13 @@ def test_multiword_value_quoted_in_dsl() -> None:
     assert c.to_dsl() == 'shortTitle = "Phase Closed"'
 
 
+def test_value_with_embedded_quote_raises() -> None:
+    """to_dsl raises ValueError when self.value contains a double-quote."""
+    c = Condition(field="shortTitle", operator=Operator.EQ, value='has"quote')
+    with pytest.raises(ValueError, match="embedded.*quote|not.*supported|to_dsl"):
+        c.to_dsl()
+
+
 def test_bare_value_stays_bare() -> None:
     """Single-token values without special chars are emitted without quotes."""
     c = Condition(field="referenceCode", operator=Operator.EQ, value="HION")
