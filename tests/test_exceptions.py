@@ -84,6 +84,21 @@ class TestResponseParseError:
         err = ResponseParseError("some error", raw_data=payload)
         assert err.raw_data == payload
 
+    def test_details_defaults_to_empty_list(self) -> None:
+        err = ResponseParseError("some error")
+        assert err.details == []
+
+    def test_details_stored_when_provided(self) -> None:
+        from stare.exceptions import EnrichedErrorResponse
+
+        detail = EnrichedErrorResponse(
+            loc=("results", 2),
+            loc_str="results[2]",
+            message="bad",
+        )
+        err = ResponseParseError("msg", details=[detail])
+        assert err.details == [detail]
+
 
 class TestAuthenticationErrors:
     def test_token_expired_error_message(self) -> None:

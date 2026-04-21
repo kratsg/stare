@@ -4,8 +4,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from pydantic import BaseModel
+
 if TYPE_CHECKING:
     from typing import Any
+
+
+class EnrichedErrorResponse(BaseModel):
+    loc: tuple[int | str, ...]
+    loc_str: str
+    message: str
+    context: str | None = None
+    snippet: object | None = None
+    input_val: object | None = None
 
 
 class StareError(Exception):
@@ -52,7 +63,13 @@ class ResponseParseError(StareError):
             error message.
     """
 
-    def __init__(self, message: str, raw_data: Any = None) -> None:
+    def __init__(
+        self,
+        message: str,
+        raw_data: Any = None,
+        details: list[EnrichedErrorResponse] | None = None,
+    ) -> None:
         """Store the raw API payload alongside the error message."""
         self.raw_data = raw_data
+        self.details = details or []
         super().__init__(message)

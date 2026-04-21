@@ -479,8 +479,11 @@ def test_analyses_search_raises_response_parse_error(glance: Glance) -> None:
     assert "AnalysisSearchResult" in msg
     assert "results" in msg
     assert "validation error" in msg.lower()
-    # raw_data lets callers (e.g. CLI) display the offending JSON
-    assert exc_info.value.raw_data == bad_json
+    # default verbose=False -> raw_data is not attached
+    assert exc_info.value.raw_data is None
+    # details are always enriched with snippet + location info
+    assert exc_info.value.details
+    assert any("results" in d.loc_str for d in exc_info.value.details)
 
 
 def test_response_parse_error_is_stare_error(glance: Glance) -> None:
@@ -508,7 +511,7 @@ def test_format_parse_error_with_nested_loc() -> None:
     try:
         _Tmp.model_validate({"items": "not-a-list"})
     except ValidationError as exc:
-        msg = _format_parse_error("_Tmp", exc)
+        msg, _details = _format_parse_error("_Tmp", exc)
 
     assert "_Tmp" in msg
     assert "items" in msg
@@ -524,7 +527,7 @@ def test_format_parse_error_integer_index_uses_brackets() -> None:
     try:
         _M.model_validate({"items": ["ok", 123]})
     except ValidationError as exc:
-        msg = _format_parse_error("_M", exc)
+        msg, _details = _format_parse_error("_M", exc)
 
     assert "items[1]" in msg
 
@@ -547,7 +550,7 @@ def test_format_parse_error_with_obj_extracts_reference_code() -> None:
             {"referenceCode": "ANA-C"},
         ]
     }
-    msg = _format_parse_error("SearchResult", mock_error, obj=obj)
+    msg, _details = _format_parse_error("SearchResult", mock_error, obj=obj)
     assert "results[2]" in msg
     assert "ANA-C" in msg
 
@@ -559,6 +562,6 @@ def test_format_parse_error_empty_loc() -> None:
         {"loc": (), "msg": "something broke", "type": "value_error"}
     ]
 
-    msg = _format_parse_error("MyModel", mock_error)
+    msg, _details = _format_parse_error("MyModel", mock_error)
     assert "(root)" in msg
     assert "something broke" in msg

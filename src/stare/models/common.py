@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_valida
 from pydantic.alias_generators import to_camel
 from rich.text import Text
 
-from stare.exceptions import ResponseParseError
+from stare.exceptions import EnrichedErrorResponse, ResponseParseError
 from stare.models.enums import (
     LenientCollisionType,
     LenientPublicationType,
@@ -46,18 +46,65 @@ def _extract_context(obj: Any, loc: tuple[str | int, ...]) -> str | None:
         node = obj
         for part in loc[:-1]:
             node = node[part]
-        if isinstance(node, dict):
-            ref = node.get("referenceCode")
-            if ref:
-                return f"referenceCode={ref!r}"
+            if isinstance(node, dict):
+                ref = node.get("referenceCode")
+                if ref:
+                    return f"referenceCode={ref!r}"
     except (KeyError, IndexError, TypeError):
         pass
     return None
 
 
+def _truncate_with_focus(
+    obj: Any, loc: tuple[str | int, ...], max_list: int = 5
+) -> Any:
+    """Return a truncated version of obj focused on the failing location."""
+    if not loc:
+        return obj
+
+    head, *tail = loc
+
+    if isinstance(obj, list) and isinstance(head, int):
+        idx = head
+        n = len(obj)
+
+        # Determine window around the failing index
+        start = max(0, idx - max_list // 2)
+        end = min(n, idx + max_list // 2 + 1)
+
+        truncated = []
+
+        if start > 0:
+            truncated.append(f"... {start} items ...")
+
+        for i in range(start, end):
+            if i == idx:
+                truncated.append(_truncate_with_focus(obj[i], tuple(tail), max_list))
+            else:
+                truncated.append("{...}")
+
+        if end < n:
+            truncated.append(f"... {n - end} more items ...")
+
+        return truncated
+
+    if isinstance(obj, dict) and isinstance(head, str):
+        result = {}
+
+        for k, v in obj.items():
+            if k == head:
+                result[k] = _truncate_with_focus(v, tuple(tail), max_list)
+            else:
+                result[k] = "{...}"
+
+        return result
+
+    return obj
+
+
 def _format_parse_error(
     model_name: str, error: ValidationError, obj: Any = None
-) -> str:
+) -> tuple[str, list[EnrichedErrorResponse]]:
     """Build a human-readable summary of a pydantic ValidationError.
 
     For scalar inputs the offending value is shown inline; complex inputs
@@ -72,6 +119,8 @@ def _format_parse_error(
     lines = [
         f"Failed to parse {model_name} from API response ({count} validation error(s)):"
     ]
+    enriched_errors = []
+
     for i, err in enumerate(errors, 1):
         loc_tuple: tuple[str | int, ...] = err.get("loc", ())
         loc = _format_loc(loc_tuple)
@@ -80,11 +129,27 @@ def _format_parse_error(
         context = _extract_context(obj, loc_tuple) if obj is not None else None
         line = f"  {i}. {loc}: {msg}"
         if context:
-            line += f" [{context}]"
+            line += f" ({context})"
         if input_val is not None and not isinstance(input_val, dict | list):
-            line += f" [got: {type(input_val).__name__} = {input_val!r}]"
+            line += f" (got: {type(input_val).__name__} = {input_val!r})"
         lines.append(line)
-    return "\n".join(lines)
+
+        snippet = _truncate_with_focus(obj, loc_tuple) if obj is not None else None
+
+        enriched_errors.append(
+            EnrichedErrorResponse.model_validate(
+                {
+                    "loc": loc_tuple,
+                    "loc_str": loc,
+                    "message": msg,
+                    "context": context,
+                    "snippet": snippet,
+                    "input_val": input_val,
+                }
+            )
+        )
+
+    return "\n".join(lines), enriched_errors
 
 
 class _Base(BaseModel):
@@ -98,13 +163,18 @@ class _Base(BaseModel):
         cls,
         obj: Any,
         *args: Any,
+        verbose: bool = False,
         **kwargs: Any,
     ) -> Self:
         try:
             return super().model_validate(obj, *args, **kwargs)
         except ValidationError as exc:
+            msg, details = _format_parse_error(cls.__name__, exc, obj=obj)
+
             raise ResponseParseError(
-                _format_parse_error(cls.__name__, exc, obj=obj), raw_data=obj
+                msg,
+                raw_data=obj if verbose else None,
+                details=details,
             ) from exc
 
 
