@@ -1,6 +1,9 @@
 """Semantic string enums for Glance API fields.
 
 Each public enum documents the known value set for a field.
+All enums are exposed in their "lenient" form via the ``Lenient*`` type
+aliases, which accept unknown strings gracefully (logging a warning)
+rather than raising a validation error.
 """
 
 from __future__ import annotations
@@ -180,6 +183,7 @@ class PublicationType(StrEnum):
     ANALYSIS = "Analysis"
 
 
+# Lenient type aliases — use these in model field annotations.
 LenientMeetingType = _lenient(MeetingType)
 LenientAnalysisStatus = _lenient(AnalysisStatus)
 LenientPaperStatus = _lenient(PaperStatus)
@@ -187,6 +191,8 @@ LenientPhase0State = _lenient(Phase0State)
 LenientPhase1State = _lenient(Phase1State)
 LenientPhase2State = _lenient(Phase2State)
 LenientSubmissionState = _lenient(SubmissionState)
+LenientAnalysisStatus = _lenient(AnalysisStatus)
+LenientPaperStatus = _lenient(PaperStatus)
 LenientCollisionType = _lenient(CollisionType)
 LenientRepositoryType = _lenient(RepositoryType)
 LenientPublicationType = _lenient(PublicationType)

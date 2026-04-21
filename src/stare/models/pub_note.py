@@ -14,7 +14,7 @@ from stare.models.common import (
     TeamMember,
     _Base,
 )
-from stare.models.enums import PaperStatus, Phase1State
+from stare.models.enums import LenientPaperStatus, LenientPhase1State
 
 
 class PubNoteReader(_Base):
@@ -31,7 +31,7 @@ class PubNoteReader(_Base):
 class PubNotePhase1(_Base):
     """Phase 1 lifecycle metadata for a PUB note."""
 
-    state: Phase1State | None = None
+    state: LenientPhase1State | None = None
     start_date: date | None = None
     draft_cds_url: str | None = Field(default=None, alias="draftNoteCdsUrl")
     readers: list[PubNoteReader] = Field(default_factory=list)
@@ -54,7 +54,7 @@ class PubNote(_Base):
     temp_reference_code: str | None = Field(
         default=None, alias="temporaryReferenceCode"
     )
-    status: PaperStatus | None = None
+    status: LenientPaperStatus | None = None
     short_title: str | None = None
     public_short_title: str | None = None
     full_title: str | None = None

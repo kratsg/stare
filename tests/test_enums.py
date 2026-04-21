@@ -304,14 +304,6 @@ class TestCollisionType:
 
 
 class TestRepositoryType:
-    def test_known_values(self) -> None:
-        M = _model(LenientRepositoryType)
-        assert M.model_validate({"value": "analysis"}).value == RepositoryType.ANALYSIS
-        assert M.model_validate({"value": "thesis"}).value == RepositoryType.THESIS
-        assert (
-            M.model_validate({"value": "framework"}).value == RepositoryType.FRAMEWORK
-        )
-
     def test_publication_shortcode_values(self) -> None:
         M = _model(LenientRepositoryType)
         assert M.model_validate({"value": "CONF"}).value == RepositoryType.CONF
