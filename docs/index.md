@@ -43,6 +43,13 @@ against CERN Keycloak built in.
             print(a.reference_code, a.short_title)
     ```
 
+=== "CLI (uvx)"
+
+    ```bash
+    uvx stare auth login          # opens CERN SSO in your browser
+    uvx stare stare analysis search --limit 10
+    ```
+
 ## Features
 
 - **Analyses and papers** — search and retrieve ATLAS analyses, papers, CONF
