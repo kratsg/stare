@@ -185,8 +185,6 @@ class PublicationType(StrEnum):
 
 # Lenient type aliases — use these in model field annotations.
 LenientMeetingType = _lenient(MeetingType)
-LenientAnalysisStatus = _lenient(AnalysisStatus)
-LenientPaperStatus = _lenient(PaperStatus)
 LenientPhase0State = _lenient(Phase0State)
 LenientPhase1State = _lenient(Phase1State)
 LenientPhase2State = _lenient(Phase2State)
