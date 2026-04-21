@@ -89,6 +89,13 @@ class TestResponseParseError:
         err = ResponseParseError("some error")
         assert err.details == []
 
+    def test_details_default_is_not_shared_between_instances(self) -> None:
+        err1 = ResponseParseError("err1")
+        err2 = ResponseParseError("err2")
+        err1.details.append(
+            EnrichedErrorResponse(loc=("x",), loc_str="x", message="bad")
+        )
+        assert err2.details == []
     def test_details_stored_when_provided(self) -> None:
         detail = EnrichedErrorResponse(
             loc=("results", 2),
