@@ -47,7 +47,7 @@ against CERN Keycloak built in.
 
     ```bash
     uvx stare auth login          # opens CERN SSO in your browser
-    uvx stare stare analysis search --limit 10
+    uvx stare analysis search --limit 10
     ```
 
 ## Features
