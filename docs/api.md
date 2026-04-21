@@ -92,7 +92,13 @@ validation error.
 
 ::: stare.models.enums.PaperStatus
 
-::: stare.models.enums.PhaseState
+::: stare.models.enums.Phase0State
+
+::: stare.models.enums.Phase1State
+
+::: stare.models.enums.Phase2State
+
+::: stare.models.enums.SubmissionState
 
 ::: stare.models.enums.CollisionType
 
