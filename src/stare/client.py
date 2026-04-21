@@ -217,7 +217,10 @@ class PublicationResource:
         params += [("statuses", val) for val in statuses or []]
         response = self._client.get("/publications/search", params=params)
         _raise_for_status(response)
-        return [PublicationRef.model_validate(item, verbose=verbose) for item in response.json()]
+        return [
+            PublicationRef.model_validate(item, verbose=verbose)
+            for item in response.json()
+        ]
 
 
 class GroupResource:
@@ -274,7 +277,9 @@ class TriggerResource:
         params += [("years", val) for val in years or []]
         response = self._client.get("/triggers/search", params=params)
         _raise_for_status(response)
-        return [Trigger.model_validate(item, verbose=verbose) for item in response.json()]
+        return [
+            Trigger.model_validate(item, verbose=verbose) for item in response.json()
+        ]
 
 
 class Glance:
