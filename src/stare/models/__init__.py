@@ -27,9 +27,12 @@ from stare.models.enums import (
     CollisionType,
     MeetingType,
     PaperStatus,
-    PhaseState,
+    Phase0State,
+    Phase1State,
+    Phase2State,
     PublicationType,
     RepositoryType,
+    SubmissionState,
 )
 from stare.models.errors import ApiErrorResponse
 from stare.models.paper import Paper, PaperPhase1, PaperPhase2, SubmissionPhase
@@ -69,7 +72,9 @@ __all__ = [
     "PaperSearchResult",
     "PaperStatus",
     "Person",
-    "PhaseState",
+    "Phase0State",
+    "Phase1State",
+    "Phase2State",
     "PubNote",
     "PubNotePhase1",
     "PubNoteReader",
@@ -79,6 +84,7 @@ __all__ = [
     "Repository",
     "RepositoryType",
     "SubmissionPhase",
+    "SubmissionState",
     "TeamMember",
     "TokenInfo",
     "Trigger",

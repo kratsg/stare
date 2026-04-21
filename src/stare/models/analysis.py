@@ -20,7 +20,7 @@ from stare.models.common import (
     TypedMeeting,
     _Base,
 )
-from stare.models.enums import LenientAnalysisStatus, LenientPhaseState, MeetingType
+from stare.models.enums import AnalysisStatus, MeetingType, Phase0State
 
 _logger = logging.getLogger("stare")
 
@@ -43,7 +43,7 @@ class AnalysisPhase0(_Base):
     Serialization restores the original four keys for API round-trip fidelity.
     """
 
-    state: LenientPhaseState | None = None
+    state: Phase0State | None = None
     start_date: date | None = None
     main_physics_aim: str | None = None
     dataset_used: str | None = None
@@ -99,7 +99,7 @@ class Analysis(_Base):
 
     reference_code: str | None = None
     creation_date: date | None = None
-    status: LenientAnalysisStatus | None = None
+    status: AnalysisStatus | None = None
     short_title: str | None = None
     public_short_title: str | None = None
     groups: Groups | None = None
