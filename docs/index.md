@@ -15,10 +15,19 @@ against CERN Keycloak built in.
 
 ## Quick start
 
-=== "CLI"
+=== "CLI (pip)"
 
     ```bash
     python -m pip install stare
+    stare auth login          # opens CERN SSO in your browser
+    stare analysis search --limit 10
+    ```
+
+=== "CLI (pixi)"
+
+    ```bash
+    pixi add stare-atlas
+    pixi shell
     stare auth login          # opens CERN SSO in your browser
     stare analysis search --limit 10
     ```
