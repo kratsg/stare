@@ -82,7 +82,7 @@ class TestPaperStatus:
         M = _model(PaperStatus)
         assert (
             M.model_validate({"value": "Completed"}).value
-            == PaperStatus.SUBMISSION_CLOSED
+            == PaperStatus.SUBMISSION_COMPLETED
         )
 
 

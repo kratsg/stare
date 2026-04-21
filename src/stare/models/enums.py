@@ -64,14 +64,14 @@ class AnalysisStatus(StrEnum):
 class PaperStatus(StrEnum):
     """Observed status values for Paper, ConfNote, and PubNote records."""
 
-    CREATED = "Not Started"
-    ANALYSIS_CLOSED = "Closed"
+    NOT_STARTED = "Not Started"
+    CLOSED = "Closed"
     PHASE1_ACTIVE = "Phase 1 Active"
     PHASE1_CLOSED = "Phase 1 Closed"
     PHASE2_ACTIVE = "Phase 2 Active"
     PHASE2_CLOSED = "Phase 2 Closed"
     SUBMISSION_ACTIVE = "Publication Phase Active"
-    SUBMISSION_CLOSED = "Completed"
+    SUBMISSION_COMPLETED = "Completed"
 
 
 class Phase0State(StrEnum):
