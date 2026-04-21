@@ -486,6 +486,38 @@ def test_analyses_search_raises_response_parse_error(glance: Glance) -> None:
     assert any("results" in d.loc_str for d in exc_info.value.details)
 
 
+def test_analyses_search_verbose_attaches_raw_data(glance: Glance) -> None:
+    """verbose=True attaches the raw payload to ResponseParseError."""
+    bad_json = {"results": "not-a-list"}
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchAnalysis").mock(return_value=httpx.Response(200, json=bad_json))
+        with pytest.raises(ResponseParseError) as exc_info:
+            glance.analyses.search(verbose=True)
+    assert exc_info.value.raw_data == bad_json
+
+
+def test_papers_search_verbose_attaches_raw_data(glance: Glance) -> None:
+    """verbose=True on paper search attaches the raw payload."""
+    bad_json = {"results": "not-a-list"}
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchPaper").mock(return_value=httpx.Response(200, json=bad_json))
+        with pytest.raises(ResponseParseError) as exc_info:
+            glance.papers.search(verbose=True)
+    assert exc_info.value.raw_data == bad_json
+
+
+def test_conf_notes_get_verbose_attaches_raw_data(glance: Glance) -> None:
+    """verbose=True on conf_notes.get attaches the raw payload."""
+    bad_json = {"analysisTeam": "not-a-list"}
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/confnotes/ATL-PHYS-PUB-2024-001").mock(
+            return_value=httpx.Response(200, json=bad_json)
+        )
+        with pytest.raises(ResponseParseError) as exc_info:
+            glance.conf_notes.get("ATL-PHYS-PUB-2024-001", verbose=True)
+    assert exc_info.value.raw_data == bad_json
+
+
 def test_response_parse_error_is_stare_error(glance: Glance) -> None:
     """ResponseParseError is a StareError so existing CLI handlers catch it."""
     with respx.mock(base_url=_BASE) as rx:
