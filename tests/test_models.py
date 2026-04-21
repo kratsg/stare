@@ -139,7 +139,7 @@ class TestCollision:
     def test_parse(self) -> None:
         c = Collision.model_validate(
             {
-                "type": "pp",
+                "type": "p-p",
                 "year": "2018",
                 "run": "2",
                 "ecmValue": "13",
@@ -148,7 +148,7 @@ class TestCollision:
                 "luminosityUnit": "fb-1",
             }
         )
-        assert c.type == "pp"
+        assert c.type == "p-p"
         assert c.ecm_value == "13"
         assert c.luminosity_unit == "fb-1"
 
@@ -163,7 +163,7 @@ class TestMetadata:
             {
                 "collisions": [
                     {
-                        "type": "pp",
+                        "type": "p-p",
                         "year": "2018",
                         "run": "2",
                         "ecmValue": "13",
@@ -176,7 +176,7 @@ class TestMetadata:
         )
         assert m.collisions is not None
         assert len(m.collisions) == 1
-        assert m.collisions[0].type == "pp"
+        assert m.collisions[0].type == "p-p"
 
     def test_optional_fields(self) -> None:
         m = Metadata.model_validate({})
@@ -195,7 +195,7 @@ class TestDocumentation:
                 "repositories": [
                     {
                         "gitlabId": "123",
-                        "type": "analysis",
+                        "type": "INT",
                         "url": "https://gitlab.cern.ch/r",
                     }
                 ],
