@@ -13,8 +13,10 @@ python -m pip install stare
 Or with [pixi](https://prefix.dev/docs/prefix/overview):
 
 ```bash
-pixi add stare
+pixi add stare-atlas # (1)!
 ```
+
+1. Note the name difference for the `conda-forge` package.
 
 Requires Python 3.10 or later.
 

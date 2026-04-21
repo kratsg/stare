@@ -15,10 +15,19 @@ against CERN Keycloak built in.
 
 ## Quick start
 
-=== "CLI"
+=== "CLI (pip)"
 
     ```bash
     python -m pip install stare
+    stare auth login          # opens CERN SSO in your browser
+    stare analysis search --limit 10
+    ```
+
+=== "CLI (pixi)"
+
+    ```bash
+    pixi add stare-atlas
+    pixi shell
     stare auth login          # opens CERN SSO in your browser
     stare analysis search --limit 10
     ```
@@ -32,6 +41,13 @@ against CERN Keycloak built in.
         result = g.analyses.search(query="referenceCode = ANA-HION-2018-01")
         for a in result.results:
             print(a.reference_code, a.short_title)
+    ```
+
+=== "CLI (uvx)"
+
+    ```bash
+    uvx stare auth login          # opens CERN SSO in your browser
+    uvx stare analysis search --limit 10
     ```
 
 ## Features
