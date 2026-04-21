@@ -165,13 +165,10 @@ class CollisionType(StrEnum):
 class RepositoryType(StrEnum):
     """Observed repository type values."""
 
-    # ANALYSIS = "analysis"
     CONF = "CONF"
-    # FRAMEWORK = "framework"
     INT = "INT"
     PAP = "PAP"
     PUB = "PUB"
-    # THESIS = "thesis"
 
 
 class PublicationType(StrEnum):
