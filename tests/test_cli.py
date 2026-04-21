@@ -10,7 +10,7 @@ from typer.testing import CliRunner
 from stare import __version__
 from stare.cli import app
 from stare.dsl.errors import DSLValidationError
-from stare.exceptions import AuthenticationError, NotFoundError
+from stare.exceptions import AuthenticationError, EnrichedErrorResponse, NotFoundError, ResponseParseError
 from stare.models import (
     Analysis,
     AnalysisSearchResult,
@@ -666,3 +666,60 @@ def test_no_json_paper_search_forces_rich_table() -> None:
         is_json = False
     assert not is_json
     assert "HDBS-2024-01" in result.output
+
+
+# ---------------------------------------------------------------------------
+# ResponseParseError — snippet panels in handle_error
+# ---------------------------------------------------------------------------
+
+
+def _make_parse_error(
+    *,
+    loc_str: str = "results",
+    snippet: object = None,
+    raw_data: object = None,
+) -> ResponseParseError:
+    """Build a ResponseParseError with one enriched detail for testing."""
+    detail = EnrichedErrorResponse(
+        loc=("results",),
+        loc_str=loc_str,
+        message="list type expected",
+        snippet=snippet,
+    )
+    err = ResponseParseError(
+        f"Failed to parse AnalysisSearchResult (1 validation error):\n  1. {loc_str}: list type expected",
+        raw_data=raw_data,
+        details=[detail],
+    )
+    return err
+
+
+def test_analysis_search_prints_snippet_panel_on_parse_error() -> None:
+    """handle_error renders a JSON snippet panel for each enriched detail."""
+    bad_snippet = {"results": "not-a-list"}
+    exc = _make_parse_error(snippet=bad_snippet)
+    mock_g = _mock_glance()
+    mock_g.analyses.search.side_effect = exc
+    with patch("stare.cli.utils.make_glance", return_value=mock_g):
+        result = runner.invoke(app, ["analysis", "search", "--no-json"])
+    assert result.exit_code == 1
+    assert "Error:" in result.output
+    assert "validation error" in result.output.lower()
+    # snippet panel title contains the loc_str
+    assert "results" in result.output
+    # snippet body contains the bad value
+    assert "not-a-list" in result.output
+    # raw-response panel not shown without verbose
+    assert "Raw API Response" not in result.output
+
+
+def test_analysis_search_skips_snippet_panel_when_snippet_is_none() -> None:
+    """When detail.snippet is None, no panel is emitted for that detail."""
+    exc = _make_parse_error(snippet=None)
+    mock_g = _mock_glance()
+    mock_g.analyses.search.side_effect = exc
+    with patch("stare.cli.utils.make_glance", return_value=mock_g):
+        result = runner.invoke(app, ["analysis", "search", "--no-json"])
+    assert result.exit_code == 1
+    assert "Error:" in result.output
+    assert "Raw API Response" not in result.output
