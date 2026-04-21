@@ -11,10 +11,10 @@ from rich.text import Text
 
 from stare.exceptions import EnrichedErrorResponse, ResponseParseError
 from stare.models.enums import (
-    CollisionType,
+    LenientCollisionType,
+    LenientPublicationType,
+    LenientRepositoryType,
     MeetingType,
-    PublicationType,
-    RepositoryType,
 )
 
 if TYPE_CHECKING:
@@ -237,7 +237,7 @@ class Groups(_Base):
 class Collision(_Base):
     """A collision dataset descriptor (centre-of-mass energy, luminosity, etc.)."""
 
-    type: CollisionType | None = None
+    type: LenientCollisionType | None = None
     year: str | None = None
     run: str | None = None
     ecm_value: str | None = None
@@ -267,7 +267,7 @@ class Repository(Link):
     """A code or documentation repository."""
 
     gitlab_id: str | None = None
-    type: RepositoryType | None = None
+    type: LenientRepositoryType | None = None
 
 
 class Documentation(_Base):
@@ -313,4 +313,4 @@ class RelatedPublication(_Base):
     """A reference to a related publication (analysis, paper, CONF/PUB note)."""
 
     reference_code: str | None = None
-    type: PublicationType | None = None
+    type: LenientPublicationType | None = None

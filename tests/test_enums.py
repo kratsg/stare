@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from pydantic import BaseModel
@@ -9,6 +10,9 @@ from pydantic import BaseModel
 from stare.models.enums import (
     AnalysisStatus,
     CollisionType,
+    LenientCollisionType,
+    LenientPublicationType,
+    LenientRepositoryType,
     PaperStatus,
     Phase0State,
     Phase1State,
@@ -271,7 +275,7 @@ class TestSubmissionState:
 
 class TestCollisionType:
     def test_known_values(self) -> None:
-        M = _model(CollisionType)
+        M = _model(LenientCollisionType)
         assert M.model_validate({"value": "p-p"}).value == CollisionType.PP
         assert M.model_validate({"value": "Pb-Pb"}).value == CollisionType.PB_PB
         assert M.model_validate({"value": "p-Pb"}).value == CollisionType.P_PB
@@ -286,6 +290,13 @@ class TestCollisionType:
             == CollisionType.TERT_COL_TYPE
         )
 
+    def test_unknown_falls_back(self, caplog) -> None:
+        M = _model(LenientCollisionType)
+        with caplog.at_level(logging.WARNING, logger="stare"):
+            result = M.model_validate({"value": "n-n"})
+        assert result.value == "n-n"
+        assert "CollisionType" in caplog.text
+
 
 # ---------------------------------------------------------------------------
 # RepositoryType
@@ -294,11 +305,26 @@ class TestCollisionType:
 
 class TestRepositoryType:
     def test_known_values(self) -> None:
-        M = _model(RepositoryType)
+        M = _model(LenientRepositoryType)
+        assert M.model_validate({"value": "analysis"}).value == RepositoryType.ANALYSIS
+        assert M.model_validate({"value": "thesis"}).value == RepositoryType.THESIS
+        assert (
+            M.model_validate({"value": "framework"}).value == RepositoryType.FRAMEWORK
+        )
+
+    def test_publication_shortcode_values(self) -> None:
+        M = _model(LenientRepositoryType)
         assert M.model_validate({"value": "CONF"}).value == RepositoryType.CONF
         assert M.model_validate({"value": "INT"}).value == RepositoryType.INT
         assert M.model_validate({"value": "PAP"}).value == RepositoryType.PAP
         assert M.model_validate({"value": "PUB"}).value == RepositoryType.PUB
+
+    def test_unknown_falls_back(self, caplog) -> None:
+        M = _model(LenientRepositoryType)
+        with caplog.at_level(logging.WARNING, logger="stare"):
+            result = M.model_validate({"value": "software"})
+        assert result.value == "software"
+        assert "RepositoryType" in caplog.text
 
 
 # ---------------------------------------------------------------------------
@@ -308,13 +334,20 @@ class TestRepositoryType:
 
 class TestPublicationType:
     def test_known_values(self) -> None:
-        M = _model(PublicationType)
+        M = _model(LenientPublicationType)
         assert M.model_validate({"value": "Paper"}).value == PublicationType.PAPER
         assert (
             M.model_validate({"value": "ConfNote"}).value == PublicationType.CONF_NOTE
         )
         assert M.model_validate({"value": "PubNote"}).value == PublicationType.PUB_NOTE
         assert M.model_validate({"value": "Analysis"}).value == PublicationType.ANALYSIS
+
+    def test_unknown_falls_back(self, caplog) -> None:
+        M = _model(LenientPublicationType)
+        with caplog.at_level(logging.WARNING, logger="stare"):
+            result = M.model_validate({"value": "Dataset"})
+        assert result.value == "Dataset"
+        assert "PublicationType" in caplog.text
 
 
 # ---------------------------------------------------------------------------

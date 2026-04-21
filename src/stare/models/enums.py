@@ -7,12 +7,37 @@ from __future__ import annotations
 
 import logging
 from enum import Enum
+from typing import Annotated, Any, TypeVar
+
+from pydantic import BeforeValidator
 
 _logger = logging.getLogger("stare")
+
+_E = TypeVar("_E", bound="StrEnum")
 
 
 class StrEnum(str, Enum):
     """Python 3.10-compatible string enum base (StrEnum was added in 3.11)."""
+
+
+def _lenient(enum_cls: type[_E]) -> Any:
+    """Return ``Annotated[EnumCls | str, BeforeValidator]`` for use in model fields.
+
+    Unknown string values fall back to the raw string and log a warning.
+    """
+
+    def _validate(v: object) -> object:
+        if not isinstance(v, str):
+            return v
+        try:
+            return enum_cls(v)
+        except ValueError:
+            _logger.warning(
+                "Unknown %s value %r — storing as raw string", enum_cls.__name__, v
+            )
+            return v
+
+    return Annotated[enum_cls | str, BeforeValidator(_validate)]
 
 
 class MeetingType(StrEnum):
@@ -153,3 +178,15 @@ class PublicationType(StrEnum):
     CONF_NOTE = "ConfNote"
     PUB_NOTE = "PubNote"
     ANALYSIS = "Analysis"
+
+
+LenientMeetingType = _lenient(MeetingType)
+LenientAnalysisStatus = _lenient(AnalysisStatus)
+LenientPaperStatus = _lenient(PaperStatus)
+LenientPhase0State = _lenient(Phase0State)
+LenientPhase1State = _lenient(Phase1State)
+LenientPhase2State = _lenient(Phase2State)
+LenientSubmissionState = _lenient(SubmissionState)
+LenientCollisionType = _lenient(CollisionType)
+LenientRepositoryType = _lenient(RepositoryType)
+LenientPublicationType = _lenient(PublicationType)
