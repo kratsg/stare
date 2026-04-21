@@ -46,11 +46,11 @@ _BASE = "https://test-glance.example.com/api"
 
 SAMPLE_ANALYSIS = {
     "referenceCode": "ANA-TEST-2024-01",
-    "status": "Active",
+    "status": "Phase 0 Active",
     "shortTitle": "Test analysis",
     "publicShortTitle": "Public test",
     "groups": {"leadingGroup": "HDBS", "subgroups": [], "otherGroups": []},
-    "phase0": {"state": "Approved"},
+    "phase0": {"state": "Auxiliary metadata"},
 }
 
 SAMPLE_SEARCH = {
@@ -60,7 +60,7 @@ SAMPLE_SEARCH = {
 
 SAMPLE_PAPER = {
     "referenceCode": "HDBS-2024-01",
-    "status": "Published",
+    "status": "Completed",
     "shortTitle": "Test paper",
 }
 
@@ -71,13 +71,13 @@ SAMPLE_PAPER_SEARCH = {
 
 SAMPLE_CONF_NOTE = {
     "temporaryReferenceCode": "ATLAS-CONF-2024-001",
-    "status": "Active",
+    "status": "Phase 1 Closed",
     "shortTitle": "Test conf note",
 }
 
 SAMPLE_PUB_NOTE = {
     "temporaryReferenceCode": "ATL-PHYS-PUB-2024-001",
-    "status": "Active",
+    "status": "Phase 1 Active",
     "shortTitle": "Test pub note",
 }
 

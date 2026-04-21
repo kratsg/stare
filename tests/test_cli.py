@@ -32,7 +32,7 @@ runner = CliRunner()
 SAMPLE_ANALYSIS = Analysis.model_validate(
     {
         "referenceCode": "ANA-TEST-2024-01",
-        "status": "Active",
+        "status": "Created",
         "shortTitle": "Test analysis",
     }
 )
@@ -40,7 +40,7 @@ SAMPLE_ANALYSIS = Analysis.model_validate(
 SAMPLE_PAPER = Paper.model_validate(
     {
         "referenceCode": "HDBS-2024-01",
-        "status": "Published",
+        "status": "Phase 1 Active",
         "shortTitle": "Test paper",
     }
 )
@@ -48,7 +48,7 @@ SAMPLE_PAPER = Paper.model_validate(
 SAMPLE_CONF_NOTE = ConfNote.model_validate(
     {
         "temporaryReferenceCode": "ATLAS-CONF-2024-001",
-        "status": "Active",
+        "status": "Completed",
         "shortTitle": "Test conf note",
     }
 )
@@ -56,7 +56,7 @@ SAMPLE_CONF_NOTE = ConfNote.model_validate(
 SAMPLE_PUB_NOTE = PubNote.model_validate(
     {
         "temporaryReferenceCode": "ATL-PHYS-PUB-2024-001",
-        "status": "Active",
+        "status": "Phase 1 Closed",
         "shortTitle": "Test pub note",
     }
 )
@@ -67,7 +67,7 @@ SAMPLE_SEARCH = AnalysisSearchResult.model_validate(
         "results": [
             {
                 "referenceCode": "ANA-TEST-2024-01",
-                "status": "Active",
+                "status": "Phase 0 Active",
                 "shortTitle": "Test analysis",
             }
         ],
@@ -80,7 +80,7 @@ SAMPLE_PAPER_SEARCH = PaperSearchResult.model_validate(
         "results": [
             {
                 "referenceCode": "HDBS-2024-01",
-                "status": "Published",
+                "status": "Phase 2 Active",
                 "shortTitle": "Test paper",
             }
         ],
