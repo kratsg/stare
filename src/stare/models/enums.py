@@ -68,8 +68,8 @@ class PaperStatus(StrEnum):
     ANALYSIS_CLOSED = "Closed"
     PHASE1_ACTIVE = "Phase 1 Active"
     PHASE1_CLOSED = "Phase 1 Closed"
-    PHASE3_ACTIVE = "Phase 2 Active"
-    PHASE3_CLOSED = "Phase 2 Closed"
+    PHASE2_ACTIVE = "Phase 2 Active"
+    PHASE2_CLOSED = "Phase 2 Closed"
     SUBMISSION_ACTIVE = "Publication Phase Active"
     SUBMISSION_CLOSED = "Completed"
 
