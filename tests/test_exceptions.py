@@ -96,6 +96,7 @@ class TestResponseParseError:
             EnrichedErrorResponse(loc=("x",), loc_str="x", message="bad")
         )
         assert err2.details == []
+
     def test_details_stored_when_provided(self) -> None:
         detail = EnrichedErrorResponse(
             loc=("results", 2),
