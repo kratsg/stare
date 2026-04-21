@@ -66,6 +66,14 @@ def analysis_search(
             help="Validate and normalize the query string (default: on).",
         ),
     ] = True,
+    verbose: Annotated[
+        bool,
+        typer.Option(
+            "--verbose",
+            "-v",
+            help="Attach the full raw API response to parse errors (useful for debugging).",
+        ),
+    ] = False,
 ) -> None:
     """Search analyses via GET /searchAnalysis.
 
@@ -93,6 +101,7 @@ def analysis_search(
             sort_by=sort_by,
             sort_desc=sort_desc,
             validate_query=validate,
+            verbose=verbose,
         )
     except DSLError as exc:
         raise typer.BadParameter(str(exc), param_hint="--query") from exc
@@ -134,6 +143,14 @@ def analysis_get(
         bool,
         typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
     ] = False,
+    verbose: Annotated[
+        bool,
+        typer.Option(
+            "--verbose",
+            "-v",
+            help="Attach the full raw API response to parse errors (useful for debugging).",
+        ),
+    ] = False,
 ) -> None:
     """Fetch a single analysis by reference code via GET /analyses/{ref_code}.
 
@@ -148,7 +165,7 @@ def analysis_get(
         output_json = not stdout_is_interactive()
     g = utils.make_glance(no_cache=no_cache)
     try:
-        result = g.analyses.get(ref_code)
+        result = g.analyses.get(ref_code, verbose=verbose)
     except StareError as exc:
         utils.handle_error(exc)
         raise typer.Exit(1) from exc

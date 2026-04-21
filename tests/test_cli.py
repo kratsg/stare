@@ -10,7 +10,12 @@ from typer.testing import CliRunner
 from stare import __version__
 from stare.cli import app
 from stare.dsl.errors import DSLValidationError
-from stare.exceptions import AuthenticationError, EnrichedErrorResponse, NotFoundError, ResponseParseError
+from stare.exceptions import (
+    AuthenticationError,
+    EnrichedErrorResponse,
+    NotFoundError,
+    ResponseParseError,
+)
 from stare.models import (
     Analysis,
     AnalysisSearchResult,
@@ -686,12 +691,11 @@ def _make_parse_error(
         message="list type expected",
         snippet=snippet,
     )
-    err = ResponseParseError(
+    return ResponseParseError(
         f"Failed to parse AnalysisSearchResult (1 validation error):\n  1. {loc_str}: list type expected",
         raw_data=raw_data,
         details=[detail],
     )
-    return err
 
 
 def test_analysis_search_prints_snippet_panel_on_parse_error() -> None:
@@ -711,6 +715,26 @@ def test_analysis_search_prints_snippet_panel_on_parse_error() -> None:
     assert "not-a-list" in result.output
     # raw-response panel not shown without verbose
     assert "Raw API Response" not in result.output
+
+
+def test_analysis_search_verbose_includes_raw_panel() -> None:
+    """With --verbose, a Raw API Response panel is emitted when raw_data is set."""
+    bad_snippet = {"results": "not-a-list"}
+    exc = _make_parse_error(snippet=bad_snippet, raw_data={"results": "not-a-list"})
+    mock_g = _mock_glance()
+    mock_g.analyses.search.side_effect = exc
+    with patch("stare.cli.utils.make_glance", return_value=mock_g):
+        result = runner.invoke(app, ["analysis", "search", "--verbose", "--no-json"])
+    assert result.exit_code == 1
+    assert "Raw API Response" in result.output
+
+
+def test_analysis_search_passes_verbose_to_client() -> None:
+    """--verbose is forwarded as verbose=True to the resource search call."""
+    mock_g = _mock_glance()
+    with patch("stare.cli.utils.make_glance", return_value=mock_g):
+        runner.invoke(app, ["analysis", "search", "--verbose"])
+    assert mock_g.analyses.search.call_args.kwargs.get("verbose") is True
 
 
 def test_analysis_search_skips_snippet_panel_when_snippet_is_none() -> None:

@@ -7,6 +7,7 @@ import pytest
 from stare.exceptions import (
     ApiError,
     AuthenticationError,
+    EnrichedErrorResponse,
     ForbiddenError,
     NotFoundError,
     ResponseParseError,
@@ -89,8 +90,6 @@ class TestResponseParseError:
         assert err.details == []
 
     def test_details_stored_when_provided(self) -> None:
-        from stare.exceptions import EnrichedErrorResponse
-
         detail = EnrichedErrorResponse(
             loc=("results", 2),
             loc_str="results[2]",

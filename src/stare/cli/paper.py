@@ -66,6 +66,14 @@ def paper_search(
             help="Validate and normalize the query string (default: on).",
         ),
     ] = True,
+    verbose: Annotated[
+        bool,
+        typer.Option(
+            "--verbose",
+            "-v",
+            help="Attach the full raw API response to parse errors (useful for debugging).",
+        ),
+    ] = False,
 ) -> None:
     """Search papers via GET /searchPaper.
 
@@ -92,6 +100,7 @@ def paper_search(
             sort_by=sort_by,
             sort_desc=sort_desc,
             validate_query=validate,
+            verbose=verbose,
         )
     except DSLError as exc:
         raise typer.BadParameter(str(exc), param_hint="--query") from exc
@@ -133,6 +142,14 @@ def paper_get(
         bool,
         typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
     ] = False,
+    verbose: Annotated[
+        bool,
+        typer.Option(
+            "--verbose",
+            "-v",
+            help="Attach the full raw API response to parse errors (useful for debugging).",
+        ),
+    ] = False,
 ) -> None:
     """Fetch a single paper by reference code via GET /papers/{ref_code}.
 
@@ -147,7 +164,7 @@ def paper_get(
         output_json = not stdout_is_interactive()
     g = utils.make_glance(no_cache=no_cache)
     try:
-        result = g.papers.get(ref_code)
+        result = g.papers.get(ref_code, verbose=verbose)
     except StareError as exc:
         utils.handle_error(exc)
         raise typer.Exit(1) from exc

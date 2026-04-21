@@ -78,6 +78,14 @@ def conf_note(
         bool,
         typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
     ] = False,
+    verbose: Annotated[
+        bool,
+        typer.Option(
+            "--verbose",
+            "-v",
+            help="Attach the full raw API response to parse errors (useful for debugging).",
+        ),
+    ] = False,
 ) -> None:
     """Fetch a single CONF note by temporary reference code via GET /confnotes/{ref_code}.
 
@@ -92,7 +100,7 @@ def conf_note(
         output_json = not stdout_is_interactive()
     g = utils.make_glance(no_cache=no_cache)
     try:
-        result = g.conf_notes.get(ref_code)
+        result = g.conf_notes.get(ref_code, verbose=verbose)
     except StareError as exc:
         utils.handle_error(exc)
         raise typer.Exit(1) from exc
@@ -129,6 +137,14 @@ def pub_note(
         bool,
         typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
     ] = False,
+    verbose: Annotated[
+        bool,
+        typer.Option(
+            "--verbose",
+            "-v",
+            help="Attach the full raw API response to parse errors (useful for debugging).",
+        ),
+    ] = False,
 ) -> None:
     """Fetch a single PUB note by temporary reference code via GET /pubnotes/{ref_code}.
 
@@ -143,7 +159,7 @@ def pub_note(
         output_json = not stdout_is_interactive()
     g = utils.make_glance(no_cache=no_cache)
     try:
-        result = g.pub_notes.get(ref_code)
+        result = g.pub_notes.get(ref_code, verbose=verbose)
     except StareError as exc:
         utils.handle_error(exc)
         raise typer.Exit(1) from exc

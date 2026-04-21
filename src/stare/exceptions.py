@@ -11,6 +11,8 @@ if TYPE_CHECKING:
 
 
 class EnrichedErrorResponse(BaseModel):
+    """Structured representation of a single pydantic validation error with context."""
+
     loc: tuple[int | str, ...]
     loc_str: str
     message: str
