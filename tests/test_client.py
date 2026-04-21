@@ -46,11 +46,11 @@ _BASE = "https://test-glance.example.com/api"
 
 SAMPLE_ANALYSIS = {
     "referenceCode": "ANA-TEST-2024-01",
-    "status": "Active",
+    "status": "Phase 0 Active",
     "shortTitle": "Test analysis",
     "publicShortTitle": "Public test",
     "groups": {"leadingGroup": "HDBS", "subgroups": [], "otherGroups": []},
-    "phase0": {"state": "Approved"},
+    "phase0": {"state": "Auxiliary metadata"},
 }
 
 SAMPLE_SEARCH = {
@@ -60,7 +60,7 @@ SAMPLE_SEARCH = {
 
 SAMPLE_PAPER = {
     "referenceCode": "HDBS-2024-01",
-    "status": "Published",
+    "status": "Completed",
     "shortTitle": "Test paper",
 }
 
@@ -71,13 +71,13 @@ SAMPLE_PAPER_SEARCH = {
 
 SAMPLE_CONF_NOTE = {
     "temporaryReferenceCode": "ATLAS-CONF-2024-001",
-    "status": "Active",
+    "status": "Phase 1 Closed",
     "shortTitle": "Test conf note",
 }
 
 SAMPLE_PUB_NOTE = {
     "temporaryReferenceCode": "ATL-PHYS-PUB-2024-001",
-    "status": "Active",
+    "status": "Phase 1 Active",
     "shortTitle": "Test pub note",
 }
 
@@ -479,7 +479,42 @@ def test_analyses_search_raises_response_parse_error(glance: Glance) -> None:
     assert "AnalysisSearchResult" in msg
     assert "results" in msg
     assert "validation error" in msg.lower()
-    # raw_data lets callers (e.g. CLI) display the offending JSON
+    # default verbose=False -> raw_data is not attached
+    assert exc_info.value.raw_data is None
+    # details are always enriched with snippet + location info
+    assert exc_info.value.details
+    assert any("results" in d.loc_str for d in exc_info.value.details)
+
+
+def test_analyses_search_verbose_attaches_raw_data(glance: Glance) -> None:
+    """verbose=True attaches the raw payload to ResponseParseError."""
+    bad_json = {"results": "not-a-list"}
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchAnalysis").mock(return_value=httpx.Response(200, json=bad_json))
+        with pytest.raises(ResponseParseError) as exc_info:
+            glance.analyses.search(verbose=True)
+    assert exc_info.value.raw_data == bad_json
+
+
+def test_papers_search_verbose_attaches_raw_data(glance: Glance) -> None:
+    """verbose=True on paper search attaches the raw payload."""
+    bad_json = {"results": "not-a-list"}
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchPaper").mock(return_value=httpx.Response(200, json=bad_json))
+        with pytest.raises(ResponseParseError) as exc_info:
+            glance.papers.search(verbose=True)
+    assert exc_info.value.raw_data == bad_json
+
+
+def test_conf_notes_get_verbose_attaches_raw_data(glance: Glance) -> None:
+    """verbose=True on conf_notes.get attaches the raw payload."""
+    bad_json = {"analysisTeam": "not-a-list"}
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/confnotes/ATL-PHYS-PUB-2024-001").mock(
+            return_value=httpx.Response(200, json=bad_json)
+        )
+        with pytest.raises(ResponseParseError) as exc_info:
+            glance.conf_notes.get("ATL-PHYS-PUB-2024-001", verbose=True)
     assert exc_info.value.raw_data == bad_json
 
 
@@ -508,7 +543,7 @@ def test_format_parse_error_with_nested_loc() -> None:
     try:
         _Tmp.model_validate({"items": "not-a-list"})
     except ValidationError as exc:
-        msg = _format_parse_error("_Tmp", exc)
+        msg, _details = _format_parse_error("_Tmp", exc)
 
     assert "_Tmp" in msg
     assert "items" in msg
@@ -524,7 +559,7 @@ def test_format_parse_error_integer_index_uses_brackets() -> None:
     try:
         _M.model_validate({"items": ["ok", 123]})
     except ValidationError as exc:
-        msg = _format_parse_error("_M", exc)
+        msg, _details = _format_parse_error("_M", exc)
 
     assert "items[1]" in msg
 
@@ -547,7 +582,7 @@ def test_format_parse_error_with_obj_extracts_reference_code() -> None:
             {"referenceCode": "ANA-C"},
         ]
     }
-    msg = _format_parse_error("SearchResult", mock_error, obj=obj)
+    msg, _details = _format_parse_error("SearchResult", mock_error, obj=obj)
     assert "results[2]" in msg
     assert "ANA-C" in msg
 
@@ -559,6 +594,6 @@ def test_format_parse_error_empty_loc() -> None:
         {"loc": (), "msg": "something broke", "type": "value_error"}
     ]
 
-    msg = _format_parse_error("MyModel", mock_error)
+    msg, _details = _format_parse_error("MyModel", mock_error)
     assert "(root)" in msg
     assert "something broke" in msg

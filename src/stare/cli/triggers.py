@@ -34,6 +34,14 @@ def triggers_search(
         bool,
         typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
     ] = False,
+    verbose: Annotated[
+        bool,
+        typer.Option(
+            "--verbose",
+            "-v",
+            help="Attach the full raw API response to parse errors (useful for debugging).",
+        ),
+    ] = False,
 ) -> None:
     """Search HLT triggers via GET /triggers/search.
 
@@ -51,6 +59,7 @@ def triggers_search(
         results = g.triggers.search(
             categories=category or None,
             years=year or None,
+            verbose=verbose,
         )
     except StareError as exc:
         utils.handle_error(exc)

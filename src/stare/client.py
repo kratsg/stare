@@ -92,11 +92,11 @@ class AnalysisResource:
         """Store the shared httpx client."""
         self._client = client
 
-    def get(self, ref_code: str) -> Analysis:
+    def get(self, ref_code: str, *, verbose: bool = False) -> Analysis:
         """Fetch a single analysis by reference code."""
         response = self._client.get(f"/analyses/{ref_code}")
         _raise_for_status(response)
-        return Analysis.model_validate(response.json())
+        return Analysis.model_validate(response.json(), verbose=verbose)
 
     def search(
         self,
@@ -107,6 +107,7 @@ class AnalysisResource:
         sort_by: str | None = None,
         sort_desc: bool = False,
         validate_query: bool = True,
+        verbose: bool = False,
     ) -> AnalysisSearchResult:
         """Search analyses via GET /searchAnalysis."""
         params: dict[str, Any] = {"offset": offset, "limit": limit}
@@ -119,7 +120,7 @@ class AnalysisResource:
             params["sortDesc"] = str(sort_desc).lower()
         response = self._client.get("/searchAnalysis", params=params)
         _raise_for_status(response)
-        return AnalysisSearchResult.model_validate(response.json())
+        return AnalysisSearchResult.model_validate(response.json(), verbose=verbose)
 
 
 class PaperResource:
@@ -129,11 +130,11 @@ class PaperResource:
         """Store the shared httpx client."""
         self._client = client
 
-    def get(self, ref_code: str) -> Paper:
+    def get(self, ref_code: str, *, verbose: bool = False) -> Paper:
         """Fetch a single paper by reference code."""
         response = self._client.get(f"/papers/{ref_code}")
         _raise_for_status(response)
-        return Paper.model_validate(response.json())
+        return Paper.model_validate(response.json(), verbose=verbose)
 
     def search(
         self,
@@ -144,6 +145,7 @@ class PaperResource:
         sort_by: str | None = None,
         sort_desc: bool = False,
         validate_query: bool = True,
+        verbose: bool = False,
     ) -> PaperSearchResult:
         """Search papers via GET /searchPaper."""
         params: dict[str, Any] = {"offset": offset, "limit": limit}
@@ -156,7 +158,7 @@ class PaperResource:
             params["sortDesc"] = str(sort_desc).lower()
         response = self._client.get("/searchPaper", params=params)
         _raise_for_status(response)
-        return PaperSearchResult.model_validate(response.json())
+        return PaperSearchResult.model_validate(response.json(), verbose=verbose)
 
 
 class ConfNoteResource:
@@ -166,11 +168,11 @@ class ConfNoteResource:
         """Store the shared httpx client."""
         self._client = client
 
-    def get(self, temp_ref_code: str) -> ConfNote:
+    def get(self, temp_ref_code: str, *, verbose: bool = False) -> ConfNote:
         """Fetch a single CONF note by temporary reference code."""
         response = self._client.get(f"/confnotes/{temp_ref_code}")
         _raise_for_status(response)
-        return ConfNote.model_validate(response.json())
+        return ConfNote.model_validate(response.json(), verbose=verbose)
 
 
 class PubNoteResource:
@@ -180,11 +182,11 @@ class PubNoteResource:
         """Store the shared httpx client."""
         self._client = client
 
-    def get(self, temp_ref_code: str) -> PubNote:
+    def get(self, temp_ref_code: str, *, verbose: bool = False) -> PubNote:
         """Fetch a single PUB note by temporary reference code."""
         response = self._client.get(f"/pubnotes/{temp_ref_code}")
         _raise_for_status(response)
-        return PubNote.model_validate(response.json())
+        return PubNote.model_validate(response.json(), verbose=verbose)
 
 
 class PublicationResource:
@@ -203,6 +205,7 @@ class PublicationResource:
         leading_groups: list[str] | None = None,
         subgroups: list[str] | None = None,
         statuses: list[str] | None = None,
+        verbose: bool = False,
     ) -> list[PublicationRef]:
         """Search across all publication types."""
         params: list[tuple[str, str | int | float | bool | None]] = []
@@ -214,7 +217,10 @@ class PublicationResource:
         params += [("statuses", val) for val in statuses or []]
         response = self._client.get("/publications/search", params=params)
         _raise_for_status(response)
-        return [PublicationRef.model_validate(item) for item in response.json()]
+        return [
+            PublicationRef.model_validate(item, verbose=verbose)
+            for item in response.json()
+        ]
 
 
 class GroupResource:
@@ -263,6 +269,7 @@ class TriggerResource:
         *,
         categories: list[str] | None = None,
         years: list[str] | None = None,
+        verbose: bool = False,
     ) -> list[Trigger]:
         """Search triggers by category and/or year."""
         params: list[tuple[str, str | int | float | bool | None]] = []
@@ -270,7 +277,9 @@ class TriggerResource:
         params += [("years", val) for val in years or []]
         response = self._client.get("/triggers/search", params=params)
         _raise_for_status(response)
-        return [Trigger.model_validate(item) for item in response.json()]
+        return [
+            Trigger.model_validate(item, verbose=verbose) for item in response.json()
+        ]
 
 
 class Glance:

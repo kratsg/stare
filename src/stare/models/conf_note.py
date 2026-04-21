@@ -15,7 +15,7 @@ from stare.models.common import (
     TeamMember,
     _Base,
 )
-from stare.models.enums import LenientPaperStatus, LenientPhaseState
+from stare.models.enums import LenientPaperStatus, LenientPhase1State
 
 
 class _SignOffResponsible(_Base):
@@ -28,7 +28,7 @@ class _SignOffResponsible(_Base):
 class ConfNotePhase1(_Base):
     """Phase 1 lifecycle metadata for a CONF note."""
 
-    state: LenientPhaseState | None = None
+    state: LenientPhase1State | None = None
     start_date: date | None = None
     cds_url: str | None = Field(default=None, alias="cdsDraftNoteUrl")
     editorial_board: list[EditorialBoardMember] = Field(default_factory=list)

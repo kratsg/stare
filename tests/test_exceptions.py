@@ -7,6 +7,7 @@ import pytest
 from stare.exceptions import (
     ApiError,
     AuthenticationError,
+    EnrichedErrorResponse,
     ForbiddenError,
     NotFoundError,
     ResponseParseError,
@@ -83,6 +84,27 @@ class TestResponseParseError:
         payload = {"key": "value"}
         err = ResponseParseError("some error", raw_data=payload)
         assert err.raw_data == payload
+
+    def test_details_defaults_to_empty_list(self) -> None:
+        err = ResponseParseError("some error")
+        assert err.details == []
+
+    def test_details_default_is_not_shared_between_instances(self) -> None:
+        err1 = ResponseParseError("err1")
+        err2 = ResponseParseError("err2")
+        err1.details.append(
+            EnrichedErrorResponse(loc=("x",), loc_str="x", message="bad")
+        )
+        assert err2.details == []
+
+    def test_details_stored_when_provided(self) -> None:
+        detail = EnrichedErrorResponse(
+            loc=("results", 2),
+            loc_str="results[2]",
+            message="bad",
+        )
+        err = ResponseParseError("msg", details=[detail])
+        assert err.details == [detail]
 
 
 class TestAuthenticationErrors:

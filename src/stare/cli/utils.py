@@ -28,9 +28,30 @@ def sizeof_fmt(num: float, suffix: str = "B") -> str:
 
 
 def handle_error(exc: StareError) -> None:
-    """Print a StareError to stderr; for ResponseParseError also show the raw JSON."""
+    """Print a StareError to stderr.
+
+    For ResponseParseError, render one rich.json.JSON panel per enriched
+    detail (titled with the failing location and parent-object context), and
+    additionally render the full raw API response when it was attached
+    (i.e. the caller passed verbose=True to model_validate).
+    """
     err_console.print(f"[red]Error:[/red] {exc}")
-    if isinstance(exc, ResponseParseError) and exc.raw_data is not None:
+    if not isinstance(exc, ResponseParseError):
+        return
+    for i, detail in enumerate(exc.details, 1):
+        if detail.snippet is None:
+            continue
+        title = f"{i}. {detail.loc_str}"
+        if detail.context:
+            title = f"{title} — {detail.context}"
+        err_console.print(
+            Panel(
+                JSON(json.dumps(detail.snippet, default=str)),
+                title=f"[yellow]{title}[/yellow]",
+                border_style="yellow",
+            )
+        )
+    if exc.raw_data is not None:
         err_console.print(
             Panel(
                 JSON(json.dumps(exc.raw_data, default=str)),

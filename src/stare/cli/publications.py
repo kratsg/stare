@@ -46,6 +46,14 @@ def publications_search(
         bool,
         typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
     ] = False,
+    verbose: Annotated[
+        bool,
+        typer.Option(
+            "--verbose",
+            "-v",
+            help="Attach the full raw API response to parse errors (useful for debugging).",
+        ),
+    ] = False,
 ) -> None:
     """Search across all publication types via GET /publications/search.
 
@@ -68,6 +76,7 @@ def publications_search(
             leading_groups=leading_group or None,
             subgroups=subgroup or None,
             statuses=status or None,
+            verbose=verbose,
         )
     except StareError as exc:
         utils.handle_error(exc)

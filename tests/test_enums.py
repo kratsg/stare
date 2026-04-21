@@ -10,16 +10,16 @@ from pydantic import BaseModel
 from stare.models.enums import (
     AnalysisStatus,
     CollisionType,
-    LenientAnalysisStatus,
     LenientCollisionType,
-    LenientPaperStatus,
-    LenientPhaseState,
     LenientPublicationType,
     LenientRepositoryType,
     PaperStatus,
-    PhaseState,
+    Phase0State,
+    Phase1State,
+    Phase2State,
     PublicationType,
     RepositoryType,
+    SubmissionState,
 )
 
 # ---------------------------------------------------------------------------
@@ -43,8 +43,7 @@ def _model(lenient_type: Any) -> Any:
 
 class TestAnalysisStatus:
     def test_known_values_parse(self) -> None:
-        M = _model(LenientAnalysisStatus)
-        assert M.model_validate({"value": "Active"}).value == AnalysisStatus.ACTIVE
+        M = _model(AnalysisStatus)
         assert (
             M.model_validate({"value": "Analysis Closed"}).value
             == AnalysisStatus.ANALYSIS_CLOSED
@@ -59,25 +58,17 @@ class TestAnalysisStatus:
         )
         assert M.model_validate({"value": "Created"}).value == AnalysisStatus.CREATED
 
-    def test_unknown_value_falls_back_to_str(self, caplog) -> None:
-        M = _model(LenientAnalysisStatus)
-        with caplog.at_level(logging.WARNING, logger="stare"):
-            result = M.model_validate({"value": "Future Status"})
-        assert result.value == "Future Status"
-        assert "AnalysisStatus" in caplog.text
-        assert "Future Status" in caplog.text
-
     def test_enum_compares_equal_to_string(self) -> None:
-        assert AnalysisStatus.ACTIVE.value == "Active"
+        assert AnalysisStatus.CREATED.value == "Created"
 
     def test_round_trip(self) -> None:
-        M = _model(LenientAnalysisStatus)
-        m = M.model_validate({"value": "Active"})
+        M = _model(AnalysisStatus)
+        m = M.model_validate({"value": "Created"})
         dumped = m.model_dump()
-        assert dumped["value"] == "Active"
+        assert dumped["value"] == "Created"
 
     def test_none_default(self) -> None:
-        M = _model(LenientAnalysisStatus)
+        M = _model(AnalysisStatus)
         assert M.model_validate({}).value is None
 
 
@@ -88,19 +79,11 @@ class TestAnalysisStatus:
 
 class TestPaperStatus:
     def test_known_values_parse(self) -> None:
-        M = _model(LenientPaperStatus)
-        assert M.model_validate({"value": "Active"}).value == PaperStatus.ACTIVE
+        M = _model(PaperStatus)
         assert (
-            M.model_validate({"value": "Submission Closed"}).value
-            == PaperStatus.SUBMISSION_CLOSED
+            M.model_validate({"value": "Completed"}).value
+            == PaperStatus.SUBMISSION_COMPLETED
         )
-
-    def test_unknown_value_falls_back(self, caplog) -> None:
-        M = _model(LenientPaperStatus)
-        with caplog.at_level(logging.WARNING, logger="stare"):
-            result = M.model_validate({"value": "Unknown"})
-        assert result.value == "Unknown"
-        assert "PaperStatus" in caplog.text
 
 
 # ---------------------------------------------------------------------------
@@ -108,69 +91,181 @@ class TestPaperStatus:
 # ---------------------------------------------------------------------------
 
 
-class TestPhaseState:
+class TestPhase0State:
     def test_human_readable_states(self) -> None:
-        M = _model(LenientPhaseState)
-        assert M.model_validate({"value": "Active"}).value == PhaseState.ACTIVE
-        assert M.model_validate({"value": "Approved"}).value == PhaseState.APPROVED
-        assert M.model_validate({"value": "finished"}).value == PhaseState.FINISHED
-
-    def test_internal_workflow_states(self) -> None:
-        M = _model(LenientPhaseState)
+        M = _model(Phase0State)
         assert (
-            M.model_validate({"value": "approval_acceptance"}).value
-            == PhaseState.APPROVAL_ACCEPTANCE
+            M.model_validate({"value": "Phase 0 Data"}).value == Phase0State.NOT_STARTED
         )
         assert (
-            M.model_validate({"value": "publication_draft"}).value
-            == PhaseState.PUBLICATION_DRAFT
+            M.model_validate({"value": "Publications definition"}).value
+            == Phase0State.FINISHED
+        )
+
+    def test_internal_workflow_states(self) -> None:
+        M = _model(Phase0State)
+        assert (
+            M.model_validate({"value": "Approval acceptance"}).value
+            == Phase0State.APPROVAL_ACCEPTANCE
+        )
+        assert (
+            M.model_validate({"value": "Publication draft"}).value
+            == Phase0State.PUBLICATION_DRAFT
         )
 
     def test_live_api_workflow_states(self) -> None:
-        M = _model(LenientPhaseState)
+        M = _model(Phase0State)
         assert (
-            M.model_validate({"value": "analysis_definition"}).value
-            == PhaseState.ANALYSIS_DEFINITION
-        )
-        assert M.model_validate({"value": "conf_skip"}).value == PhaseState.CONF_SKIP
-        assert (
-            M.model_validate({"value": "paper_contact_editors_definition"}).value
-            == PhaseState.PAPER_CONTACT_EDITORS_DEFINITION
+            M.model_validate({"value": "Analysis definition after EOI meeting"}).value
+            == Phase0State.ANALYSIS_DEFINITION
         )
         assert (
-            M.model_validate({"value": "phase0_active"}).value
-            == PhaseState.PHASE0_ACTIVE
+            M.model_validate({"value": "Skipped to CONF Note"}).value
+            == Phase0State.CONF_SKIP
         )
 
     def test_additional_workflow_states(self) -> None:
-        M = _model(LenientPhaseState)
+        M = _model(Phase0State)
         assert (
-            M.model_validate({"value": "analysis_coordinators_selection"}).value
-            == PhaseState.ANALYSIS_COORDINATORS_SELECTION
+            M.model_validate(
+                {"value": "Analysis contact and expert review selection"}
+            ).value
+            == Phase0State.ANALYSIS_COORDINATORS_SELECTION
         )
         assert (
-            M.model_validate({"value": "analysis_coordinators_timeline"}).value
-            == PhaseState.ANALYSIS_COORDINATORS_TIMELINE
+            M.model_validate({"value": "Analysis contacts' target date"}).value
+            == Phase0State.ANALYSIS_COORDINATORS_TIMELINE
         )
         assert (
-            M.model_validate({"value": "approval_meeting_data"}).value
-            == PhaseState.APPROVAL_MEETING
+            M.model_validate({"value": "Approval meeting data"}).value
+            == Phase0State.APPROVAL_MEETING_DATA
         )
         assert (
-            M.model_validate({"value": "eoi_meeting"}).value == PhaseState.EOI_MEETING
+            M.model_validate(
+                {"value": "Expression of interest (EOI) meeting data"}
+            ).value
+            == Phase0State.EOI_MEETING
         )
         assert (
-            M.model_validate({"value": "pub_contact_editors_definition"}).value
-            == PhaseState.PUB_CONTACT_EDITORS_DEFINITION
+            M.model_validate({"value": "Skipped to PUB Note"}).value
+            == Phase0State.PUB_SKIP
         )
-        assert M.model_validate({"value": "pub_skip"}).value == PhaseState.PUB_SKIP
 
-    def test_unknown_state_falls_back(self, caplog) -> None:
-        M = _model(LenientPhaseState)
-        with caplog.at_level(logging.WARNING, logger="stare"):
-            result = M.model_validate({"value": "some_future_state"})
-        assert result.value == "some_future_state"
-        assert "PhaseState" in caplog.text
+
+class TestPhase1State:
+    def test_human_readable_states(self) -> None:
+        M = _model(Phase1State)
+        assert (
+            M.model_validate({"value": "Phase 1 Data"}).value == Phase1State.NOT_STARTED
+        )
+        assert M.model_validate({"value": "Phase Closed"}).value == Phase1State.FINISHED
+
+    def test_internal_workflow_states(self) -> None:
+        M = _model(Phase1State)
+        assert (
+            M.model_validate({"value": "Analysis Review"}).value
+            == Phase1State.APPROVED_BY_REVIEWER
+        )
+        assert (
+            M.model_validate({"value": "Editorial Board Draft Sign-off"}).value
+            == Phase1State.LGP_APPROVED
+        )
+
+    def test_live_api_workflow_states(self) -> None:
+        M = _model(Phase1State)
+        assert (
+            M.model_validate({"value": "Editorial Board"}).value == Phase1State.STARTED
+        )
+        assert (
+            M.model_validate({"value": "Draft 1 Released to ATLAS"}).value
+            == Phase1State.REVIEW_CLOSED
+        )
+
+
+class TestPhase2State:
+    def test_human_readable_states(self) -> None:
+        M = _model(Phase2State)
+        assert M.model_validate({"value": "Phase 2 Data"}).value == Phase2State.STARTED
+        assert M.model_validate({"value": "Phase Closed"}).value == Phase2State.FINISHED
+
+    def test_internal_workflow_states(self) -> None:
+        M = _model(Phase2State)
+        assert (
+            M.model_validate({"value": "Draft 2 Approval Process"}).value
+            == Phase2State.FINAL_REVIEW_CLOSED
+        )
+        assert (
+            M.model_validate(
+                {"value": "Revised Draft Final Sign-off by Editorial Board Chair"}
+            ).value
+            == Phase2State.UPDATE_EDBOARD
+        )
+
+    def test_live_api_workflow_states(self) -> None:
+        M = _model(Phase2State)
+        assert (
+            M.model_validate(
+                {
+                    "value": "Revised Draft Final Sign-off by Publication Committee Chair or Deputy"
+                }
+            ).value
+            == Phase2State.UPDATED_PUBCOMM
+        )
+
+    def test_additional_workflow_states(self) -> None:
+        M = _model(Phase2State)
+        assert (
+            M.model_validate(
+                {"value": "Final Sign-off by Spokesperson or Deputy"}
+            ).value
+            == Phase2State.UPDATED_SPOKESPERSONDATE
+        )
+
+
+class TestSubmissionState:
+    def test_human_readable_states(self) -> None:
+        M = _model(SubmissionState)
+        assert (
+            M.model_validate({"value": "Publication Phase Launch"}).value
+            == SubmissionState.NOT_STARTED
+        )
+        assert (
+            M.model_validate({"value": "Submission Closed"}).value
+            == SubmissionState.FINISHED
+        )
+
+    def test_internal_workflow_states(self) -> None:
+        M = _model(SubmissionState)
+        assert (
+            M.model_validate({"value": "Journal Submission"}).value
+            == SubmissionState.SUBMITTED_TO_ARXIV
+        )
+        assert (
+            M.model_validate({"value": "Journal Reports Receiving"}).value
+            == SubmissionState.SUBMITTED_TO_JOURNAL
+        )
+
+    def test_live_api_workflow_states(self) -> None:
+        M = _model(SubmissionState)
+        assert (
+            M.model_validate({"value": "Journal Reports Answering"}).value
+            == SubmissionState.JOURNAL_REPORT_RECEIVED
+        )
+        assert (
+            M.model_validate({"value": "Final ArXiv Replacement"}).value
+            == SubmissionState.PUBLISHED_ONLINE
+        )
+
+    def test_additional_workflow_states(self) -> None:
+        M = _model(SubmissionState)
+        assert (
+            M.model_validate({"value": "Erratum Submission"}).value
+            == SubmissionState.ERRATUM_REQUESTED
+        )
+        assert (
+            M.model_validate({"value": "Paper Finish"}).value
+            == SubmissionState.FINAL_ARXIV_REPLACED
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -182,7 +277,7 @@ class TestCollisionType:
     def test_known_values(self) -> None:
         M = _model(LenientCollisionType)
         assert M.model_validate({"value": "p-p"}).value == CollisionType.PP
-        assert M.model_validate({"value": "Pb-Pb"}).value == CollisionType.PBPB
+        assert M.model_validate({"value": "Pb-Pb"}).value == CollisionType.PB_PB
         assert M.model_validate({"value": "p-Pb"}).value == CollisionType.P_PB
         assert M.model_validate({"value": "Xe-Xe"}).value == CollisionType.XE_XE
         assert M.model_validate({"value": "Col type"}).value == CollisionType.COL_TYPE
@@ -209,14 +304,6 @@ class TestCollisionType:
 
 
 class TestRepositoryType:
-    def test_known_values(self) -> None:
-        M = _model(LenientRepositoryType)
-        assert M.model_validate({"value": "analysis"}).value == RepositoryType.ANALYSIS
-        assert M.model_validate({"value": "thesis"}).value == RepositoryType.THESIS
-        assert (
-            M.model_validate({"value": "framework"}).value == RepositoryType.FRAMEWORK
-        )
-
     def test_publication_shortcode_values(self) -> None:
         M = _model(LenientRepositoryType)
         assert M.model_validate({"value": "CONF"}).value == RepositoryType.CONF
@@ -262,5 +349,5 @@ class TestPublicationType:
 
 class TestNonStringPassthrough:
     def test_none_passes_through(self) -> None:
-        M = _model(LenientAnalysisStatus)
+        M = _model(AnalysisStatus)
         assert M.model_validate({"value": None}).value is None

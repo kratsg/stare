@@ -21,6 +21,7 @@ from stare.models.common import (
     Person,
     RelatedPublication,
     TeamMember,
+    _extract_context,
 )
 from stare.models.enums import MeetingType
 from stare.models.errors import ApiErrorResponse
@@ -138,7 +139,7 @@ class TestCollision:
     def test_parse(self) -> None:
         c = Collision.model_validate(
             {
-                "type": "pp",
+                "type": "p-p",
                 "year": "2018",
                 "run": "2",
                 "ecmValue": "13",
@@ -147,7 +148,7 @@ class TestCollision:
                 "luminosityUnit": "fb-1",
             }
         )
-        assert c.type == "pp"
+        assert c.type == "p-p"
         assert c.ecm_value == "13"
         assert c.luminosity_unit == "fb-1"
 
@@ -162,7 +163,7 @@ class TestMetadata:
             {
                 "collisions": [
                     {
-                        "type": "pp",
+                        "type": "p-p",
                         "year": "2018",
                         "run": "2",
                         "ecmValue": "13",
@@ -175,7 +176,7 @@ class TestMetadata:
         )
         assert m.collisions is not None
         assert len(m.collisions) == 1
-        assert m.collisions[0].type == "pp"
+        assert m.collisions[0].type == "p-p"
 
     def test_optional_fields(self) -> None:
         m = Metadata.model_validate({})
@@ -194,7 +195,7 @@ class TestDocumentation:
                 "repositories": [
                     {
                         "gitlabId": "123",
-                        "type": "analysis",
+                        "type": "INT",
                         "url": "https://gitlab.cern.ch/r",
                     }
                 ],
@@ -270,9 +271,9 @@ class TestRelatedPublication:
 class TestAnalysisPhase0:
     def test_parse_minimal(self) -> None:
         p = AnalysisPhase0.model_validate(
-            {"state": "Active", "startDate": "2022-01-01"}
+            {"state": "Phase 0 Data", "startDate": "2022-01-01"}
         )
-        assert p.state == "Active"
+        assert p.state == "Phase 0 Data"
         assert p.start_date == date(2022, 1, 1)
 
     def test_meetings_parsed(self) -> None:
@@ -339,13 +340,13 @@ class TestAnalysis:
         a = Analysis.model_validate(
             {
                 "referenceCode": "ANA-HION-2018-01",
-                "status": "Active",
+                "status": "Created",
                 "shortTitle": "My analysis",
                 "creationDate": "2022-01-01",
             }
         )
         assert a.reference_code == "ANA-HION-2018-01"
-        assert a.status == "Active"
+        assert a.status == "Created"
         assert a.short_title == "My analysis"
 
     def test_nested_groups(self) -> None:
@@ -366,11 +367,11 @@ class TestAnalysis:
         a = Analysis.model_validate(
             {
                 "referenceCode": "ANA-X",
-                "phase0": {"state": "Approved", "startDate": "2021-01-01"},
+                "phase0": {"state": "Approval acceptance", "startDate": "2021-01-01"},
             }
         )
         assert a.phase0 is not None
-        assert a.phase0.state == "Approved"
+        assert a.phase0.state == "Approval acceptance"
 
     def test_analysis_team(self) -> None:
         a = Analysis.model_validate(
@@ -525,8 +526,8 @@ class TestAnalysisSearchResult:
             {
                 "numberOfResults": 2,
                 "results": [
-                    {"referenceCode": "ANA-A", "status": "Active"},
-                    {"referenceCode": "ANA-B", "status": "Closed"},
+                    {"referenceCode": "ANA-A", "status": "Created"},
+                    {"referenceCode": "ANA-B", "status": "Analysis Closed"},
                 ],
             }
         )
@@ -598,3 +599,96 @@ class TestApiErrorResponse:
         e = ApiErrorResponse.model_validate({})
         assert e.status is None
         assert e.title is None
+
+
+def test_extracting_context():
+    loc_tuple = ("results", 0, "phase0", "state")
+    obj = {
+        "results": [
+            {
+                "creationDate": "2023-08-10T00:00:00+02:00",
+                "referenceCode": "ANA-SUSY-2023-17",
+                "status": "Analysis Closed",
+                "shortTitle": "NUHM2 reinterpretation",
+                "publicShortTitle": "NUHM2 reinterpretation",
+                "extraMetadata": {},
+                "groups": {
+                    "leadingGroup": "SUSY",
+                    "subgroups": ["SUSY-EW", "SUSY-Run2"],
+                    "otherGroups": [],
+                },
+                "analysisTeam": [
+                    {
+                        "cernCcid": "449340",
+                        "firstName": "Patrick",
+                        "lastName": "Skubic",
+                        "isContactEditor": True,
+                    },
+                    {
+                        "cernCcid": "664227",
+                        "firstName": "Judita",
+                        "lastName": "Mamuzic",
+                        "isContactEditor": True,
+                    },
+                ],
+                "metadata": {
+                    "collisions": [
+                        {
+                            "type": "p-p",
+                            "year": "2015+2016+2017+2018",
+                            "run": "Run 2",
+                            "ecmValue": "13",
+                            "ecmUnit": "TeV",
+                            "luminosityValue": "140",
+                            "luminosityUnit": "femtobarn-1",
+                        }
+                    ],
+                    "keywords": [
+                        "13 TeV",
+                        "2 leptons",
+                        ">=3 leptons",
+                        "BSM reinterpretation",
+                        "Higgsino production",
+                        "MET",
+                        "NUHM",
+                        "R21",
+                    ],
+                    "mvaMlTools": [],
+                    "triggers": [
+                        "HLT_xe100_mht_L1XE50",
+                        "HLT_xe70_mht",
+                        "HLT_xe90_mht_L1XE50",
+                        "HLT_xe110_pufit_L1XE50",
+                        "HLT_xe110_pufit_L1XE55",
+                        "HLT_xe110_pufit_xe65_L1XE50",
+                        "HLT_xe110_pufit_xe70_L1XE50",
+                        "HLT_xe110_mht_L1XE50",
+                    ],
+                },
+                "amiGlance": [],
+                "documentation": {
+                    "repositories": [
+                        {
+                            "gitlabId": "167424",
+                            "type": "INT",
+                            "url": "https://gitlab.cern.ch/atlas-physics-office/SUSY/ANA-SUSY-2023-17/ANA-SUSY-2023-17-INT1",
+                        }
+                    ],
+                    "supportingInternalDocuments": [],
+                },
+                "relatedPublications": [],
+                "phase0": {
+                    "state": "pub_contact_editors_definition",
+                    "startDate": "2023-08-10T00:00:00+02:00",
+                    "mainPhysicsAim": None,
+                    "datasetUsed": None,
+                    "modelTested": None,
+                    "methods": None,
+                    "editorialBoardFormedOn": None,
+                    "pgcOrSgcSignOffDate": None,
+                    "analysisContacts": [],
+                },
+            }
+        ]
+    }
+    assert _extract_context(obj, loc_tuple) == "referenceCode='ANA-SUSY-2023-17'"
