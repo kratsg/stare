@@ -21,9 +21,9 @@ from stare.models.common import (
     _Base,
 )
 from stare.models.enums import (
-    MeetingType,
     LenientAnalysisStatus,
     LenientPhase0State,
+    MeetingType,
 )
 
 _logger = logging.getLogger("stare")
