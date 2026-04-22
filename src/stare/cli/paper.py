@@ -108,7 +108,7 @@ def paper_search(
         utils.handle_error(exc)
         raise typer.Exit(1) from exc
 
-    if (result.number_of_results >= 0 and offset > 0) or (
+    if (result.number_of_results == 0 and offset > 0) or (
         result.number_of_results > 0 and offset >= result.number_of_results
     ):
         typer.echo(
