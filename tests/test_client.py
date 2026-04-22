@@ -70,13 +70,13 @@ SAMPLE_PAPER_SEARCH = {
 }
 
 SAMPLE_CONF_NOTE = {
-    "temporaryReferenceCode": "ATLAS-CONF-2024-001",
+    "referenceCode": "ATLAS-CONF-2024-01",
     "status": "Phase 1 Closed",
     "shortTitle": "Test conf note",
 }
 
 SAMPLE_PUB_NOTE = {
-    "temporaryReferenceCode": "ATL-PHYS-PUB-2024-001",
+    "referenceCode": "ATL-PHYS-PUB-2024-01",
     "status": "Phase 1 Active",
     "shortTitle": "Test pub note",
 }
@@ -85,7 +85,7 @@ SAMPLE_ERROR = {"status": 404, "title": "Not Found", "detail": "Resource not fou
 
 SAMPLE_PUBLICATIONS = [
     {"referenceCode": "HDBS-2024-01", "type": "Paper"},
-    {"referenceCode": "ATLAS-CONF-2024-001", "type": "ConfNote"},
+    {"referenceCode": "ATLAS-CONF-2024-01", "type": "ConfNote"},
 ]
 
 SAMPLE_TRIGGERS = [
@@ -338,13 +338,13 @@ def test_papers_search_omits_none_params(glance: Glance) -> None:
 
 def test_conf_notes_get_returns_conf_note(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/confnotes/ATLAS-CONF-2024-001").mock(
+        rx.get("/confnotes/ATLAS-CONF-2024-01").mock(
             return_value=httpx.Response(200, json=SAMPLE_CONF_NOTE)
         )
-        result = glance.conf_notes.get("ATLAS-CONF-2024-001")
+        result = glance.conf_notes.get("ATLAS-CONF-2024-01")
 
     assert isinstance(result, ConfNote)
-    assert result.temp_reference_code == "ATLAS-CONF-2024-001"
+    assert result.reference_code == "ATLAS-CONF-2024-01"
 
 
 # ---------------------------------------------------------------------------
@@ -354,13 +354,13 @@ def test_conf_notes_get_returns_conf_note(glance: Glance) -> None:
 
 def test_pub_notes_get_returns_pub_note(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/pubnotes/ATL-PHYS-PUB-2024-001").mock(
+        rx.get("/pubnotes/ATL-PHYS-PUB-2024-01").mock(
             return_value=httpx.Response(200, json=SAMPLE_PUB_NOTE)
         )
-        result = glance.pub_notes.get("ATL-PHYS-PUB-2024-001")
+        result = glance.pub_notes.get("ATL-PHYS-PUB-2024-01")
 
     assert isinstance(result, PubNote)
-    assert result.temp_reference_code == "ATL-PHYS-PUB-2024-001"
+    assert result.reference_code == "ATL-PHYS-PUB-2024-01"
 
 
 # ---------------------------------------------------------------------------
@@ -510,11 +510,11 @@ def test_conf_notes_get_verbose_attaches_raw_data(glance: Glance) -> None:
     """verbose=True on conf_notes.get attaches the raw payload."""
     bad_json = {"analysisTeam": "not-a-list"}
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/confnotes/ATL-PHYS-PUB-2024-001").mock(
+        rx.get("/confnotes/ATL-PHYS-PUB-2024-01").mock(
             return_value=httpx.Response(200, json=bad_json)
         )
         with pytest.raises(ResponseParseError) as exc_info:
-            glance.conf_notes.get("ATL-PHYS-PUB-2024-001", verbose=True)
+            glance.conf_notes.get("ATL-PHYS-PUB-2024-01", verbose=True)
     assert exc_info.value.raw_data == bad_json
 
 

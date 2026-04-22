@@ -34,8 +34,8 @@ class TestPaperUrl:
 
 class TestConfNoteUrl:
     def test_default_base(self) -> None:
-        url = conf_note_url("ATLAS-CONF-2023-001", web_base=_BASE)
-        assert url == f"{_BASE}/confnotes/details?ref_code=ATLAS-CONF-2023-001"
+        url = conf_note_url("ATLAS-CONF-2023-01", web_base=_BASE)
+        assert url == f"{_BASE}/confnotes/details?ref_code=ATLAS-CONF-2023-01"
 
     def test_ref_code_preserved(self) -> None:
         ref = "ATLAS-CONF-2022-005"
@@ -48,7 +48,7 @@ class TestPubNoteUrl:
         assert url == f"{_BASE}/pubnotes/details?ref_code=ATL-PHYS-PUB-2023-010"
 
     def test_ref_code_preserved(self) -> None:
-        ref = "ATL-PHYS-PUB-2022-001"
+        ref = "ATL-PHYS-PUB-2022-01"
         assert ref in pub_note_url(ref, web_base=_BASE)
 
 

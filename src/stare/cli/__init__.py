@@ -66,7 +66,7 @@ def version() -> None:
 
 @app.command(name="conf-note")
 def conf_note(
-    ref_code: Annotated[str, typer.Argument(help="CONF note temporary reference code")],
+    ref_code: Annotated[str, typer.Argument(help="CONF note reference code")],
     output_json: Annotated[
         bool | None,
         typer.Option(
@@ -87,7 +87,7 @@ def conf_note(
         ),
     ] = False,
 ) -> None:
-    """Fetch a single CONF note by temporary reference code via GET /confnotes/{ref_code}.
+    """Fetch a single CONF note by reference code via GET /confnotes/{ref_code}.
 
     [bold]Examples[/bold]
       [green]stare conf-note ATLAS-CONF-2024-001[/green]
@@ -110,7 +110,7 @@ def conf_note(
         return
 
     settings = StareSettings()
-    ref = result.temp_reference_code or ""
+    ref = result.reference_code or ""
     url = conf_note_url(ref, web_base=settings.web_base_url) if ref else None
     ref_markup = f"[link={url}]{ref}[/link]" if url else ref
     utils.console.print(f"[bold cyan]{ref_markup}[/bold cyan]  {result.status or ''}")
@@ -125,7 +125,7 @@ def conf_note(
 
 @app.command(name="pub-note")
 def pub_note(
-    ref_code: Annotated[str, typer.Argument(help="PUB note temporary reference code")],
+    ref_code: Annotated[str, typer.Argument(help="PUB note reference code")],
     output_json: Annotated[
         bool | None,
         typer.Option(
@@ -146,7 +146,7 @@ def pub_note(
         ),
     ] = False,
 ) -> None:
-    """Fetch a single PUB note by temporary reference code via GET /pubnotes/{ref_code}.
+    """Fetch a single PUB note by reference code via GET /pubnotes/{ref_code}.
 
     [bold]Examples[/bold]
       [green]stare pub-note ATL-PHYS-PUB-2024-001[/green]
@@ -169,7 +169,7 @@ def pub_note(
         return
 
     settings = StareSettings()
-    ref = result.temp_reference_code or ""
+    ref = result.reference_code or ""
     url = pub_note_url(ref, web_base=settings.web_base_url) if ref else None
     ref_markup = f"[link={url}]{ref}[/link]" if url else ref
     utils.console.print(f"[bold cyan]{ref_markup}[/bold cyan]  {result.status or ''}")

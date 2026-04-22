@@ -169,7 +169,7 @@ class ConfNoteResource:
         self._client = client
 
     def get(self, temp_ref_code: str, *, verbose: bool = False) -> ConfNote:
-        """Fetch a single CONF note by temporary reference code."""
+        """Fetch a single CONF note by reference code."""
         response = self._client.get(f"/confnotes/{temp_ref_code}")
         _raise_for_status(response)
         return ConfNote.model_validate(response.json(), verbose=verbose)
@@ -183,7 +183,7 @@ class PubNoteResource:
         self._client = client
 
     def get(self, temp_ref_code: str, *, verbose: bool = False) -> PubNote:
-        """Fetch a single PUB note by temporary reference code."""
+        """Fetch a single PUB note by reference code."""
         response = self._client.get(f"/pubnotes/{temp_ref_code}")
         _raise_for_status(response)
         return PubNote.model_validate(response.json(), verbose=verbose)
