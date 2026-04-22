@@ -400,6 +400,15 @@ def test_analysis_search_with_limit_and_offset() -> None:
     assert call_kwargs["offset"] == 5
 
 
+def test_analysis_search_not_enough_results() -> None:
+    g = _mock_glance()
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(
+            app, ["analysis", "search", "--limit", "10", "--offset", "5"]
+        )
+    assert result.exit_code == 2
+
+
 # ---------------------------------------------------------------------------
 # analysis get
 # ---------------------------------------------------------------------------
@@ -485,6 +494,15 @@ def test_paper_search_with_limit_and_offset() -> None:
     call_kwargs = g.papers.search.call_args.kwargs
     assert call_kwargs["limit"] == 10
     assert call_kwargs["offset"] == 5
+
+
+def test_paper_search_not_enough_results() -> None:
+    g = _mock_glance()
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(
+            app, ["paper", "search", "--limit", "10", "--offset", "5"]
+        )
+    assert result.exit_code == 2
 
 
 # ---------------------------------------------------------------------------

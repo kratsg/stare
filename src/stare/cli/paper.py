@@ -108,6 +108,12 @@ def paper_search(
         utils.handle_error(exc)
         raise typer.Exit(1) from exc
 
+    if offset >= result.number_of_results:
+        typer.echo(
+            f"No results, offset is larger than number of results: {offset} >= {result.number_of_results}."
+        )
+        raise typer.Exit(2)
+
     if output_json:
         typer.echo(result.model_dump_json(by_alias=True))
         return

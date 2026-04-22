@@ -98,9 +98,13 @@ class Phase0State(StrEnum):
     PAPER_SKIP = "Skipped to Paper"
     CONF_SKIP = "Skipped to CONF Note"
     PUB_SKIP = "Skipped to PUB Note"
-    CONF_CONTACT_EDITORS = "conf_contact_editors_definition"
-    PUB_CONTACT_EDITORS = "pub_contact_editors_definition"
-    PAPER_CONTACT_EDITORS = "paper_contact_editors_definition"
+    CONF_CONTACT_EDITORS = (
+        "Contact editors and Editorial Board appointment (skipped to CONF note)"
+    )
+    PUB_CONTACT_EDITORS = "Contact editors appointment (skipped to PUB note)"
+    PAPER_CONTACT_EDITORS = (
+        "Contact editors and Editorial Board appointment (skipped to Paper)"
+    )
 
 
 class Phase1State(StrEnum):
