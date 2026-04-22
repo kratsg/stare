@@ -534,6 +534,7 @@ class TestAnalysisSearchResult:
         assert r.number_of_results == 2
         assert len(r.results) == 2
         assert r.results[0].reference_code == "ANA-A-2021-01"
+        assert r.results[1].reference_code == "ANA-B-2021-01"
 
     def test_empty_results(self) -> None:
         r = AnalysisSearchResult.model_validate({"numberOfResults": 0, "results": []})
