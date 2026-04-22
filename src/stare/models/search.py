@@ -17,7 +17,7 @@ T = TypeVar("T")
 class _SearchResultsBase(_Base, Generic[T]):
     """Generic search result container shared by all search endpoints."""
 
-    number_of_results: int | None = Field(default=None, alias="numberOfResults")
+    number_of_results: int = Field(default=0, alias="numberOfResults")
     results: list[T] = Field(default_factory=list)
 
 

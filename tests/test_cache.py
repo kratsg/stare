@@ -167,7 +167,7 @@ class TestNoCacheFlag:
     def test_no_cache_flag_is_accepted(self) -> None:
         g = MagicMock()
         g.analyses.search.return_value = AnalysisSearchResult.model_validate(
-            {"numberOfResults": 0, "results": []}
+            {"numberOfResults": 1, "results": []}
         )
         with patch("stare.cli.utils.make_glance", return_value=g):
             result = runner.invoke(app, ["analysis", "search", "--no-cache"])
@@ -176,7 +176,7 @@ class TestNoCacheFlag:
     def test_no_cache_calls_make_glance_with_flag(self) -> None:
         g = MagicMock()
         g.analyses.search.return_value = AnalysisSearchResult.model_validate(
-            {"numberOfResults": 0, "results": []}
+            {"numberOfResults": 1, "results": []}
         )
         with patch("stare.cli.utils.make_glance", return_value=g) as mock_make:
             runner.invoke(app, ["analysis", "search", "--no-cache"])

@@ -108,6 +108,16 @@ def paper_search(
         utils.handle_error(exc)
         raise typer.Exit(1) from exc
 
+    if (result.number_of_results == 0 and offset > 0) or (
+        result.number_of_results > 0 and offset >= result.number_of_results
+    ):
+        typer.echo(
+            f"Invalid offset: {offset}. Maximum allowed offset is "
+            f"{max(result.number_of_results - 1, 0)} for "
+            f"{result.number_of_results} total results."
+        )
+        raise typer.Exit(2)
+
     if output_json:
         typer.echo(result.model_dump_json(by_alias=True))
         return

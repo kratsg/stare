@@ -366,7 +366,7 @@ class TestAnalysis:
     def test_nested_phase0(self) -> None:
         a = Analysis.model_validate(
             {
-                "referenceCode": "ANA-X",
+                "referenceCode": "ANA-X-2021-01",
                 "phase0": {"state": "Approval acceptance", "startDate": "2021-01-01"},
             }
         )
@@ -376,7 +376,7 @@ class TestAnalysis:
     def test_analysis_team(self) -> None:
         a = Analysis.model_validate(
             {
-                "referenceCode": "ANA-X",
+                "referenceCode": "ANA-X-2021-01",
                 "analysisTeam": [
                     {
                         "cernCcid": "u1",
@@ -420,13 +420,13 @@ class TestAnalysis:
 
     def test_round_trip_aliases(self) -> None:
         data = {
-            "referenceCode": "ANA-X",
+            "referenceCode": "ANA-X-2021-01",
             "shortTitle": "Short",
             "publicShortTitle": "Public",
         }
         a = Analysis.model_validate(data)
         dumped = a.model_dump(by_alias=True, exclude_none=True)
-        assert dumped["referenceCode"] == "ANA-X"
+        assert dumped["referenceCode"] == "ANA-X-2021-01"
         assert dumped["publicShortTitle"] == "Public"
 
 
@@ -526,14 +526,15 @@ class TestAnalysisSearchResult:
             {
                 "numberOfResults": 2,
                 "results": [
-                    {"referenceCode": "ANA-A", "status": "Created"},
-                    {"referenceCode": "ANA-B", "status": "Analysis Closed"},
+                    {"referenceCode": "ANA-A-2021-01", "status": "Created"},
+                    {"referenceCode": "ANA-B-2021-01", "status": "Analysis Closed"},
                 ],
             }
         )
         assert r.number_of_results == 2
         assert len(r.results) == 2
-        assert r.results[0].reference_code == "ANA-A"
+        assert r.results[0].reference_code == "ANA-A-2021-01"
+        assert r.results[1].reference_code == "ANA-B-2021-01"
 
     def test_empty_results(self) -> None:
         r = AnalysisSearchResult.model_validate({"numberOfResults": 0, "results": []})

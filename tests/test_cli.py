@@ -52,7 +52,7 @@ SAMPLE_PAPER = Paper.model_validate(
 
 SAMPLE_CONF_NOTE = ConfNote.model_validate(
     {
-        "temporaryReferenceCode": "ATLAS-CONF-2024-001",
+        "temporaryReferenceCode": "ATLAS-CONF-2024-01",
         "status": "Completed",
         "shortTitle": "Test conf note",
     }
@@ -60,7 +60,7 @@ SAMPLE_CONF_NOTE = ConfNote.model_validate(
 
 SAMPLE_PUB_NOTE = PubNote.model_validate(
     {
-        "temporaryReferenceCode": "ATL-PHYS-PUB-2024-001",
+        "temporaryReferenceCode": "ATL-PHYS-PUB-2024-01",
         "status": "Phase 1 Closed",
         "shortTitle": "Test pub note",
     }
@@ -400,6 +400,15 @@ def test_analysis_search_with_limit_and_offset() -> None:
     assert call_kwargs["offset"] == 5
 
 
+def test_analysis_search_not_enough_results() -> None:
+    g = _mock_glance()
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(
+            app, ["analysis", "search", "--limit", "10", "--offset", "5"]
+        )
+    assert result.exit_code == 2
+
+
 # ---------------------------------------------------------------------------
 # analysis get
 # ---------------------------------------------------------------------------
@@ -487,6 +496,15 @@ def test_paper_search_with_limit_and_offset() -> None:
     assert call_kwargs["offset"] == 5
 
 
+def test_paper_search_not_enough_results() -> None:
+    g = _mock_glance()
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(
+            app, ["paper", "search", "--limit", "10", "--offset", "5"]
+        )
+    assert result.exit_code == 2
+
+
 # ---------------------------------------------------------------------------
 # paper get
 # ---------------------------------------------------------------------------
@@ -514,17 +532,17 @@ def test_paper_get_json_output() -> None:
 
 def test_conf_note_command() -> None:
     with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
-        result = runner.invoke(app, ["conf-note", "ATLAS-CONF-2024-001"])
+        result = runner.invoke(app, ["conf-note", "ATLAS-CONF-2024-01"])
     assert result.exit_code == 0
-    assert "ATLAS-CONF-2024-001" in result.output
+    assert "ATLAS-CONF-2024-01" in result.output
 
 
 def test_conf_note_json_output() -> None:
     with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
-        result = runner.invoke(app, ["conf-note", "ATLAS-CONF-2024-001", "--json"])
+        result = runner.invoke(app, ["conf-note", "ATLAS-CONF-2024-01", "--json"])
     assert result.exit_code == 0
     data = json.loads(result.output)
-    assert data.get("temporaryReferenceCode") == "ATLAS-CONF-2024-001"
+    assert data.get("temporaryReferenceCode") == "ATLAS-CONF-2024-01"
 
 
 # ---------------------------------------------------------------------------
@@ -534,17 +552,17 @@ def test_conf_note_json_output() -> None:
 
 def test_pub_note_command() -> None:
     with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
-        result = runner.invoke(app, ["pub-note", "ATL-PHYS-PUB-2024-001"])
+        result = runner.invoke(app, ["pub-note", "ATL-PHYS-PUB-2024-01"])
     assert result.exit_code == 0
-    assert "ATL-PHYS-PUB-2024-001" in result.output
+    assert "ATL-PHYS-PUB-2024-01" in result.output
 
 
 def test_pub_note_json_output() -> None:
     with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
-        result = runner.invoke(app, ["pub-note", "ATL-PHYS-PUB-2024-001", "--json"])
+        result = runner.invoke(app, ["pub-note", "ATL-PHYS-PUB-2024-01", "--json"])
     assert result.exit_code == 0
     data = json.loads(result.output)
-    assert data.get("temporaryReferenceCode") == "ATL-PHYS-PUB-2024-001"
+    assert data.get("temporaryReferenceCode") == "ATL-PHYS-PUB-2024-01"
 
 
 # ---------------------------------------------------------------------------
