@@ -51,8 +51,8 @@ class PubNotePhase1(_Base):
 class PubNote(_Base):
     """An ATLAS PUB note."""
 
-    reference_code: str | None = Field(
-        default=None, pattern=r"^PUB-[A-Z]+-\d{4}-\d{2}$"
+    temp_reference_code: str | None = Field(
+        default=None, alias="temporaryReferenceCode"
     )
     status: LenientPaperStatus | None = None
     short_title: str | None = None

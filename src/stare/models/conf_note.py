@@ -53,8 +53,8 @@ class ConfNotePhase1(_Base):
 class ConfNote(_Base):
     """An ATLAS CONF note."""
 
-    reference_code: str | None = Field(
-        default=None, pattern=r"^CONF-[A-Z]+-\d{4}-\d{2}$"
+    temp_reference_code: str | None = Field(
+        default=None, alias="temporaryReferenceCode"
     )
     status: LenientPaperStatus | None = None
     short_title: str | None = None

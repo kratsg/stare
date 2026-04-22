@@ -70,13 +70,13 @@ SAMPLE_PAPER_SEARCH = {
 }
 
 SAMPLE_CONF_NOTE = {
-    "referenceCode": "ATLAS-CONF-2024-01",
+    "temporaryReferenceCode": "ATLAS-CONF-2024-01",
     "status": "Phase 1 Closed",
     "shortTitle": "Test conf note",
 }
 
 SAMPLE_PUB_NOTE = {
-    "referenceCode": "ATL-PHYS-PUB-2024-01",
+    "temporaryReferenceCode": "ATL-PHYS-PUB-2024-01",
     "status": "Phase 1 Active",
     "shortTitle": "Test pub note",
 }
@@ -344,7 +344,7 @@ def test_conf_notes_get_returns_conf_note(glance: Glance) -> None:
         result = glance.conf_notes.get("ATLAS-CONF-2024-01")
 
     assert isinstance(result, ConfNote)
-    assert result.reference_code == "ATLAS-CONF-2024-01"
+    assert result.temp_reference_code == "ATLAS-CONF-2024-01"
 
 
 # ---------------------------------------------------------------------------
@@ -360,7 +360,7 @@ def test_pub_notes_get_returns_pub_note(glance: Glance) -> None:
         result = glance.pub_notes.get("ATL-PHYS-PUB-2024-01")
 
     assert isinstance(result, PubNote)
-    assert result.reference_code == "ATL-PHYS-PUB-2024-01"
+    assert result.temp_reference_code == "ATL-PHYS-PUB-2024-01"
 
 
 # ---------------------------------------------------------------------------
