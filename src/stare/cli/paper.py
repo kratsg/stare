@@ -108,9 +108,13 @@ def paper_search(
         utils.handle_error(exc)
         raise typer.Exit(1) from exc
 
-    if offset >= result.number_of_results:
+    if (result.number_of_results >= 0 and offset > 0) or (
+        result.number_of_results > 0 and offset >= result.number_of_results
+    ):
         typer.echo(
-            f"No results, offset is larger than number of results: {offset} >= {result.number_of_results}."
+            f"Invalid offset: {offset}. Maximum allowed offset is "
+            f"{max(result.number_of_results - 1, 0)} for "
+            f"{result.number_of_results} total results."
         )
         raise typer.Exit(2)
 
