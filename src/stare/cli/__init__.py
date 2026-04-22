@@ -90,8 +90,8 @@ def conf_note(
     """Fetch a single CONF note by reference code via GET /confnotes/{ref_code}.
 
     [bold]Examples[/bold]
-      [green]stare conf-note ATLAS-CONF-2024-001[/green]
-      [green]stare conf-note ATLAS-CONF-2024-001 | jq '.status'[/green]
+      [green]stare conf-note CONF-2024-01[/green]
+      [green]stare conf-note CONF-2024-01 | jq '.status'[/green]
 
     [bold]API reference[/bold]
       https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-confnote-getConfNote
@@ -149,8 +149,8 @@ def pub_note(
     """Fetch a single PUB note by reference code via GET /pubnotes/{ref_code}.
 
     [bold]Examples[/bold]
-      [green]stare pub-note ATL-PHYS-PUB-2024-001[/green]
-      [green]stare pub-note ATL-PHYS-PUB-2024-001 | jq '.status'[/green]
+      [green]stare pub-note ATL-PHYS-PUB-2024-01[/green]
+      [green]stare pub-note ATL-PHYS-PUB-2024-01 | jq '.status'[/green]
 
     [bold]API reference[/bold]
       https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-pubnote-getPubNote
