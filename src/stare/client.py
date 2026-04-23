@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import ssl
 from importlib.resources import as_file, files
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any
 
 import httpx
 from hishel import CacheOptions, SpecificationPolicy, SyncSqliteStorage
@@ -13,6 +13,7 @@ from pydantic import TypeAdapter, ValidationError
 
 from stare.auth import TokenManager
 from stare.dsl import Expression, parse_dsl
+from stare.typing import Mode
 from stare.exceptions import (
     ApiError,
     ForbiddenError,
@@ -81,7 +82,7 @@ def _raise_for_status(response: httpx.Response) -> None:
 def _resolve_query(
     q: str | Expression,
     *,
-    mode: Literal["analysis", "confnote", "paper"],
+    mode: Mode,
     validate: bool,
 ) -> str:
     if isinstance(q, str):

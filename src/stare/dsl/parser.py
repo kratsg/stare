@@ -5,7 +5,7 @@ from __future__ import annotations
 import difflib
 import logging
 from importlib.resources import files
-from typing import Any, Literal
+from typing import Any
 
 from lark import Lark, Transformer, UnexpectedInput
 from lark.exceptions import VisitError
@@ -13,6 +13,7 @@ from lark.exceptions import VisitError
 from stare.dsl.errors import DSLSyntaxError, DSLValidationError
 from stare.dsl.models import And, Condition, Expression, Operator, Or
 from stare.dsl.registry import FieldRegistry
+from stare.typing import Mode
 
 _logger = logging.getLogger("stare")
 
@@ -90,9 +91,7 @@ def _syntax_hint(exc: UnexpectedInput, source: str) -> str | None:
     return None
 
 
-def parse_dsl(
-    source: str, *, mode: Literal["analysis", "confnote", "paper"]
-) -> Expression:
+def parse_dsl(source: str, *, mode: Mode) -> Expression:
     """Parse a DSL query string and return a validated AST.
 
     Raises DSLSyntaxError on grammar violations and DSLValidationError on

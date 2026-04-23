@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import difflib
 import sys
-from typing import Literal
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -16,8 +15,7 @@ from importlib.resources import files
 from pydantic.alias_generators import to_camel
 
 from stare.dsl.errors import DSLValidationError
-
-Mode = Literal["analysis", "confnote", "paper"]
+from stare.typing import Mode
 
 
 class FieldRegistry:
