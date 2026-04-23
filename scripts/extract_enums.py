@@ -180,7 +180,7 @@ if __name__ == "__main__":
     md_text = statuses.read_text()
     result = generate(md_text)
 
-    output = "src/stare/models/enums.py"
+    output = repo_root / "src" / "stare" / "models" / "enums.py"
     inject(output, result)
 
     print(f"✔ Generated enums → {output}")
