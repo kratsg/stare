@@ -159,12 +159,16 @@ def generate(md: str) -> str:
 def inject(file_path: str, content: str):
     text = Path(file_path).read_text()
 
-    new_text = re.sub(
+    new_text, count = re.subn(
         rf"{re.escape(START)}.*?{re.escape(END)}",
         f"{START}\n{content}\n{END}",
         text,
         flags=re.DOTALL,
     )
+
+    if count != 1:
+        msg = f"inject: expected exactly one START/END marker block in {file_path!r}, found {count}"
+        raise ValueError(msg)
 
     Path(file_path).write_text(new_text)
 

@@ -219,7 +219,7 @@ class ConfNoteResource:
         validate_query: bool = True,
         verbose: bool = False,
     ) -> ConfNoteSearchResult:
-        """Search conf notes via GET /searchConfNote."""
+        """Search conf notes via GET /searchConfnote."""
         params: dict[str, Any] = {"offset": offset, "limit": limit}
         if query is not None:
             params["queryString"] = _resolve_query(

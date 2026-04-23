@@ -18,4 +18,3 @@ def test_enums_module_imports_cleanly():
         "LenientConfnotePhase1State",
     ):
         assert hasattr(enums, name), f"Missing Lenient alias: {name}"
-        assert hasattr(enums, name), f"Missing Lenient alias: {name}"
