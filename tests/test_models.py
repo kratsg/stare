@@ -26,7 +26,13 @@ from stare.models.common import (
 from stare.models.enums import MeetingType
 from stare.models.errors import ApiErrorResponse
 from stare.models.paper import PaperPhase1, PaperPhase2, SubmissionPhase
-from stare.models.search import AnalysisSearchResult, PublicationRef, Trigger
+from stare.models.pubnote import PubNote, PubNotePhase1
+from stare.models.search import (
+    AnalysisSearchResult,
+    PubNoteSearchResult,
+    PublicationRef,
+    Trigger,
+)
 
 # ---------------------------------------------------------------------------
 # Common models
@@ -693,3 +699,24 @@ def test_extracting_context():
         ]
     }
     assert _extract_context(obj, loc_tuple) == "referenceCode='ANA-SUSY-2023-17'"
+
+
+# ---------------------------------------------------------------------------
+# PubNoteSearchResult
+# ---------------------------------------------------------------------------
+
+
+def test_pub_note_search_result_round_trip() -> None:
+    payload = {
+        "numberOfResults": 1,
+        "results": [{"finalReferenceCode": "ATL-PHYS-PUB-2024-01", "shortTitle": "x"}],
+    }
+    result = PubNoteSearchResult.model_validate(payload)
+    assert result.number_of_results == 1
+    assert result.results[0].final_reference_code == "ATL-PHYS-PUB-2024-01"
+
+
+def test_pub_note_search_result_empty() -> None:
+    result = PubNoteSearchResult.model_validate({"numberOfResults": 0, "results": []})
+    assert result.number_of_results == 0
+    assert result.results == []
