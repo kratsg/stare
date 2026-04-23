@@ -72,6 +72,7 @@ fields = [
     "relatedAnalysis.referenceCode",
     "shortTitle",
     "status",
+    "temporaryReferenceCode",
 ]
 
 [paper]
