@@ -202,7 +202,10 @@ class ConfNoteResource:
     def get(self, ref_code: str, *, verbose: bool = False) -> ConfNote:
         """Fetch a single CONF note by temporary reference code via /searchConfnote."""
         return _get_by_ref(
-            self.search, field="temporaryReferenceCode", ref_code=ref_code, verbose=verbose
+            self.search,
+            field="temporaryReferenceCode",
+            ref_code=ref_code,
+            verbose=verbose,
         )
 
     def search(
@@ -240,7 +243,10 @@ class PubNoteResource:
     def get(self, ref_code: str, *, verbose: bool = False) -> PubNote:
         """Fetch a single PUB note by temporary reference code via /searchPubnote."""
         return _get_by_ref(
-            self.search, field="temporaryReferenceCode", ref_code=ref_code, verbose=verbose
+            self.search,
+            field="temporaryReferenceCode",
+            ref_code=ref_code,
+            verbose=verbose,
         )
 
     def search(
