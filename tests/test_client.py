@@ -27,10 +27,12 @@ from stare.models import (
     Analysis,
     AnalysisSearchResult,
     ConfNote,
+    ConfNoteSearchResult,
     Paper,
     PaperSearchResult,
     PublicationRef,
     PubNote,
+    PubNoteSearchResult,
     Trigger,
 )
 from stare.models.common import _format_parse_error
@@ -386,8 +388,91 @@ def test_confnotes_get_zero_results_raises_not_found(glance: Glance) -> None:
 
 
 # ---------------------------------------------------------------------------
-# PubNoteResource.get (placeholder — full tests added in Task 12)
+# PubNoteResource.search
 # ---------------------------------------------------------------------------
+
+
+def test_pubnote_search_returns_search_result(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchPubnote").mock(
+            return_value=httpx.Response(200, json=SAMPLE_PUB_NOTE_SEARCH)
+        )
+        result = glance.pubnotes.search()
+
+    assert isinstance(result, PubNoteSearchResult)
+    assert result.number_of_results == 1
+    assert len(result.results) == 1
+    assert isinstance(result.results[0], PubNote)
+    assert result.results[0].final_reference_code == "ATL-PHYS-PUB-2024-01"
+
+
+def test_pubnote_search_passes_query_params(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchPubnote").mock(
+            return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
+        )
+        glance.pubnotes.search(query="finalReferenceCode = X", limit=10, offset=5)
+        params = dict(rx.calls[0].request.url.params)
+    assert params["queryString"] == "finalReferenceCode = X"
+    assert params["limit"] == "10"
+    assert params["offset"] == "5"
+
+
+def test_pubnote_search_omits_none_params(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchPubnote").mock(
+            return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
+        )
+        glance.pubnotes.search()
+        params = dict(rx.calls[0].request.url.params)
+    assert "queryString" not in params
+    assert "sortBy" not in params
+    assert "sortDesc" not in params
+
+
+# ---------------------------------------------------------------------------
+# PubNoteResource.get (search-based via finalReferenceCode)
+# ---------------------------------------------------------------------------
+
+
+def test_pubnote_get_returns_pubnote(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        route = rx.get("/searchPubnote").mock(
+            return_value=httpx.Response(200, json=SAMPLE_PUB_NOTE_SEARCH)
+        )
+        result = glance.pubnotes.get("ATL-PHYS-PUB-2024-01")
+
+    assert isinstance(result, PubNote)
+    assert result.final_reference_code == "ATL-PHYS-PUB-2024-01"
+    params = dict(route.calls[0].request.url.params)
+    assert params["queryString"] == "finalReferenceCode = ATL-PHYS-PUB-2024-01"
+    assert params["limit"] == "1"
+
+
+def test_pubnote_get_zero_results_raises_not_found(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchPubnote").mock(
+            return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
+        )
+        with pytest.raises(NotFoundError):
+            glance.pubnotes.get("MISSING")
+
+
+# ---------------------------------------------------------------------------
+# ConfNoteResource.search
+# ---------------------------------------------------------------------------
+
+
+def test_confnotes_search_returns_search_result(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchConfnote").mock(
+            return_value=httpx.Response(200, json=SAMPLE_CONF_NOTE_SEARCH)
+        )
+        result = glance.confnotes.search()
+
+    assert isinstance(result, ConfNoteSearchResult)
+    assert result.number_of_results == 1
+    assert result.results[0].final_reference_code == "ATLAS-CONF-2024-001"
 
 
 # ---------------------------------------------------------------------------

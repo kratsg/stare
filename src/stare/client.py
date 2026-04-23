@@ -36,6 +36,7 @@ from stare.models import (
     PaperSearchResult,
     PublicationRef,
     PubNote,
+    PubNoteSearchResult,
     Trigger,
 )
 from stare.settings import StareSettings
@@ -224,17 +225,39 @@ class ConfNoteResource:
 
 
 class PubNoteResource:
-    """Accessor for /pubnotes/ endpoint."""
+    """Accessor for /searchPubnote endpoint."""
 
     def __init__(self, client: httpx.Client) -> None:
         """Store the shared httpx client."""
         self._client = client
 
-    def get(self, temp_ref_code: str, *, verbose: bool = False) -> PubNote:
-        """Fetch a single PUB note by temporary reference code."""
-        response = self._client.get(f"/pubnotes/{temp_ref_code}")
+    def get(self, ref_code: str, *, verbose: bool = False) -> PubNote:
+        """Fetch a single PUB note by final reference code via /searchPubnote."""
+        return _get_by_ref(self.search, field="finalReferenceCode", ref_code=ref_code, verbose=verbose)
+
+    def search(
+        self,
+        *,
+        query: str | Expression | None = None,
+        offset: int = 0,
+        limit: int = 50,
+        sort_by: str | None = None,
+        sort_desc: bool = False,
+        validate_query: bool = True,
+        verbose: bool = False,
+    ) -> PubNoteSearchResult:
+        """Search pub notes via GET /searchPubnote."""
+        params: dict[str, Any] = {"offset": offset, "limit": limit}
+        if query is not None:
+            params["queryString"] = _resolve_query(
+                query, mode="pubnote", validate=validate_query
+            )
+        if sort_by is not None:
+            params["sortBy"] = sort_by
+            params["sortDesc"] = str(sort_desc).lower()
+        response = self._client.get("/searchPubnote", params=params)
         _raise_for_status(response)
-        return PubNote.model_validate(response.json(), verbose=verbose)
+        return PubNoteSearchResult.model_validate(response.json(), verbose=verbose)
 
 
 class PublicationResource:
