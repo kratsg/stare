@@ -23,10 +23,18 @@ from stare.models.common import (
     TeamMember,
     _extract_context,
 )
-from stare.models.enums import MeetingType
+from stare.models.confnote import ConfNote, ConfNotePhase1
+from stare.models.enums import ConfnotePhase1State, MeetingType
 from stare.models.errors import ApiErrorResponse
 from stare.models.paper import PaperPhase1, PaperPhase2, SubmissionPhase
-from stare.models.search import AnalysisSearchResult, PublicationRef, Trigger
+from stare.models.pubnote import PubNote, PubNotePhase1
+from stare.models.search import (
+    AnalysisSearchResult,
+    ConfNoteSearchResult,
+    PublicationRef,
+    PubNoteSearchResult,
+    Trigger,
+)
 
 # ---------------------------------------------------------------------------
 # Common models
@@ -693,3 +701,144 @@ def test_extracting_context():
         ]
     }
     assert _extract_context(obj, loc_tuple) == "referenceCode='ANA-SUSY-2023-17'"
+
+
+# ---------------------------------------------------------------------------
+# PubNoteSearchResult
+# ---------------------------------------------------------------------------
+
+
+def test_pub_note_search_result_round_trip() -> None:
+    payload = {
+        "numberOfResults": 1,
+        "results": [{"finalReferenceCode": "ATL-PHYS-PUB-2024-01", "shortTitle": "x"}],
+    }
+    result = PubNoteSearchResult.model_validate(payload)
+    assert result.number_of_results == 1
+    assert result.results[0].final_reference_code == "ATL-PHYS-PUB-2024-01"
+
+
+def test_pub_note_search_result_empty() -> None:
+    result = PubNoteSearchResult.model_validate({"numberOfResults": 0, "results": []})
+    assert result.number_of_results == 0
+    assert result.results == []
+
+
+# ---------------------------------------------------------------------------
+# ConfNote models
+# ---------------------------------------------------------------------------
+
+
+class TestConfNote:
+    def test_round_trip(self) -> None:
+        payload = {
+            "temporaryReferenceCode": "ATLAS-CONF-2024-01",
+            "finalReferenceCode": "ATLAS-CONF-2024-001",
+            "status": "Completed",
+            "shortTitle": "Test conf note",
+        }
+        note = ConfNote.model_validate(payload)
+        assert note.temp_reference_code == "ATLAS-CONF-2024-01"
+        assert note.final_reference_code == "ATLAS-CONF-2024-001"
+        assert note.short_title == "Test conf note"
+        dumped = note.model_dump(by_alias=True, exclude_none=True)
+        assert dumped["temporaryReferenceCode"] == "ATLAS-CONF-2024-01"
+        assert dumped["finalReferenceCode"] == "ATLAS-CONF-2024-001"
+
+    def test_lenient_status_accepts_unknown(self, caplog) -> None:
+        with caplog.at_level(logging.WARNING, logger="stare"):
+            note = ConfNote.model_validate({"status": "SomeUnknownStatus"})
+        assert note.status == "SomeUnknownStatus"
+        assert "SomeUnknownStatus" in caplog.text
+
+    def test_all_optional(self) -> None:
+        note = ConfNote.model_validate({})
+        assert note.temp_reference_code is None
+        assert note.final_reference_code is None
+        assert note.status is None
+
+
+class TestConfNotePhase1:
+    def test_phase1_state_uses_confnote_enum(self) -> None:
+        p = ConfNotePhase1.model_validate({"state": "Phase 1 Active"})
+        assert p.state == ConfnotePhase1State.PHASE1_ACTIVE
+
+    def test_lenient_phase1_state_accepts_unknown(self, caplog) -> None:
+        with caplog.at_level(logging.WARNING, logger="stare"):
+            p = ConfNotePhase1.model_validate({"state": "UnknownPhaseXYZ"})
+        assert p.state == "UnknownPhaseXYZ"
+        assert "UnknownPhaseXYZ" in caplog.text
+
+    def test_all_optional(self) -> None:
+        p = ConfNotePhase1.model_validate({})
+        assert p.state is None
+
+
+class TestConfNoteSearchResult:
+    def test_round_trip(self) -> None:
+        payload = {
+            "numberOfResults": 1,
+            "results": [
+                {
+                    "temporaryReferenceCode": "ATLAS-CONF-2024-01",
+                    "finalReferenceCode": "ATLAS-CONF-2024-001",
+                    "shortTitle": "x",
+                }
+            ],
+        }
+        result = ConfNoteSearchResult.model_validate(payload)
+        assert result.number_of_results == 1
+        assert result.results[0].final_reference_code == "ATLAS-CONF-2024-001"
+
+    def test_empty_results(self) -> None:
+        result = ConfNoteSearchResult.model_validate(
+            {"numberOfResults": 0, "results": []}
+        )
+        assert result.number_of_results == 0
+        assert result.results == []
+
+
+# ---------------------------------------------------------------------------
+# PubNote models
+# ---------------------------------------------------------------------------
+
+
+class TestPubNote:
+    def test_round_trip(self) -> None:
+        payload = {
+            "finalReferenceCode": "ATL-PHYS-PUB-2024-01",
+            "status": "Phase 1 Active",
+            "shortTitle": "Test pub note",
+        }
+        note = PubNote.model_validate(payload)
+        assert note.final_reference_code == "ATL-PHYS-PUB-2024-01"
+        assert note.short_title == "Test pub note"
+        dumped = note.model_dump(by_alias=True, exclude_none=True)
+        assert dumped["finalReferenceCode"] == "ATL-PHYS-PUB-2024-01"
+
+    def test_lenient_status_accepts_unknown(self, caplog) -> None:
+        with caplog.at_level(logging.WARNING, logger="stare"):
+            note = PubNote.model_validate({"status": "SomeUnknownStatus"})
+        assert note.status == "SomeUnknownStatus"
+        assert "SomeUnknownStatus" in caplog.text
+
+    def test_all_optional(self) -> None:
+        note = PubNote.model_validate({})
+        assert note.final_reference_code is None
+        assert note.status is None
+
+
+class TestPubNotePhase1:
+    def test_phase1_state_uses_confnote_enum(self) -> None:
+        p = PubNotePhase1.model_validate({"state": "Phase 1 Active"})
+        assert p.state == ConfnotePhase1State.PHASE1_ACTIVE
+
+    def test_lenient_phase1_state_accepts_unknown(self, caplog) -> None:
+        with caplog.at_level(logging.WARNING, logger="stare"):
+            p = PubNotePhase1.model_validate({"state": "UnknownPhaseXYZ"})
+        assert p.state == "UnknownPhaseXYZ"
+        assert "UnknownPhaseXYZ" in caplog.text
+
+    def test_all_optional(self) -> None:
+        p = PubNotePhase1.model_validate({})
+        assert p.state is None

@@ -8,8 +8,10 @@ from pydantic import Field
 
 from stare.models.analysis import Analysis
 from stare.models.common import _Base
+from stare.models.confnote import ConfNote
 from stare.models.enums import LenientPublicationType
 from stare.models.paper import Paper
+from stare.models.pubnote import PubNote
 
 T = TypeVar("T")
 
@@ -25,8 +27,16 @@ class AnalysisSearchResult(_SearchResultsBase[Analysis]):
     """Top-level response from GET /searchAnalysis."""
 
 
+class ConfNoteSearchResult(_SearchResultsBase[ConfNote]):
+    """Top-level response from GET /searchConfnote."""
+
+
 class PaperSearchResult(_SearchResultsBase[Paper]):
     """Top-level response from GET /searchPaper."""
+
+
+class PubNoteSearchResult(_SearchResultsBase[PubNote]):
+    """Top-level response from GET /searchPubnote."""
 
 
 class PublicationRef(_Base):

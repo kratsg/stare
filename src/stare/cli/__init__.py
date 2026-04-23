@@ -13,12 +13,12 @@ from stare.cli import utils
 from stare.cli.analysis import analysis_app
 from stare.cli.auth import auth_app
 from stare.cli.cache import cache_app
+from stare.cli.confnote import confnote_app
 from stare.cli.paper import paper_app
 from stare.cli.publications import publications_app
+from stare.cli.pubnote import pubnote_app
 from stare.cli.triggers import triggers_app
 from stare.exceptions import StareError
-from stare.settings import StareSettings
-from stare.urls import conf_note_url, pub_note_url
 
 # Re-export for backward compatibility
 sizeof_fmt = utils.sizeof_fmt
@@ -43,6 +43,8 @@ app = typer.Typer(
 app.add_typer(auth_app, name="auth")
 app.add_typer(analysis_app, name="analysis")
 app.add_typer(paper_app, name="paper")
+app.add_typer(confnote_app, name="confnote")
+app.add_typer(pubnote_app, name="pubnote")
 app.add_typer(publications_app, name="publications")
 app.add_typer(triggers_app, name="triggers")
 app.add_typer(cache_app, name="cache")
@@ -57,124 +59,6 @@ app.add_typer(cache_app, name="cache")
 def version() -> None:
     """Show the stare version."""
     utils.console.print(f"stare {__version__}")
-
-
-# ---------------------------------------------------------------------------
-# conf-note
-# ---------------------------------------------------------------------------
-
-
-@app.command(name="conf-note")
-def conf_note(
-    ref_code: Annotated[str, typer.Argument(help="CONF note temporary reference code")],
-    output_json: Annotated[
-        bool | None,
-        typer.Option(
-            "--json/--no-json",
-            help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
-        ),
-    ] = None,
-    no_cache: Annotated[
-        bool,
-        typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
-    ] = False,
-    verbose: Annotated[
-        bool,
-        typer.Option(
-            "--verbose",
-            "-v",
-            help="Attach the full raw API response to parse errors (useful for debugging).",
-        ),
-    ] = False,
-) -> None:
-    """Fetch a single CONF note by temporary reference code via GET /confnotes/{ref_code}.
-
-    [bold]Examples[/bold]
-      [green]stare conf-note ATLAS-CONF-2024-01[/green]
-      [green]stare conf-note ATLAS-CONF-2024-01 | jq '.status'[/green]
-
-    [bold]API reference[/bold]
-      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-confnote-getConfNote
-    """
-    if output_json is None:
-        output_json = not stdout_is_interactive()
-    g = utils.make_glance(no_cache=no_cache)
-    try:
-        result = g.conf_notes.get(ref_code, verbose=verbose)
-    except StareError as exc:
-        utils.handle_error(exc)
-        raise typer.Exit(1) from exc
-
-    if output_json:
-        typer.echo(result.model_dump_json(by_alias=True))
-        return
-
-    settings = StareSettings()
-    ref = result.temp_reference_code or ""
-    url = conf_note_url(ref, web_base=settings.web_base_url) if ref else None
-    ref_markup = f"[link={url}]{ref}[/link]" if url else ref
-    utils.console.print(f"[bold cyan]{ref_markup}[/bold cyan]  {result.status or ''}")
-    if result.short_title:
-        utils.console.print(result.short_title)
-
-
-# ---------------------------------------------------------------------------
-# pub-note
-# ---------------------------------------------------------------------------
-
-
-@app.command(name="pub-note")
-def pub_note(
-    ref_code: Annotated[str, typer.Argument(help="PUB note temporary reference code")],
-    output_json: Annotated[
-        bool | None,
-        typer.Option(
-            "--json/--no-json",
-            help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
-        ),
-    ] = None,
-    no_cache: Annotated[
-        bool,
-        typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
-    ] = False,
-    verbose: Annotated[
-        bool,
-        typer.Option(
-            "--verbose",
-            "-v",
-            help="Attach the full raw API response to parse errors (useful for debugging).",
-        ),
-    ] = False,
-) -> None:
-    """Fetch a single PUB note by temporary reference code via GET /pubnotes/{ref_code}.
-
-    [bold]Examples[/bold]
-      [green]stare pub-note ATL-PHYS-PUB-2024-01[/green]
-      [green]stare pub-note ATL-PHYS-PUB-2024-01 | jq '.status'[/green]
-
-    [bold]API reference[/bold]
-      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-pubnote-getPubNote
-    """
-    if output_json is None:
-        output_json = not stdout_is_interactive()
-    g = utils.make_glance(no_cache=no_cache)
-    try:
-        result = g.pub_notes.get(ref_code, verbose=verbose)
-    except StareError as exc:
-        utils.handle_error(exc)
-        raise typer.Exit(1) from exc
-
-    if output_json:
-        typer.echo(result.model_dump_json(by_alias=True))
-        return
-
-    settings = StareSettings()
-    ref = result.temp_reference_code or ""
-    url = pub_note_url(ref, web_base=settings.web_base_url) if ref else None
-    ref_markup = f"[link={url}]{ref}[/link]" if url else ref
-    utils.console.print(f"[bold cyan]{ref_markup}[/bold cyan]  {result.status or ''}")
-    if result.short_title:
-        utils.console.print(result.short_title)
 
 
 # ---------------------------------------------------------------------------

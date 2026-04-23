@@ -68,3 +68,10 @@ def test_analysis_only_field_rejected_by_paper(paper_reg: FieldRegistry) -> None
 def test_paper_only_field_rejected_by_analysis(analysis_reg: FieldRegistry) -> None:
     with pytest.raises(DSLValidationError, match="unknown field"):
         analysis_reg.validate("fullTitle")
+
+
+def test_registry_loads_pubnote_mode() -> None:
+    reg = FieldRegistry.for_mode("pubnote")
+    assert "finalReferenceCode" in reg.fields()
+    assert "shortTitle" in reg.fields()
+    assert "phase1.state" in reg.fields()

@@ -39,7 +39,7 @@ def _schema_for(spec: dict, schema_name: str) -> dict:
 
 def main() -> None:
     repo_root = Path(__file__).parent.parent
-    api_yml = repo_root / "api.yml"
+    api_yml = repo_root / "externals" / "api.yml"
 
     if not api_yml.exists() or not api_yml.is_file():
         print(f"Error: API spec not found at {api_yml}", file=sys.stderr)
@@ -56,7 +56,9 @@ def main() -> None:
     catalogue: dict[str, object] = {}
     for mode, schema_name in [
         ("analysis", "SearchAnalysisResponse"),
+        ("confnote", "SearchConfnoteResponse"),
         ("paper", "SearchPaperResponse"),
+        # ("pubnote", "SearchPubnoteResponse"),
     ]:
         fields = extract_string_fields(_schema_for(spec, schema_name))
         catalogue[mode] = {"fields": fields}

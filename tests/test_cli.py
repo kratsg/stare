@@ -20,10 +20,12 @@ from stare.models import (
     Analysis,
     AnalysisSearchResult,
     ConfNote,
+    ConfNoteSearchResult,
     Paper,
     PaperSearchResult,
     PublicationRef,
     PubNote,
+    PubNoteSearchResult,
     Trigger,
 )
 from stare.models.auth import JwtClaims, TokenInfo
@@ -60,7 +62,7 @@ SAMPLE_CONF_NOTE = ConfNote.model_validate(
 
 SAMPLE_PUB_NOTE = PubNote.model_validate(
     {
-        "temporaryReferenceCode": "ATL-PHYS-PUB-2024-01",
+        "finalReferenceCode": "ATL-PHYS-PUB-2024-01",
         "status": "Phase 1 Closed",
         "shortTitle": "Test pub note",
     }
@@ -92,6 +94,33 @@ SAMPLE_PAPER_SEARCH = PaperSearchResult.model_validate(
     }
 )
 
+SAMPLE_CONF_NOTE_SEARCH = ConfNoteSearchResult.model_validate(
+    {
+        "numberOfResults": 1,
+        "results": [
+            {
+                "temporaryReferenceCode": "ATLAS-CONF-2024-01",
+                "finalReferenceCode": "ATLAS-CONF-2024-001",
+                "status": "Completed",
+                "shortTitle": "Test conf note",
+            }
+        ],
+    }
+)
+
+SAMPLE_PUB_NOTE_SEARCH = PubNoteSearchResult.model_validate(
+    {
+        "numberOfResults": 1,
+        "results": [
+            {
+                "finalReferenceCode": "ATL-PHYS-PUB-2024-01",
+                "status": "Phase 1 Closed",
+                "shortTitle": "Test pub note",
+            }
+        ],
+    }
+)
+
 SAMPLE_PUBLICATIONS = [
     PublicationRef.model_validate({"referenceCode": "HDBS-2024-01", "type": "Paper"}),
 ]
@@ -110,8 +139,10 @@ def _mock_glance(**overrides: object) -> MagicMock:
     g.analyses.get.return_value = SAMPLE_ANALYSIS
     g.papers.search.return_value = SAMPLE_PAPER_SEARCH
     g.papers.get.return_value = SAMPLE_PAPER
-    g.conf_notes.get.return_value = SAMPLE_CONF_NOTE
-    g.pub_notes.get.return_value = SAMPLE_PUB_NOTE
+    g.confnotes.search.return_value = SAMPLE_CONF_NOTE_SEARCH
+    g.confnotes.get.return_value = SAMPLE_CONF_NOTE
+    g.pubnotes.search.return_value = SAMPLE_PUB_NOTE_SEARCH
+    g.pubnotes.get.return_value = SAMPLE_PUB_NOTE
     g.publications.search.return_value = SAMPLE_PUBLICATIONS
     g.groups.list.return_value = ["HDBS", "SUSY"]
     g.subgroups.list.return_value = ["Higgs", "Dibosons"]
@@ -526,43 +557,114 @@ def test_paper_get_json_output() -> None:
 
 
 # ---------------------------------------------------------------------------
-# conf-note
+# confnote get
 # ---------------------------------------------------------------------------
 
 
-def test_conf_note_command() -> None:
-    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
-        result = runner.invoke(app, ["conf-note", "ATLAS-CONF-2024-01"])
+def test_confnote_get_command() -> None:
+    g = _mock_glance()
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(app, ["confnote", "get", "ATLAS-CONF-2024-001"])
     assert result.exit_code == 0
-    assert "ATLAS-CONF-2024-01" in result.output
+    assert g.confnotes.get.call_args.args[0] == "ATLAS-CONF-2024-001"
 
 
-def test_conf_note_json_output() -> None:
+def test_confnote_get_json_output() -> None:
+    g = _mock_glance()
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(
+            app, ["confnote", "get", "ATLAS-CONF-2024-001", "--json"]
+        )
+    assert result.exit_code == 0
+    assert g.confnotes.get.call_args.args[0] == "ATLAS-CONF-2024-001"
+
+
+# ---------------------------------------------------------------------------
+# confnote search
+# ---------------------------------------------------------------------------
+
+
+def test_confnote_search_default() -> None:
     with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
-        result = runner.invoke(app, ["conf-note", "ATLAS-CONF-2024-01", "--json"])
+        result = runner.invoke(app, ["confnote", "search"])
+    assert result.exit_code == 0
+    assert "ATLAS-CONF-2024-001" in result.output
+
+
+def test_confnote_search_json_output() -> None:
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
+        result = runner.invoke(app, ["confnote", "search", "--json"])
     assert result.exit_code == 0
     data = json.loads(result.output)
-    assert data.get("temporaryReferenceCode") == "ATLAS-CONF-2024-01"
+    assert "numberOfResults" in data
+
+
+def test_confnote_search_with_query() -> None:
+    g = _mock_glance()
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(app, ["confnote", "search", "--query", "test"])
+    assert result.exit_code == 0
+    call_kwargs = g.confnotes.search.call_args.kwargs
+    assert call_kwargs["query"] == "test"
 
 
 # ---------------------------------------------------------------------------
-# pub-note
+# pubnote get
 # ---------------------------------------------------------------------------
 
 
-def test_pub_note_command() -> None:
+def test_pubnote_get_command() -> None:
     with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
-        result = runner.invoke(app, ["pub-note", "ATL-PHYS-PUB-2024-01"])
+        result = runner.invoke(app, ["pubnote", "get", "ATL-PHYS-PUB-2024-01"])
     assert result.exit_code == 0
     assert "ATL-PHYS-PUB-2024-01" in result.output
 
 
-def test_pub_note_json_output() -> None:
+def test_pubnote_get_json_output() -> None:
     with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
-        result = runner.invoke(app, ["pub-note", "ATL-PHYS-PUB-2024-01", "--json"])
+        result = runner.invoke(
+            app, ["pubnote", "get", "ATL-PHYS-PUB-2024-01", "--json"]
+        )
     assert result.exit_code == 0
     data = json.loads(result.output)
-    assert data.get("temporaryReferenceCode") == "ATL-PHYS-PUB-2024-01"
+    assert data.get("finalReferenceCode") == "ATL-PHYS-PUB-2024-01"
+
+
+def test_pubnote_get_not_found() -> None:
+    g = _mock_glance()
+    g.pubnotes.get.side_effect = NotFoundError(404, "Not Found", "No such pub note")
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(app, ["pubnote", "get", "MISSING"])
+    assert result.exit_code != 0
+
+
+# ---------------------------------------------------------------------------
+# pubnote search
+# ---------------------------------------------------------------------------
+
+
+def test_pubnote_search_default() -> None:
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
+        result = runner.invoke(app, ["pubnote", "search"])
+    assert result.exit_code == 0
+    assert "ATL-PHYS-PUB-2024-01" in result.output
+
+
+def test_pubnote_search_json_output() -> None:
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
+        result = runner.invoke(app, ["pubnote", "search", "--json"])
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    assert "numberOfResults" in data
+
+
+def test_pubnote_search_with_query() -> None:
+    g = _mock_glance()
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(app, ["pubnote", "search", "--query", "test"])
+    assert result.exit_code == 0
+    call_kwargs = g.pubnotes.search.call_args.kwargs
+    assert call_kwargs["query"] == "test"
 
 
 # ---------------------------------------------------------------------------

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import ssl
 from importlib.resources import as_file, files
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import httpx
 from hishel import CacheOptions, SpecificationPolicy, SyncSqliteStorage
@@ -13,6 +13,7 @@ from pydantic import TypeAdapter, ValidationError
 
 from stare.auth import TokenManager
 from stare.dsl import Expression, parse_dsl
+from stare.dsl.models import Condition, Operator
 from stare.exceptions import (
     ApiError,
     ForbiddenError,
@@ -24,16 +25,24 @@ from stare.models import (
     Analysis,
     AnalysisSearchResult,
     ConfNote,
+    ConfNoteSearchResult,
     Paper,
     PaperSearchResult,
     PublicationRef,
     PubNote,
+    PubNoteSearchResult,
     Trigger,
 )
 from stare.settings import StareSettings
 
+_ResourceT = TypeVar("_ResourceT", Analysis, Paper, ConfNote, PubNote)
+
 if TYPE_CHECKING:
     import types
+    from collections.abc import Callable
+
+    from stare.models.search import _SearchResultsBase
+    from stare.typing import Mode
 
 _BUNDLE_FILE: dict[str, str] = {
     "Sectigo": "Sectigo_chain.pem",
@@ -78,11 +87,33 @@ def _raise_for_status(response: httpx.Response) -> None:
 
 
 def _resolve_query(
-    q: str | Expression, *, mode: Literal["analysis", "paper"], validate: bool
+    q: str | Expression,
+    *,
+    mode: Mode,
+    validate: bool,
 ) -> str:
     if isinstance(q, str):
         return parse_dsl(q, mode=mode).to_dsl() if validate else q
     return q.to_dsl()
+
+
+def _get_by_ref(
+    search: Callable[..., _SearchResultsBase[_ResourceT]],
+    *,
+    field: str,
+    ref_code: str,
+    verbose: bool,
+) -> _ResourceT:
+    """Delegate ``.get(ref_code)`` to ``.search()`` via the DSL.
+
+    Builds a single ``Condition`` (never a string) so future DSL changes flow
+    through without touching callers. Raises ``NotFoundError`` on zero results.
+    """
+    condition = Condition(field=field, operator=Operator.EQ, value=ref_code)
+    result = search(query=condition, limit=1, verbose=verbose)
+    if not result.results:
+        raise NotFoundError(404, "Not Found", f"{field}={ref_code!r} not found")
+    return result.results[0]
 
 
 class AnalysisResource:
@@ -93,10 +124,10 @@ class AnalysisResource:
         self._client = client
 
     def get(self, ref_code: str, *, verbose: bool = False) -> Analysis:
-        """Fetch a single analysis by reference code."""
-        response = self._client.get(f"/analyses/{ref_code}")
-        _raise_for_status(response)
-        return Analysis.model_validate(response.json(), verbose=verbose)
+        """Fetch a single analysis by reference code via /searchAnalysis."""
+        return _get_by_ref(
+            self.search, field="referenceCode", ref_code=ref_code, verbose=verbose
+        )
 
     def search(
         self,
@@ -131,10 +162,10 @@ class PaperResource:
         self._client = client
 
     def get(self, ref_code: str, *, verbose: bool = False) -> Paper:
-        """Fetch a single paper by reference code."""
-        response = self._client.get(f"/papers/{ref_code}")
-        _raise_for_status(response)
-        return Paper.model_validate(response.json(), verbose=verbose)
+        """Fetch a single paper by reference code via /searchPaper."""
+        return _get_by_ref(
+            self.search, field="referenceCode", ref_code=ref_code, verbose=verbose
+        )
 
     def search(
         self,
@@ -168,25 +199,79 @@ class ConfNoteResource:
         """Store the shared httpx client."""
         self._client = client
 
-    def get(self, temp_ref_code: str, *, verbose: bool = False) -> ConfNote:
-        """Fetch a single CONF note by temporary reference code."""
-        response = self._client.get(f"/confnotes/{temp_ref_code}")
+    def get(self, ref_code: str, *, verbose: bool = False) -> ConfNote:
+        """Fetch a single CONF note by temporary reference code via /searchConfnote."""
+        return _get_by_ref(
+            self.search,
+            field="temporaryReferenceCode",
+            ref_code=ref_code,
+            verbose=verbose,
+        )
+
+    def search(
+        self,
+        *,
+        query: str | Expression | None = None,
+        offset: int = 0,
+        limit: int = 50,
+        sort_by: str | None = None,
+        sort_desc: bool = False,
+        validate_query: bool = True,
+        verbose: bool = False,
+    ) -> ConfNoteSearchResult:
+        """Search conf notes via GET /searchConfnote."""
+        params: dict[str, Any] = {"offset": offset, "limit": limit}
+        if query is not None:
+            params["queryString"] = _resolve_query(
+                query, mode="confnote", validate=validate_query
+            )
+        if sort_by is not None:
+            params["sortBy"] = sort_by
+            params["sortDesc"] = str(sort_desc).lower()
+        response = self._client.get("/searchConfnote", params=params)
         _raise_for_status(response)
-        return ConfNote.model_validate(response.json(), verbose=verbose)
+        return ConfNoteSearchResult.model_validate(response.json(), verbose=verbose)
 
 
 class PubNoteResource:
-    """Accessor for /pubnotes/ endpoint."""
+    """Accessor for /searchPubnote endpoint."""
 
     def __init__(self, client: httpx.Client) -> None:
         """Store the shared httpx client."""
         self._client = client
 
-    def get(self, temp_ref_code: str, *, verbose: bool = False) -> PubNote:
-        """Fetch a single PUB note by temporary reference code."""
-        response = self._client.get(f"/pubnotes/{temp_ref_code}")
+    def get(self, ref_code: str, *, verbose: bool = False) -> PubNote:
+        """Fetch a single PUB note by temporary reference code via /searchPubnote."""
+        return _get_by_ref(
+            self.search,
+            field="temporaryReferenceCode",
+            ref_code=ref_code,
+            verbose=verbose,
+        )
+
+    def search(
+        self,
+        *,
+        query: str | Expression | None = None,
+        offset: int = 0,
+        limit: int = 50,
+        sort_by: str | None = None,
+        sort_desc: bool = False,
+        validate_query: bool = True,
+        verbose: bool = False,
+    ) -> PubNoteSearchResult:
+        """Search pub notes via GET /searchPubnote."""
+        params: dict[str, Any] = {"offset": offset, "limit": limit}
+        if query is not None:
+            params["queryString"] = _resolve_query(
+                query, mode="pubnote", validate=validate_query
+            )
+        if sort_by is not None:
+            params["sortBy"] = sort_by
+            params["sortDesc"] = str(sort_desc).lower()
+        response = self._client.get("/searchPubnote", params=params)
         _raise_for_status(response)
-        return PubNote.model_validate(response.json(), verbose=verbose)
+        return PubNoteSearchResult.model_validate(response.json(), verbose=verbose)
 
 
 class PublicationResource:
@@ -327,8 +412,8 @@ class Glance:
         )
         self.analyses = AnalysisResource(self._http)
         self.papers = PaperResource(self._http)
-        self.conf_notes = ConfNoteResource(self._http)
-        self.pub_notes = PubNoteResource(self._http)
+        self.confnotes = ConfNoteResource(self._http)
+        self.pubnotes = PubNoteResource(self._http)
         self.publications = PublicationResource(self._http)
         self.groups = GroupResource(self._http)
         self.subgroups = SubgroupResource(self._http)

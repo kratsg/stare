@@ -24,11 +24,13 @@ src/stare/
 ├── storage.py        # TokenStorage ABC + FileTokenStorage / KeyringTokenStorage
 ├── client.py         # Glance client + resource accessors
 ├── cli/
-│   ├── __init__.py   # app, top-level commands (version, conf-note, pub-note, groups, subgroups)
+│   ├── __init__.py   # app, top-level commands (version, groups, subgroups) + sub-apps
 │   ├── utils.py      # console, err_console, make_glance/make_settings/make_token_manager, sizeof_fmt
 │   ├── auth.py       # auth_app: login, logout, status, info
 │   ├── analysis.py   # analysis_app: search, get
 │   ├── paper.py      # paper_app: search, get
+│   ├── confnote.py   # confnote_app: search, get
+│   ├── pubnote.py    # pubnote_app: search, get
 │   ├── publications.py # publications_app: search
 │   ├── triggers.py   # triggers_app: search
 │   └── cache.py      # cache_app: info, clear
@@ -50,10 +52,10 @@ src/stare/
     ├── common.py      # shared: Person, Groups, Meeting, Collision, Metadata, …
     ├── analysis.py    # Analysis, AnalysisPhase0
     ├── paper.py       # Paper, PaperPhase1, PaperPhase2, SubmissionPhase
-    ├── conf_note.py   # ConfNote, ConfNotePhase1
-    ├── pub_note.py    # PubNote, PubNotePhase1
-    ├── search.py      # SearchResult, PaperSearchResult, PublicationRef, Trigger
-    ├── enums.py       # AnalysisStatus, PaperStatus, PhaseState, … (lenient StrEnums)
+    ├── confnote.py    # ConfNote, ConfNotePhase1
+    ├── pubnote.py     # PubNote, PubNotePhase1
+    ├── search.py      # SearchResult, PaperSearchResult, ConfNoteSearchResult, PubNoteSearchResult, PublicationRef, Trigger
+    ├── enums.py       # AnalysisStatus, PaperStatus, ConfnoteStatus, AnalysisPhase0State, PaperPhase1State, … (lenient StrEnums)
     ├── auth.py        # TokenInfo, ExchangeTokenInfo
     └── errors.py      # ApiErrorResponse
 tests/
@@ -85,9 +87,13 @@ result = g.analyses.search(
 # Currently live: GET /searchPaper
 paper_result = g.papers.search(query="referenceCode = HDBS-2018-33")
 
-# Planned endpoints (available once the API rolls them out)
+# Search-based get() — builds a Condition, calls search, returns first hit
 analysis = g.analyses.get("ANA-HION-2018-01")
 paper = g.papers.get("HDBS-2018-33")
+conf_note = g.confnotes.get("ATLAS-CONF-2024-001")
+pub_note = g.pubnotes.get("ATL-PHYS-PUB-2024-001")
+
+# Planned endpoints
 groups = g.groups.list()
 ```
 
@@ -142,7 +148,7 @@ All pydantic models use:
 
 1. Add/update the pydantic model in `src/stare/models/`
 2. Add a resource accessor method in `src/stare/client.py`
-3. Add a CLI command in `src/stare/cli.py`
+3. Add a CLI command in the appropriate `src/stare/cli/` module
 4. Write tests (TDD: test first, then implement)
 5. Run `pixi run test` to verify
 
@@ -285,12 +291,14 @@ stare paper search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [
 stare paper get REF_CODE [--json/--no-json] [--no-cache]
 ```
 
-CONF notes and PUB notes have only `get` (no search endpoint exists yet) and
-remain flat top-level commands:
+CONF notes and PUB notes are sub-apps with `search` and `get` subcommands,
+mirroring analysis and paper:
 
 ```bash
-stare conf-note TEMP_REF_CODE [--json/--no-json] [--no-cache]
-stare pub-note TEMP_REF_CODE [--json/--no-json] [--no-cache]
+stare confnote search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json/--no-json] [--no-cache]
+stare confnote get REF_CODE [--json/--no-json] [--no-cache]
+stare pubnote search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json/--no-json] [--no-cache]
+stare pubnote get REF_CODE [--json/--no-json] [--no-cache]
 ```
 
 ### Output format auto-detection

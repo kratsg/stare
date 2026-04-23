@@ -92,13 +92,17 @@ validation error.
 
 ::: stare.models.enums.PaperStatus
 
-::: stare.models.enums.Phase0State
+::: stare.models.enums.ConfnoteStatus
 
-::: stare.models.enums.Phase1State
+::: stare.models.enums.AnalysisPhase0State
 
-::: stare.models.enums.Phase2State
+::: stare.models.enums.PaperPhase1State
 
-::: stare.models.enums.SubmissionState
+::: stare.models.enums.PaperPhase2State
+
+::: stare.models.enums.PaperSubmissionState
+
+::: stare.models.enums.ConfnotePhase1State
 
 ::: stare.models.enums.CollisionType
 
@@ -117,9 +121,9 @@ hyperlinks in CLI output; also available for library callers.
 
 ::: stare.urls.paper_url
 
-::: stare.urls.conf_note_url
+::: stare.urls.confnote_url
 
-::: stare.urls.pub_note_url
+::: stare.urls.pubnote_url
 
 ## Models
 
@@ -143,7 +147,11 @@ hyperlinks in CLI output; also available for library callers.
 
 ::: stare.models.ConfNote
 
+::: stare.models.ConfNoteSearchResult
+
 ::: stare.models.PubNote
+
+::: stare.models.PubNoteSearchResult
 
 ### Publications and triggers
 

@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 from importlib.resources import as_file, files
+from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
@@ -27,10 +29,12 @@ from stare.models import (
     Analysis,
     AnalysisSearchResult,
     ConfNote,
+    ConfNoteSearchResult,
     Paper,
     PaperSearchResult,
     PublicationRef,
     PubNote,
+    PubNoteSearchResult,
     Trigger,
 )
 from stare.models.common import _format_parse_error
@@ -69,17 +73,13 @@ SAMPLE_PAPER_SEARCH = {
     "results": [SAMPLE_PAPER],
 }
 
-SAMPLE_CONF_NOTE = {
-    "temporaryReferenceCode": "ATLAS-CONF-2024-01",
-    "status": "Phase 1 Closed",
-    "shortTitle": "Test conf note",
-}
+_FIXTURES = Path(__file__).parent / "fixtures"
 
-SAMPLE_PUB_NOTE = {
-    "temporaryReferenceCode": "ATL-PHYS-PUB-2024-01",
-    "status": "Phase 1 Active",
-    "shortTitle": "Test pub note",
-}
+SAMPLE_CONF_NOTE = json.loads((_FIXTURES / "conf_note.json").read_text())
+SAMPLE_CONF_NOTE_SEARCH = {"numberOfResults": 1, "results": [SAMPLE_CONF_NOTE]}
+
+SAMPLE_PUB_NOTE = json.loads((_FIXTURES / "pub_note.json").read_text())
+SAMPLE_PUB_NOTE_SEARCH = {"numberOfResults": 1, "results": [SAMPLE_PUB_NOTE]}
 
 SAMPLE_ERROR = {"status": 404, "title": "Not Found", "detail": "Resource not found"}
 
@@ -232,50 +232,56 @@ def test_papers_search_rejects_analysis_field(glance: Glance) -> None:
 
 
 # ---------------------------------------------------------------------------
-# AnalysisResource.get
+# AnalysisResource.get (search-based)
 # ---------------------------------------------------------------------------
 
 
 def test_analyses_get_returns_analysis(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/analyses/ANA-TEST-2024-01").mock(
-            return_value=httpx.Response(200, json=SAMPLE_ANALYSIS)
+        route = rx.get("/searchAnalysis").mock(
+            return_value=httpx.Response(200, json=SAMPLE_SEARCH)
         )
         result = glance.analyses.get("ANA-TEST-2024-01")
 
     assert isinstance(result, Analysis)
     assert result.reference_code == "ANA-TEST-2024-01"
+    params = dict(route.calls[0].request.url.params)
+    assert params["queryString"] == "referenceCode = ANA-TEST-2024-01"
+    assert params["limit"] == "1"
 
 
-def test_analyses_get_404_raises_not_found(glance: Glance) -> None:
+def test_analyses_get_zero_results_raises_not_found(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/analyses/MISSING").mock(
-            return_value=httpx.Response(404, json=SAMPLE_ERROR)
+        rx.get("/searchAnalysis").mock(
+            return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
         )
         with pytest.raises(NotFoundError):
             glance.analyses.get("MISSING")
 
 
 # ---------------------------------------------------------------------------
-# PaperResource.get
+# PaperResource.get (search-based)
 # ---------------------------------------------------------------------------
 
 
 def test_papers_get_returns_paper(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/papers/HDBS-2024-01").mock(
-            return_value=httpx.Response(200, json=SAMPLE_PAPER)
+        route = rx.get("/searchPaper").mock(
+            return_value=httpx.Response(200, json=SAMPLE_PAPER_SEARCH)
         )
         result = glance.papers.get("HDBS-2024-01")
 
     assert isinstance(result, Paper)
     assert result.reference_code == "HDBS-2024-01"
+    params = dict(route.calls[0].request.url.params)
+    assert params["queryString"] == "referenceCode = HDBS-2024-01"
+    assert params["limit"] == "1"
 
 
 def test_papers_get_401_raises_unauthorized(glance: Glance) -> None:
     err = {"status": 401, "title": "Unauthorized", "detail": "Missing token"}
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/papers/X").mock(return_value=httpx.Response(401, json=err))
+        rx.get("/searchPaper").mock(return_value=httpx.Response(401, json=err))
         with pytest.raises(UnauthorizedError):
             glance.papers.get("X")
 
@@ -283,9 +289,18 @@ def test_papers_get_401_raises_unauthorized(glance: Glance) -> None:
 def test_papers_get_403_raises_forbidden(glance: Glance) -> None:
     err = {"status": 403, "title": "Forbidden", "detail": "Access denied"}
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/papers/X").mock(return_value=httpx.Response(403, json=err))
+        rx.get("/searchPaper").mock(return_value=httpx.Response(403, json=err))
         with pytest.raises(ForbiddenError):
             glance.papers.get("X")
+
+
+def test_papers_get_zero_results_raises_not_found(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchPaper").mock(
+            return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
+        )
+        with pytest.raises(NotFoundError):
+            glance.papers.get("MISSING")
 
 
 # ---------------------------------------------------------------------------
@@ -332,35 +347,119 @@ def test_papers_search_omits_none_params(glance: Glance) -> None:
 
 
 # ---------------------------------------------------------------------------
-# ConfNoteResource.get
+# ConfNoteResource.get (search-based via temporaryReferenceCode)
 # ---------------------------------------------------------------------------
 
 
-def test_conf_notes_get_returns_conf_note(glance: Glance) -> None:
+def test_confnotes_get_returns_confnote(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/confnotes/ATLAS-CONF-2024-01").mock(
-            return_value=httpx.Response(200, json=SAMPLE_CONF_NOTE)
+        route = rx.get("/searchConfnote").mock(
+            return_value=httpx.Response(200, json=SAMPLE_CONF_NOTE_SEARCH)
         )
-        result = glance.conf_notes.get("ATLAS-CONF-2024-01")
+        result = glance.confnotes.get("ATLAS-CONF-2024-001")
 
     assert isinstance(result, ConfNote)
-    assert result.temp_reference_code == "ATLAS-CONF-2024-01"
+    assert result.final_reference_code == "ATLAS-CONF-2024-001"
+    params = dict(route.calls[0].request.url.params)
+    assert params["queryString"] == "temporaryReferenceCode = ATLAS-CONF-2024-001"
+    assert params["limit"] == "1"
 
 
-# ---------------------------------------------------------------------------
-# PubNoteResource.get
-# ---------------------------------------------------------------------------
-
-
-def test_pub_notes_get_returns_pub_note(glance: Glance) -> None:
+def test_confnotes_get_zero_results_raises_not_found(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/pubnotes/ATL-PHYS-PUB-2024-01").mock(
-            return_value=httpx.Response(200, json=SAMPLE_PUB_NOTE)
+        rx.get("/searchConfnote").mock(
+            return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
         )
-        result = glance.pub_notes.get("ATL-PHYS-PUB-2024-01")
+        with pytest.raises(NotFoundError):
+            glance.confnotes.get("MISSING")
+
+
+# ---------------------------------------------------------------------------
+# PubNoteResource.search
+# ---------------------------------------------------------------------------
+
+
+def test_pubnote_search_returns_search_result(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchPubnote").mock(
+            return_value=httpx.Response(200, json=SAMPLE_PUB_NOTE_SEARCH)
+        )
+        result = glance.pubnotes.search()
+
+    assert isinstance(result, PubNoteSearchResult)
+    assert result.number_of_results == 1
+    assert len(result.results) == 1
+    assert isinstance(result.results[0], PubNote)
+    assert result.results[0].final_reference_code == "ATL-PHYS-PUB-2024-01"
+
+
+def test_pubnote_search_passes_query_params(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchPubnote").mock(
+            return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
+        )
+        glance.pubnotes.search(query="temporaryReferenceCode = X", limit=10, offset=5)
+        params = dict(rx.calls[0].request.url.params)
+    assert params["queryString"] == "temporaryReferenceCode = X"
+    assert params["limit"] == "10"
+    assert params["offset"] == "5"
+
+
+def test_pubnote_search_omits_none_params(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchPubnote").mock(
+            return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
+        )
+        glance.pubnotes.search()
+        params = dict(rx.calls[0].request.url.params)
+    assert "queryString" not in params
+    assert "sortBy" not in params
+    assert "sortDesc" not in params
+
+
+# ---------------------------------------------------------------------------
+# PubNoteResource.get (search-based via temporaryReferenceCode)
+# ---------------------------------------------------------------------------
+
+
+def test_pubnote_get_returns_pubnote(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        route = rx.get("/searchPubnote").mock(
+            return_value=httpx.Response(200, json=SAMPLE_PUB_NOTE_SEARCH)
+        )
+        result = glance.pubnotes.get("ATL-PHYS-PUB-2024-01")
 
     assert isinstance(result, PubNote)
-    assert result.temp_reference_code == "ATL-PHYS-PUB-2024-01"
+    assert result.final_reference_code == "ATL-PHYS-PUB-2024-01"
+    params = dict(route.calls[0].request.url.params)
+    assert params["queryString"] == "temporaryReferenceCode = ATL-PHYS-PUB-2024-01"
+    assert params["limit"] == "1"
+
+
+def test_pubnote_get_zero_results_raises_not_found(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchPubnote").mock(
+            return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
+        )
+        with pytest.raises(NotFoundError):
+            glance.pubnotes.get("MISSING")
+
+
+# ---------------------------------------------------------------------------
+# ConfNoteResource.search
+# ---------------------------------------------------------------------------
+
+
+def test_confnotes_search_returns_search_result(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchConfnote").mock(
+            return_value=httpx.Response(200, json=SAMPLE_CONF_NOTE_SEARCH)
+        )
+        result = glance.confnotes.search()
+
+    assert isinstance(result, ConfNoteSearchResult)
+    assert result.number_of_results == 1
+    assert result.results[0].final_reference_code == "ATLAS-CONF-2024-001"
 
 
 # ---------------------------------------------------------------------------
@@ -506,15 +605,13 @@ def test_papers_search_verbose_attaches_raw_data(glance: Glance) -> None:
     assert exc_info.value.raw_data == bad_json
 
 
-def test_conf_notes_get_verbose_attaches_raw_data(glance: Glance) -> None:
-    """verbose=True on conf_notes.get attaches the raw payload."""
-    bad_json = {"analysisTeam": "not-a-list"}
+def test_confnotes_get_verbose_attaches_raw_data(glance: Glance) -> None:
+    """verbose=True on confnotes.get attaches the raw payload on search parse failure."""
+    bad_json = {"results": "not-a-list"}
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/confnotes/ATL-PHYS-PUB-2024-01").mock(
-            return_value=httpx.Response(200, json=bad_json)
-        )
+        rx.get("/searchConfnote").mock(return_value=httpx.Response(200, json=bad_json))
         with pytest.raises(ResponseParseError) as exc_info:
-            glance.conf_notes.get("ATL-PHYS-PUB-2024-01", verbose=True)
+            glance.confnotes.get("ATLAS-CONF-2024-001", verbose=True)
     assert exc_info.value.raw_data == bad_json
 
 
