@@ -11,9 +11,15 @@ from hishel import CacheOptions, SpecificationPolicy, SyncSqliteStorage
 from hishel.httpx import SyncCacheTransport
 from pydantic import TypeAdapter, ValidationError
 
+from collections.abc import Callable
+from typing import TypeVar
+
 from stare.auth import TokenManager
 from stare.dsl import Expression, parse_dsl
+from stare.dsl.models import Condition, Operator
 from stare.typing import Mode
+
+_T = TypeVar("_T")
 from stare.exceptions import (
     ApiError,
     ForbiddenError,
@@ -90,6 +96,25 @@ def _resolve_query(
     return q.to_dsl()
 
 
+def _get_by_ref(
+    search: Callable[..., Any],
+    *,
+    field: str,
+    ref_code: str,
+    verbose: bool,
+) -> Any:
+    """Delegate ``.get(ref_code)`` to ``.search()`` via the DSL.
+
+    Builds a single ``Condition`` (never a string) so future DSL changes flow
+    through without touching callers. Raises ``NotFoundError`` on zero results.
+    """
+    condition = Condition(field=field, operator=Operator.EQ, value=ref_code)
+    result = search(query=condition, limit=1, verbose=verbose)
+    if not result.results:
+        raise NotFoundError(0, "Not Found", f"{field}={ref_code!r} not found")
+    return result.results[0]
+
+
 class AnalysisResource:
     """Accessor for /analyses/ and /searchAnalysis endpoints."""
 
@@ -98,10 +123,8 @@ class AnalysisResource:
         self._client = client
 
     def get(self, ref_code: str, *, verbose: bool = False) -> Analysis:
-        """Fetch a single analysis by reference code."""
-        response = self._client.get(f"/analyses/{ref_code}")
-        _raise_for_status(response)
-        return Analysis.model_validate(response.json(), verbose=verbose)
+        """Fetch a single analysis by reference code via /searchAnalysis."""
+        return _get_by_ref(self.search, field="referenceCode", ref_code=ref_code, verbose=verbose)
 
     def search(
         self,
@@ -136,10 +159,8 @@ class PaperResource:
         self._client = client
 
     def get(self, ref_code: str, *, verbose: bool = False) -> Paper:
-        """Fetch a single paper by reference code."""
-        response = self._client.get(f"/papers/{ref_code}")
-        _raise_for_status(response)
-        return Paper.model_validate(response.json(), verbose=verbose)
+        """Fetch a single paper by reference code via /searchPaper."""
+        return _get_by_ref(self.search, field="referenceCode", ref_code=ref_code, verbose=verbose)
 
     def search(
         self,
@@ -173,11 +194,9 @@ class ConfNoteResource:
         """Store the shared httpx client."""
         self._client = client
 
-    def get(self, temp_ref_code: str, *, verbose: bool = False) -> ConfNote:
-        """Fetch a single CONF note by temporary reference code."""
-        response = self._client.get(f"/confnotes/{temp_ref_code}")
-        _raise_for_status(response)
-        return ConfNote.model_validate(response.json(), verbose=verbose)
+    def get(self, ref_code: str, *, verbose: bool = False) -> ConfNote:
+        """Fetch a single CONF note by final reference code via /searchConfnote."""
+        return _get_by_ref(self.search, field="finalReferenceCode", ref_code=ref_code, verbose=verbose)
 
     def search(
         self,
@@ -357,7 +376,7 @@ class Glance:
         self.analyses = AnalysisResource(self._http)
         self.papers = PaperResource(self._http)
         self.confnotes = ConfNoteResource(self._http)
-        self.pub_notes = PubNoteResource(self._http)
+        self.pubnotes = PubNoteResource(self._http)
         self.publications = PublicationResource(self._http)
         self.groups = GroupResource(self._http)
         self.subgroups = SubgroupResource(self._http)
