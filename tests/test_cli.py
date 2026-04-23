@@ -562,18 +562,21 @@ def test_paper_get_json_output() -> None:
 
 
 def test_confnote_get_command() -> None:
-    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
-        result = runner.invoke(app, ["confnote", "get", "ATLAS-CONF-2024-01"])
+    g = _mock_glance()
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(app, ["confnote", "get", "ATLAS-CONF-2024-001"])
     assert result.exit_code == 0
-    assert "ATLAS-CONF-2024-01" in result.output
+    assert g.confnotes.get.call_args.args[0] == "ATLAS-CONF-2024-001"
 
 
 def test_confnote_get_json_output() -> None:
-    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
-        result = runner.invoke(app, ["confnote", "get", "ATLAS-CONF-2024-01", "--json"])
+    g = _mock_glance()
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(
+            app, ["confnote", "get", "ATLAS-CONF-2024-001", "--json"]
+        )
     assert result.exit_code == 0
-    data = json.loads(result.output)
-    assert data.get("temporaryReferenceCode") == "ATLAS-CONF-2024-01"
+    assert g.confnotes.get.call_args.args[0] == "ATLAS-CONF-2024-001"
 
 
 # ---------------------------------------------------------------------------

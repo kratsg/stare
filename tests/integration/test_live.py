@@ -16,6 +16,7 @@ from typing import Any
 import pytest
 
 from stare import Glance
+from stare.dsl.models import Condition, Operator
 from stare.dsl.registry import FieldRegistry
 from stare.exceptions import StareError
 from stare.models import Analysis, AnalysisSearchResult, ConfNote, Paper, PubNote
@@ -123,14 +124,14 @@ def test_analysis_field_is_searchable(field: str, reference_analysis: Analysis) 
     value = _get_nested_value(record, field)
     if value is None:
         pytest.skip(f"field '{field}' has no value in reference record")
-    if " " in value:
-        pytest.skip(
-            f"field '{field}' value contains spaces — not expressible in bare-value DSL"
-        )
+    try:
+        query = Condition(field=field, operator=Operator.EQ, value=value).to_dsl()
+    except ValueError as exc:
+        pytest.skip(str(exc))
 
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.analyses.search(
-            query=f"{field} = {value}",
+            query=query,
             limit=1,
             validate_query=False,
         )
@@ -203,14 +204,14 @@ def test_paper_field_is_searchable(field: str, reference_paper: Paper) -> None:
     value = _get_nested_value(record, field)
     if value is None:
         pytest.skip(f"field '{field}' has no value in reference record")
-    if " " in value:
-        pytest.skip(
-            f"field '{field}' value contains spaces — not expressible in bare-value DSL"
-        )
+    try:
+        query = Condition(field=field, operator=Operator.EQ, value=value).to_dsl()
+    except ValueError as exc:
+        pytest.skip(str(exc))
 
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.papers.search(
-            query=f"{field} = {value}",
+            query=query,
             limit=1,
             validate_query=False,
         )
@@ -288,14 +289,14 @@ def test_confnote_field_is_searchable(field: str, reference_confnote: ConfNote) 
     value = _get_nested_value(record, field)
     if value is None:
         pytest.skip(f"field '{field}' has no value in reference record")
-    if " " in value:
-        pytest.skip(
-            f"field '{field}' value contains spaces — not expressible in bare-value DSL"
-        )
+    try:
+        query = Condition(field=field, operator=Operator.EQ, value=value).to_dsl()
+    except ValueError as exc:
+        pytest.skip(str(exc))
 
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.confnotes.search(
-            query=f"{field} = {value}",
+            query=query,
             limit=1,
             validate_query=False,
         )
@@ -373,14 +374,14 @@ def test_pubnote_field_is_searchable(field: str, reference_pubnote: PubNote) -> 
     value = _get_nested_value(record, field)
     if value is None:
         pytest.skip(f"field '{field}' has no value in reference record")
-    if " " in value:
-        pytest.skip(
-            f"field '{field}' value contains spaces — not expressible in bare-value DSL"
-        )
+    try:
+        query = Condition(field=field, operator=Operator.EQ, value=value).to_dsl()
+    except ValueError as exc:
+        pytest.skip(str(exc))
 
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.pubnotes.search(
-            query=f"{field} = {value}",
+            query=query,
             limit=1,
             validate_query=False,
         )

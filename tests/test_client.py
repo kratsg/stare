@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 from importlib.resources import as_file, files
+from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock
 
@@ -71,28 +73,13 @@ SAMPLE_PAPER_SEARCH = {
     "results": [SAMPLE_PAPER],
 }
 
-SAMPLE_CONF_NOTE = {
-    "temporaryReferenceCode": "ATLAS-CONF-2024-01",
-    "finalReferenceCode": "ATLAS-CONF-2024-001",
-    "status": "Phase 1 Closed",
-    "shortTitle": "Test conf note",
-}
+_FIXTURES = Path(__file__).parent / "fixtures"
 
-SAMPLE_CONF_NOTE_SEARCH = {
-    "numberOfResults": 1,
-    "results": [SAMPLE_CONF_NOTE],
-}
+SAMPLE_CONF_NOTE = json.loads((_FIXTURES / "conf_note.json").read_text())
+SAMPLE_CONF_NOTE_SEARCH = {"numberOfResults": 1, "results": [SAMPLE_CONF_NOTE]}
 
-SAMPLE_PUB_NOTE = {
-    "finalReferenceCode": "ATL-PHYS-PUB-2024-01",
-    "status": "Phase 1 Active",
-    "shortTitle": "Test pub note",
-}
-
-SAMPLE_PUB_NOTE_SEARCH = {
-    "numberOfResults": 1,
-    "results": [SAMPLE_PUB_NOTE],
-}
+SAMPLE_PUB_NOTE = json.loads((_FIXTURES / "pub_note.json").read_text())
+SAMPLE_PUB_NOTE_SEARCH = {"numberOfResults": 1, "results": [SAMPLE_PUB_NOTE]}
 
 SAMPLE_ERROR = {"status": 404, "title": "Not Found", "detail": "Resource not found"}
 
@@ -360,7 +347,7 @@ def test_papers_search_omits_none_params(glance: Glance) -> None:
 
 
 # ---------------------------------------------------------------------------
-# ConfNoteResource.get (search-based via finalReferenceCode)
+# ConfNoteResource.get (search-based via temporaryReferenceCode)
 # ---------------------------------------------------------------------------
 
 
@@ -374,7 +361,7 @@ def test_confnotes_get_returns_confnote(glance: Glance) -> None:
     assert isinstance(result, ConfNote)
     assert result.final_reference_code == "ATLAS-CONF-2024-001"
     params = dict(route.calls[0].request.url.params)
-    assert params["queryString"] == "finalReferenceCode = ATLAS-CONF-2024-001"
+    assert params["queryString"] == "temporaryReferenceCode = ATLAS-CONF-2024-001"
     assert params["limit"] == "1"
 
 
@@ -411,9 +398,9 @@ def test_pubnote_search_passes_query_params(glance: Glance) -> None:
         rx.get("/searchPubnote").mock(
             return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
         )
-        glance.pubnotes.search(query="finalReferenceCode = X", limit=10, offset=5)
+        glance.pubnotes.search(query="temporaryReferenceCode = X", limit=10, offset=5)
         params = dict(rx.calls[0].request.url.params)
-    assert params["queryString"] == "finalReferenceCode = X"
+    assert params["queryString"] == "temporaryReferenceCode = X"
     assert params["limit"] == "10"
     assert params["offset"] == "5"
 
@@ -431,7 +418,7 @@ def test_pubnote_search_omits_none_params(glance: Glance) -> None:
 
 
 # ---------------------------------------------------------------------------
-# PubNoteResource.get (search-based via finalReferenceCode)
+# PubNoteResource.get (search-based via temporaryReferenceCode)
 # ---------------------------------------------------------------------------
 
 
@@ -445,7 +432,7 @@ def test_pubnote_get_returns_pubnote(glance: Glance) -> None:
     assert isinstance(result, PubNote)
     assert result.final_reference_code == "ATL-PHYS-PUB-2024-01"
     params = dict(route.calls[0].request.url.params)
-    assert params["queryString"] == "finalReferenceCode = ATL-PHYS-PUB-2024-01"
+    assert params["queryString"] == "temporaryReferenceCode = ATL-PHYS-PUB-2024-01"
     assert params["limit"] == "1"
 
 
