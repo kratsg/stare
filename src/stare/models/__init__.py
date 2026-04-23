@@ -38,7 +38,7 @@ from stare.models.enums import (
 )
 from stare.models.errors import ApiErrorResponse
 from stare.models.paper import Paper, PaperPhase1, PaperPhase2, SubmissionPhase
-from stare.models.pub_note import PubNote, PubNotePhase1, PubNoteReader
+from stare.models.pubnote import PubNote, PubNotePhase1, PubNoteReader
 from stare.models.search import (
     AnalysisSearchResult,
     ConfNoteSearchResult,
