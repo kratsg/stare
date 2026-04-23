@@ -4,22 +4,16 @@ from __future__ import annotations
 
 import ssl
 from importlib.resources import as_file, files
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import httpx
 from hishel import CacheOptions, SpecificationPolicy, SyncSqliteStorage
 from hishel.httpx import SyncCacheTransport
 from pydantic import TypeAdapter, ValidationError
 
-from collections.abc import Callable
-from typing import TypeVar
-
 from stare.auth import TokenManager
 from stare.dsl import Expression, parse_dsl
 from stare.dsl.models import Condition, Operator
-from stare.typing import Mode
-
-_T = TypeVar("_T")
 from stare.exceptions import (
     ApiError,
     ForbiddenError,
@@ -41,8 +35,14 @@ from stare.models import (
 )
 from stare.settings import StareSettings
 
+_ResourceT = TypeVar("_ResourceT", Analysis, Paper, ConfNote, PubNote)
+
 if TYPE_CHECKING:
     import types
+    from collections.abc import Callable
+
+    from stare.models.search import _SearchResultsBase
+    from stare.typing import Mode
 
 _BUNDLE_FILE: dict[str, str] = {
     "Sectigo": "Sectigo_chain.pem",
@@ -98,12 +98,12 @@ def _resolve_query(
 
 
 def _get_by_ref(
-    search: Callable[..., Any],
+    search: Callable[..., _SearchResultsBase[_ResourceT]],
     *,
     field: str,
     ref_code: str,
     verbose: bool,
-) -> Any:
+) -> _ResourceT:
     """Delegate ``.get(ref_code)`` to ``.search()`` via the DSL.
 
     Builds a single ``Condition`` (never a string) so future DSL changes flow
@@ -125,7 +125,9 @@ class AnalysisResource:
 
     def get(self, ref_code: str, *, verbose: bool = False) -> Analysis:
         """Fetch a single analysis by reference code via /searchAnalysis."""
-        return _get_by_ref(self.search, field="referenceCode", ref_code=ref_code, verbose=verbose)
+        return _get_by_ref(
+            self.search, field="referenceCode", ref_code=ref_code, verbose=verbose
+        )
 
     def search(
         self,
@@ -161,7 +163,9 @@ class PaperResource:
 
     def get(self, ref_code: str, *, verbose: bool = False) -> Paper:
         """Fetch a single paper by reference code via /searchPaper."""
-        return _get_by_ref(self.search, field="referenceCode", ref_code=ref_code, verbose=verbose)
+        return _get_by_ref(
+            self.search, field="referenceCode", ref_code=ref_code, verbose=verbose
+        )
 
     def search(
         self,
@@ -197,7 +201,9 @@ class ConfNoteResource:
 
     def get(self, ref_code: str, *, verbose: bool = False) -> ConfNote:
         """Fetch a single CONF note by final reference code via /searchConfnote."""
-        return _get_by_ref(self.search, field="finalReferenceCode", ref_code=ref_code, verbose=verbose)
+        return _get_by_ref(
+            self.search, field="finalReferenceCode", ref_code=ref_code, verbose=verbose
+        )
 
     def search(
         self,
@@ -233,7 +239,9 @@ class PubNoteResource:
 
     def get(self, ref_code: str, *, verbose: bool = False) -> PubNote:
         """Fetch a single PUB note by final reference code via /searchPubnote."""
-        return _get_by_ref(self.search, field="finalReferenceCode", ref_code=ref_code, verbose=verbose)
+        return _get_by_ref(
+            self.search, field="finalReferenceCode", ref_code=ref_code, verbose=verbose
+        )
 
     def search(
         self,
