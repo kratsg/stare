@@ -134,6 +134,14 @@ stare analysis search -q 'someNewField = value' --no-validate
 
 --8<-- "snippets/fields-analysis.md"
 
+## CONF note fields
+
+--8<-- "snippets/fields-confnote.md"
+
+## PUB note fields
+
+--8<-- "snippets/fields-pubnote.md"
+
 ## Paper fields
 
 --8<-- "snippets/fields-paper.md"
