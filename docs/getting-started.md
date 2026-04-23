@@ -201,16 +201,16 @@ g = Glance(token=os.environ["GLANCE_TOKEN"])
 
 ## Current API endpoint availability
 
-| Endpoint                   | Status   | Used by                        |
-| -------------------------- | -------- | ------------------------------ |
-| `GET /searchAnalysis`      | **Live** | `analyses.search()`, `analyses.get()` |
-| `GET /searchPaper`         | **Live** | `papers.search()`, `papers.get()` |
+| Endpoint                   | Status   | Used by                                 |
+| -------------------------- | -------- | --------------------------------------- |
+| `GET /searchAnalysis`      | **Live** | `analyses.search()`, `analyses.get()`   |
+| `GET /searchPaper`         | **Live** | `papers.search()`, `papers.get()`       |
 | `GET /searchConfnote`      | **Live** | `confnotes.search()`, `confnotes.get()` |
-| `GET /searchPubnote`       | Planned  | `pubnotes.search()`, `pubnotes.get()` |
-| `GET /publications/search` | Planned  | `publications.search()`        |
-| `GET /groups`              | Planned  | `groups.list()`                |
-| `GET /subgroups`           | Planned  | `subgroups.list()`             |
-| `GET /triggers/search`     | Planned  | `triggers.search()`            |
+| `GET /searchPubnote`       | Planned  | `pubnotes.search()`, `pubnotes.get()`   |
+| `GET /publications/search` | Planned  | `publications.search()`                 |
+| `GET /groups`              | Planned  | `groups.list()`                         |
+| `GET /subgroups`           | Planned  | `subgroups.list()`                      |
+| `GET /triggers/search`     | Planned  | `triggers.search()`                     |
 
-`.get()` on every resource uses the corresponding search endpoint with a single-result
-query — no per-record endpoints are required.
+`.get()` on every resource uses the corresponding search endpoint with a
+single-result query — no per-record endpoints are required.
