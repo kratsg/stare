@@ -21,8 +21,8 @@ from stare.models.common import (
     _Base,
 )
 from stare.models.enums import (
+    LenientAnalysisPhase0State,
     LenientAnalysisStatus,
-    LenientPhase0State,
     MeetingType,
 )
 
@@ -47,7 +47,7 @@ class AnalysisPhase0(_Base):
     Serialization restores the original four keys for API round-trip fidelity.
     """
 
-    state: LenientPhase0State | None = None
+    state: LenientAnalysisPhase0State | None = None
     start_date: date | None = None
     main_physics_aim: str | None = None
     dataset_used: str | None = None

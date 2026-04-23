@@ -18,17 +18,17 @@ from stare.models.common import (
     _Base,
 )
 from stare.models.enums import (
+    LenientPaperPhase1State,
+    LenientPaperPhase2State,
     LenientPaperStatus,
-    LenientPhase1State,
-    LenientPhase2State,
-    LenientSubmissionState,
+    LenientPaperSubmissionState,
 )
 
 
 class PaperPhase1(_Base):
     """Phase 1 of the paper lifecycle (review and approval)."""
 
-    state: LenientPhase1State | None = None
+    state: LenientPaperPhase1State | None = None
     start_date: date | None = None
     editorial_board: list[EditorialBoardMember] = Field(default_factory=list)
     editorial_board_formed_on: date | None = None
@@ -56,7 +56,7 @@ class PaperPhase1(_Base):
 class PaperPhase2(_Base):
     """Phase 2 of the paper lifecycle (CERN review, revision, closure)."""
 
-    state: LenientPhase2State | None = None
+    state: LenientPaperPhase2State | None = None
     start_date: date | None = None
     eb_draft2_sign_off_on: date | None = Field(
         default=None, alias="editorialBoardDraft2SignOffOn"
@@ -87,7 +87,7 @@ class PaperPhase2(_Base):
 class SubmissionPhase(_Base):
     """Submission phase: arXiv, journal, final publication."""
 
-    state: LenientSubmissionState | None = None
+    state: LenientPaperSubmissionState | None = None
     start_date: date | None = None
     arxiv_urls: list[Link] = Field(default_factory=list, alias="arXivUrls")
     final_title: str | None = Field(default=None, alias="finalTitleTex")
