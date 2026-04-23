@@ -19,7 +19,11 @@ from stare import Glance
 from stare.dsl.registry import FieldRegistry
 from stare.exceptions import StareError
 from stare.models import Analysis, AnalysisSearchResult, ConfNote, Paper, PubNote
-from stare.models.search import ConfNoteSearchResult, PaperSearchResult, PubNoteSearchResult
+from stare.models.search import (
+    ConfNoteSearchResult,
+    PaperSearchResult,
+    PubNoteSearchResult,
+)
 from stare.settings import StareSettings
 
 # Disable the on-disk HTTP cache for all live tests so results are always
@@ -231,7 +235,11 @@ def reference_confnote() -> ConfNote:
     assert result.number_of_results is not None
     assert result.number_of_results >= 1
     match = next(
-        (c for c in result.results if c.final_reference_code == _REFERENCE_CONFNOTE_FINAL_CODE),
+        (
+            c
+            for c in result.results
+            if c.final_reference_code == _REFERENCE_CONFNOTE_FINAL_CODE
+        ),
         None,
     )
     assert match is not None, f"{_REFERENCE_CONFNOTE_FINAL_CODE} not in results"
@@ -312,7 +320,11 @@ def reference_pubnote() -> PubNote:
     assert result.number_of_results is not None
     assert result.number_of_results >= 1
     match = next(
-        (p for p in result.results if p.final_reference_code == _REFERENCE_PUBNOTE_FINAL_CODE),
+        (
+            p
+            for p in result.results
+            if p.final_reference_code == _REFERENCE_PUBNOTE_FINAL_CODE
+        ),
         None,
     )
     assert match is not None, f"{_REFERENCE_PUBNOTE_FINAL_CODE} not in results"

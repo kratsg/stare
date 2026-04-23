@@ -622,9 +622,7 @@ def test_confnotes_get_verbose_attaches_raw_data(glance: Glance) -> None:
     """verbose=True on confnotes.get attaches the raw payload on search parse failure."""
     bad_json = {"results": "not-a-list"}
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/searchConfnote").mock(
-            return_value=httpx.Response(200, json=bad_json)
-        )
+        rx.get("/searchConfnote").mock(return_value=httpx.Response(200, json=bad_json))
         with pytest.raises(ResponseParseError) as exc_info:
             glance.confnotes.get("ATLAS-CONF-2024-001", verbose=True)
     assert exc_info.value.raw_data == bad_json

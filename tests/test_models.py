@@ -31,8 +31,8 @@ from stare.models.pubnote import PubNote, PubNotePhase1
 from stare.models.search import (
     AnalysisSearchResult,
     ConfNoteSearchResult,
-    PubNoteSearchResult,
     PublicationRef,
+    PubNoteSearchResult,
     Trigger,
 )
 
@@ -791,7 +791,9 @@ class TestConfNoteSearchResult:
         assert result.results[0].final_reference_code == "ATLAS-CONF-2024-001"
 
     def test_empty_results(self) -> None:
-        result = ConfNoteSearchResult.model_validate({"numberOfResults": 0, "results": []})
+        result = ConfNoteSearchResult.model_validate(
+            {"numberOfResults": 0, "results": []}
+        )
         assert result.number_of_results == 0
         assert result.results == []
 

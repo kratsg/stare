@@ -619,7 +619,9 @@ def test_pubnote_get_command() -> None:
 
 def test_pubnote_get_json_output() -> None:
     with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
-        result = runner.invoke(app, ["pubnote", "get", "ATL-PHYS-PUB-2024-01", "--json"])
+        result = runner.invoke(
+            app, ["pubnote", "get", "ATL-PHYS-PUB-2024-01", "--json"]
+        )
     assert result.exit_code == 0
     data = json.loads(result.output)
     assert data.get("finalReferenceCode") == "ATL-PHYS-PUB-2024-01"

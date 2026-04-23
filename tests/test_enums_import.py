@@ -2,14 +2,10 @@
 
 from __future__ import annotations
 
-import importlib
+from stare.models import enums
 
 
 def test_enums_module_imports_cleanly():
-    import stare.models.enums as enums_mod
-
-    importlib.reload(enums_mod)
-
     # Every auto-generated enum has a matching Lenient alias
     for name in (
         "LenientAnalysisPhase0State",
@@ -19,4 +15,4 @@ def test_enums_module_imports_cleanly():
         "LenientConfnoteStatus",
         "LenientConfnotePhase1State",
     ):
-        assert hasattr(enums_mod, name), f"Missing Lenient alias: {name}"
+        assert hasattr(enums, name), f"Missing Lenient alias: {name}"
