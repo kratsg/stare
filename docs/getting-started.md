@@ -100,8 +100,8 @@ Override the auto-detection with `--json` (force JSON in a terminal) or
 ```bash
 stare analysis get ANA-HION-2018-01
 stare paper get HDBS-2018-33
-stare conf-note ATLAS-CONF-2024-001
-stare pub-note ATL-PHYS-PUB-2024-001
+stare confnote get ATLAS-CONF-2024-001
+stare pubnote get ATL-PHYS-PUB-2024-001
 ```
 
 Add `--json` to any command for JSON output, or pipe to another command or file.
@@ -160,11 +160,11 @@ paper_result = g.papers.search(query="status = Active")
 for paper in paper_result.results:
     print(paper.reference_code, paper.status)
 
-# Individual resource lookups (planned — return NotFoundError until live)
+# Individual resource lookups (search-based)
 analysis = g.analyses.get("ANA-HION-2018-01")
 paper = g.papers.get("HDBS-2018-33")
-conf_note = g.conf_notes.get("ATLAS-CONF-2024-001")
-pub_note = g.pub_notes.get("ATL-PHYS-PUB-2024-001")
+conf_note = g.confnotes.get("ATLAS-CONF-2024-001")
+pub_note = g.pubnotes.get("ATL-PHYS-PUB-2024-001")
 
 # Publications search (planned)
 pubs = g.publications.search(types=["Paper"], leading_groups=["HDBS"])
@@ -201,18 +201,16 @@ g = Glance(token=os.environ["GLANCE_TOKEN"])
 
 ## Current API endpoint availability
 
-| Endpoint                    | Status   |
-| --------------------------- | -------- |
-| `GET /searchAnalysis`       | **Live** |
-| `GET /searchPaper`          | **Live** |
-| `GET /analyses/{ref_code}`  | Planned  |
-| `GET /papers/{ref_code}`    | Planned  |
-| `GET /confnotes/{ref_code}` | Planned  |
-| `GET /pubnotes/{ref_code}`  | Planned  |
-| `GET /publications/search`  | Planned  |
-| `GET /groups`               | Planned  |
-| `GET /subgroups`            | Planned  |
-| `GET /triggers/search`      | Planned  |
+| Endpoint                   | Status   | Used by                        |
+| -------------------------- | -------- | ------------------------------ |
+| `GET /searchAnalysis`      | **Live** | `analyses.search()`, `analyses.get()` |
+| `GET /searchPaper`         | **Live** | `papers.search()`, `papers.get()` |
+| `GET /searchConfnote`      | **Live** | `confnotes.search()`, `confnotes.get()` |
+| `GET /searchPubnote`       | Planned  | `pubnotes.search()`, `pubnotes.get()` |
+| `GET /publications/search` | Planned  | `publications.search()`        |
+| `GET /groups`              | Planned  | `groups.list()`                |
+| `GET /subgroups`           | Planned  | `subgroups.list()`             |
+| `GET /triggers/search`     | Planned  | `triggers.search()`            |
 
-The client exposes the full API surface today; planned endpoints will return a
-`NotFoundError` until the server rolls them out.
+`.get()` on every resource uses the corresponding search endpoint with a single-result
+query — no per-record endpoints are required.

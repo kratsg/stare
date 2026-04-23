@@ -54,8 +54,8 @@ stare analysis get ANA-HION-2018-01
 stare paper get HDBS-2018-33
 
 # CONF notes / PUB notes
-stare conf-note ATLAS-CONF-2024-001
-stare pub-note ATL-PHYS-PUB-2024-001
+stare confnote get ATLAS-CONF-2024-001
+stare pubnote get ATL-PHYS-PUB-2024-001
 
 # List metadata
 stare groups
