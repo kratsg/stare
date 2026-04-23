@@ -22,6 +22,6 @@ def confnote_url(ref_code: str, *, web_base: str) -> str:
     return f"{web_base}/confnotes/details?ref_code={ref_code}"
 
 
-def pub_note_url(ref_code: str, *, web_base: str) -> str:
+def pubnote_url(ref_code: str, *, web_base: str) -> str:
     """Return the Glance web UI URL for a PUB note."""
     return f"{web_base}/pubnotes/details?ref_code={ref_code}"
