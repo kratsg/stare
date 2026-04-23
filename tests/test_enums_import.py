@@ -6,13 +6,16 @@ from stare.models import enums
 
 
 def test_enums_module_imports_cleanly():
-    # Every auto-generated enum has a matching Lenient alias
+    # Critical API-facing enums have matching Lenient aliases
     for name in (
         "LenientAnalysisPhase0State",
         "LenientPaperPhase1State",
         "LenientPaperPhase2State",
         "LenientPaperSubmissionState",
+        "LenientAnalysisStatus",
+        "LenientPaperStatus",
         "LenientConfnoteStatus",
         "LenientConfnotePhase1State",
     ):
+        assert hasattr(enums, name), f"Missing Lenient alias: {name}"
         assert hasattr(enums, name), f"Missing Lenient alias: {name}"

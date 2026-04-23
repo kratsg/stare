@@ -112,7 +112,7 @@ def _get_by_ref(
     condition = Condition(field=field, operator=Operator.EQ, value=ref_code)
     result = search(query=condition, limit=1, verbose=verbose)
     if not result.results:
-        raise NotFoundError(0, "Not Found", f"{field}={ref_code!r} not found")
+        raise NotFoundError(404, "Not Found", f"{field}={ref_code!r} not found")
     return result.results[0]
 
 

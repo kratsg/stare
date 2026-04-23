@@ -28,7 +28,7 @@ class AnalysisSearchResult(_SearchResultsBase[Analysis]):
 
 
 class ConfNoteSearchResult(_SearchResultsBase[ConfNote]):
-    """Top-level response from GET /searchPaper."""
+    """Top-level response from GET /searchConfnote."""
 
 
 class PaperSearchResult(_SearchResultsBase[Paper]):
