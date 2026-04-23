@@ -148,7 +148,7 @@ All pydantic models use:
 
 1. Add/update the pydantic model in `src/stare/models/`
 2. Add a resource accessor method in `src/stare/client.py`
-3. Add a CLI command in `src/stare/cli.py`
+3. Add a CLI command in the appropriate `src/stare/cli/` module
 4. Write tests (TDD: test first, then implement)
 5. Run `pixi run test` to verify
 

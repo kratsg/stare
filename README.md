@@ -82,21 +82,23 @@ from stare import Glance
 
 g = Glance()
 
-# Search analyses (currently live)
+# Search analyses
 result = g.analyses.search(query="referenceCode = ANA-HION-2018-01")
-print(f"Found {result.total_rows} analyses")
+print(f"Found {result.number_of_results} analyses")
 for analysis in result.results:
     print(analysis.reference_code, analysis.short_title)
 
-# Search papers (currently live)
+# Search papers
 paper_result = g.papers.search(query="referenceCode = HDBS-2018-33")
-print(f"Found {paper_result.total_rows} papers")
+print(f"Found {paper_result.number_of_results} papers")
 for paper in paper_result.results:
     print(paper.reference_code, paper.short_title)
 
-# Individual resource lookups (available as API endpoints go live)
+# Fetch individual records (search-based under the hood)
 analysis = g.analyses.get("ANA-HION-2018-01")
 paper = g.papers.get("HDBS-2018-33")
+conf_note = g.confnotes.get("ATLAS-CONF-2024-001")
+pub_note = g.pubnotes.get("ATL-PHYS-PUB-2024-001")
 groups = g.groups.list()
 ```
 
