@@ -11,11 +11,14 @@ else:
     import tomli as tomllib
 
 from importlib.resources import files
+from typing import TYPE_CHECKING
 
 from pydantic.alias_generators import to_camel
 
 from stare.dsl.errors import DSLValidationError
-from stare.typing import Mode
+
+if TYPE_CHECKING:
+    from stare.typing import Mode
 
 
 class FieldRegistry:

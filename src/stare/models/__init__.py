@@ -43,8 +43,8 @@ from stare.models.search import (
     AnalysisSearchResult,
     ConfNoteSearchResult,
     PaperSearchResult,
-    PubNoteSearchResult,
     PublicationRef,
+    PubNoteSearchResult,
     Trigger,
     TriggerCategory,
 )

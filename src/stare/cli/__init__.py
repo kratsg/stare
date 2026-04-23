@@ -19,7 +19,6 @@ from stare.cli.publications import publications_app
 from stare.cli.pubnote import pubnote_app
 from stare.cli.triggers import triggers_app
 from stare.exceptions import StareError
-from stare.settings import StareSettings
 
 # Re-export for backward compatibility
 sizeof_fmt = utils.sizeof_fmt

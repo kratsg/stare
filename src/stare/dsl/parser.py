@@ -5,7 +5,7 @@ from __future__ import annotations
 import difflib
 import logging
 from importlib.resources import files
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from lark import Lark, Transformer, UnexpectedInput
 from lark.exceptions import VisitError
@@ -13,7 +13,9 @@ from lark.exceptions import VisitError
 from stare.dsl.errors import DSLSyntaxError, DSLValidationError
 from stare.dsl.models import And, Condition, Expression, Operator, Or
 from stare.dsl.registry import FieldRegistry
-from stare.typing import Mode
+
+if TYPE_CHECKING:
+    from stare.typing import Mode
 
 _logger = logging.getLogger("stare")
 
