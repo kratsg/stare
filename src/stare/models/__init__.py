@@ -21,7 +21,7 @@ from stare.models.common import (
     TeamMember,
     TypedMeeting,
 )
-from stare.models.conf_note import ConfNote, ConfNotePhase1
+from stare.models.confnote import ConfNote, ConfNotePhase1
 from stare.models.enums import (
     AnalysisStatus,
     CollisionType,
@@ -39,6 +39,7 @@ from stare.models.paper import Paper, PaperPhase1, PaperPhase2, SubmissionPhase
 from stare.models.pub_note import PubNote, PubNotePhase1, PubNoteReader
 from stare.models.search import (
     AnalysisSearchResult,
+    ConfNoteSearchResult,
     PaperSearchResult,
     PublicationRef,
     Trigger,
@@ -57,6 +58,7 @@ __all__ = [
     "CollisionType",
     "ConfNote",
     "ConfNotePhase1",
+    "ConfNoteSearchResult",
     "Documentation",
     "EditorialBoardMember",
     "Groups",

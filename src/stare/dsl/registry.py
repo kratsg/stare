@@ -17,7 +17,7 @@ from pydantic.alias_generators import to_camel
 
 from stare.dsl.errors import DSLValidationError
 
-Mode = Literal["analysis", "paper"]
+Mode = Literal["analysis", "confnote", "paper"]
 
 
 class FieldRegistry:

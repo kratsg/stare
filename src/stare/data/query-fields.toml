@@ -21,6 +21,39 @@ fields = [
     "status",
 ]
 
+[confnote]
+fields = [
+    "finalReferenceCode",
+    "fullTitle",
+    "groups.leadingGroup",
+    "groups.otherGroups",
+    "groups.subgroups",
+    "metadata.keywords",
+    "metadata.mvaMlTools",
+    "phase1.draftCdsUrl",
+    "phase1.editorialBoardDraftSignOffDate",
+    "phase1.editorialBoardFormedOn",
+    "phase1.firstSignOffDate",
+    "phase1.firstSignOffResponsible.cernCcid",
+    "phase1.firstSignOffResponsible.firstName",
+    "phase1.firstSignOffResponsible.lastName",
+    "phase1.pgcApprovalDate",
+    "phase1.presentationDate",
+    "phase1.publicWebPageURLForFiguresAndTables",
+    "phase1.releaseDate",
+    "phase1.secondSignOffDate",
+    "phase1.secondSignOffResponsible.cernCcid",
+    "phase1.secondSignOffResponsible.firstName",
+    "phase1.secondSignOffResponsible.lastName",
+    "phase1.startDate",
+    "phase1.state",
+    "publicShortTitle",
+    "relatedAnalysis.referenceCode",
+    "shortTitle",
+    "status",
+    "temporaryReferenceCode",
+]
+
 [paper]
 fields = [
     "fullTitle",
@@ -51,7 +84,6 @@ fields = [
     "phase2.editorialBoardDraft2SignOffDate",
     "phase2.editorialBoardRevisedSignOffDate",
     "phase2.paperClosureDate",
-    "phase2.preliminaryPlotsAndResultsReleased",
     "phase2.pubcommChairOrDeputyOrDelegated.cernCcid",
     "phase2.pubcommChairOrDeputyOrDelegated.firstName",
     "phase2.pubcommChairOrDeputyOrDelegated.lastName",

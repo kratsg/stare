@@ -56,6 +56,7 @@ class ConfNote(_Base):
     temp_reference_code: str | None = Field(
         default=None, alias="temporaryReferenceCode"
     )
+    final_reference_code: str | None = Field(default=None, alias="finalReferenceCode")
     status: LenientPaperStatus | None = None
     short_title: str | None = None
     public_short_title: str | None = None

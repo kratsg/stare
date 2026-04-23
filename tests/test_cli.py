@@ -110,7 +110,7 @@ def _mock_glance(**overrides: object) -> MagicMock:
     g.analyses.get.return_value = SAMPLE_ANALYSIS
     g.papers.search.return_value = SAMPLE_PAPER_SEARCH
     g.papers.get.return_value = SAMPLE_PAPER
-    g.conf_notes.get.return_value = SAMPLE_CONF_NOTE
+    g.confnotes.get.return_value = SAMPLE_CONF_NOTE
     g.pub_notes.get.return_value = SAMPLE_PUB_NOTE
     g.publications.search.return_value = SAMPLE_PUBLICATIONS
     g.groups.list.return_value = ["HDBS", "SUSY"]
@@ -526,20 +526,20 @@ def test_paper_get_json_output() -> None:
 
 
 # ---------------------------------------------------------------------------
-# conf-note
+# confnote
 # ---------------------------------------------------------------------------
 
 
-def test_conf_note_command() -> None:
+def test_confnote_command() -> None:
     with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
-        result = runner.invoke(app, ["conf-note", "ATLAS-CONF-2024-01"])
+        result = runner.invoke(app, ["confnote", "ATLAS-CONF-2024-01"])
     assert result.exit_code == 0
     assert "ATLAS-CONF-2024-01" in result.output
 
 
-def test_conf_note_json_output() -> None:
+def test_confnote_json_output() -> None:
     with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
-        result = runner.invoke(app, ["conf-note", "ATLAS-CONF-2024-01", "--json"])
+        result = runner.invoke(app, ["confnote", "ATLAS-CONF-2024-01", "--json"])
     assert result.exit_code == 0
     data = json.loads(result.output)
     assert data.get("temporaryReferenceCode") == "ATLAS-CONF-2024-01"

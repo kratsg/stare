@@ -24,6 +24,7 @@ from stare.models import (
     Analysis,
     AnalysisSearchResult,
     ConfNote,
+    ConfNoteSearchResult,
     Paper,
     PaperSearchResult,
     PublicationRef,
@@ -78,7 +79,10 @@ def _raise_for_status(response: httpx.Response) -> None:
 
 
 def _resolve_query(
-    q: str | Expression, *, mode: Literal["analysis", "paper"], validate: bool
+    q: str | Expression,
+    *,
+    mode: Literal["analysis", "confnote", "paper"],
+    validate: bool,
 ) -> str:
     if isinstance(q, str):
         return parse_dsl(q, mode=mode).to_dsl() if validate else q
@@ -173,6 +177,30 @@ class ConfNoteResource:
         response = self._client.get(f"/confnotes/{temp_ref_code}")
         _raise_for_status(response)
         return ConfNote.model_validate(response.json(), verbose=verbose)
+
+    def search(
+        self,
+        *,
+        query: str | Expression | None = None,
+        offset: int = 0,
+        limit: int = 50,
+        sort_by: str | None = None,
+        sort_desc: bool = False,
+        validate_query: bool = True,
+        verbose: bool = False,
+    ) -> ConfNoteSearchResult:
+        """Search conf notes via GET /searchConfNote."""
+        params: dict[str, Any] = {"offset": offset, "limit": limit}
+        if query is not None:
+            params["queryString"] = _resolve_query(
+                query, mode="confnote", validate=validate_query
+            )
+        if sort_by is not None:
+            params["sortBy"] = sort_by
+            params["sortDesc"] = str(sort_desc).lower()
+        response = self._client.get("/searchConfnote", params=params)
+        _raise_for_status(response)
+        return ConfNoteSearchResult.model_validate(response.json(), verbose=verbose)
 
 
 class PubNoteResource:
@@ -327,7 +355,7 @@ class Glance:
         )
         self.analyses = AnalysisResource(self._http)
         self.papers = PaperResource(self._http)
-        self.conf_notes = ConfNoteResource(self._http)
+        self.confnotes = ConfNoteResource(self._http)
         self.pub_notes = PubNoteResource(self._http)
         self.publications = PublicationResource(self._http)
         self.groups = GroupResource(self._http)

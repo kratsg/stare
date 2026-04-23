@@ -90,7 +90,9 @@ def _syntax_hint(exc: UnexpectedInput, source: str) -> str | None:
     return None
 
 
-def parse_dsl(source: str, *, mode: Literal["analysis", "paper"]) -> Expression:
+def parse_dsl(
+    source: str, *, mode: Literal["analysis", "confnote", "paper"]
+) -> Expression:
     """Parse a DSL query string and return a validated AST.
 
     Raises DSLSyntaxError on grammar violations and DSLValidationError on

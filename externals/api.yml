@@ -1,0 +1,907 @@
+openapi: 3.0.3
+info:
+  title: ATLAS Analysis and Documents API
+  description: API for ATLAS Publication Tracking system.
+  version: 1.0.0
+  contact:
+    email: atlas-fence-developers@cern.ch
+    name: ATLAS Glance developers
+
+servers:
+  - url: "/atlas/analysis/api"
+    description: Analysis and Documents API
+
+tags:
+  - name: Analysis
+  - name: Paper
+  - name: Confnote
+
+paths:
+  /searchAnalysis:
+    get:
+      tags:
+        - Analysis
+      summary: Search analyses
+      description: >
+        Searches analyses with support for filtering, sorting, and pagination.
+        Filters are passed as a DSL query string via the `queryString`
+        parameter.
+      operationId: searchAnalysis
+      security:
+        - oauth2: []
+      parameters:
+        - name: offset
+          in: query
+          description: Pagination offset (number of records to skip).
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: limit
+          in: query
+          description: Maximum number of records to return.
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: sortBy
+          in: query
+          description: Field name to sort results by.
+          required: false
+          schema:
+            type: string
+        - name: sortDesc
+          in: query
+          description: Sort in descending order when true.
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: queryString
+          in: query
+          description: >
+            URL-encoded DSL filter string. Supports operators such as `contain`,
+            `not-contain`, `=`, and `!=` over the available searchable
+            properties (e.g. creationDate, referenceCode, keywords). Example:
+            `referenceCode = <referenceCode>`.
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchAnalysisResponse"
+        "400":
+          description: Invalid query parameters.
+        "401":
+          description: Invalid or missing authentication token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error401"
+        "403":
+          description: Action forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error403"
+  /searchPaper:
+    get:
+      tags:
+        - Paper
+      summary: Search paper
+      description: >
+        Searches papers with support for filtering, sorting, and pagination.
+        Filters are passed as a DSL query string via the `queryString`
+        parameter.
+      operationId: searchPaper
+      security:
+        - oauth2: []
+      parameters:
+        - name: offset
+          in: query
+          description: Pagination offset (number of records to skip).
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: limit
+          in: query
+          description: Maximum number of records to return.
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: sortBy
+          in: query
+          description: Field name to sort results by.
+          required: false
+          schema:
+            type: string
+        - name: sortDesc
+          in: query
+          description: Sort in descending order when true.
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: queryString
+          in: query
+          description: >
+            URL-encoded DSL filter string. Supports operators such as `contain`,
+            `not-contain`, `=`, and `!=` over the available searchable
+            properties (e.g. creationDate, referenceCode, keywords). Example:
+            `referenceCode = <referenceCode>`.
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchPaperResponse"
+        "400":
+          description: Invalid query parameters.
+        "401":
+          description: Invalid or missing authentication token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error401"
+        "403":
+          description: Action forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error403"
+  /searchConfnote:
+    get:
+      tags:
+        - Confnote
+      summary: Search confnotes
+      description: >
+        Searches confnotes with support for filtering, sorting, and pagination.
+        Filters are passed as a DSL query string via the `queryString`
+        parameter.
+      operationId: searchConfnote
+      security:
+        - oauth2: []
+      parameters:
+        - name: offset
+          in: query
+          description: Pagination offset (number of records to skip).
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: limit
+          in: query
+          description: Maximum number of records to return.
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: sortBy
+          in: query
+          description: Field name to sort results by.
+          required: false
+          schema:
+            type: string
+        - name: sortDesc
+          in: query
+          description: Sort in descending order when true.
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: queryString
+          in: query
+          description: >
+            URL-encoded DSL filter string. Supports operators such as `contain`,
+            `not-contain`, `=`, and `!=` over the available searchable
+            properties (e.g. status, temporaryReferenceCode, metadata.keywords,
+            phase1.state). Example: `temporaryReferenceCode =
+            <temporaryReferenceCode>`.
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchConfnoteResponse"
+        "400":
+          description: Invalid query parameters.
+        "401":
+          description: Invalid or missing authentication token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error401"
+        "403":
+          description: Action forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error403"
+
+components:
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      description: CERN SSO via Keycloak
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/auth
+          tokenUrl: https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/token
+          scopes:
+            openid: OpenID Connect
+
+  schemas:
+    SearchAnalysisResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              creationDate:
+                type: string
+              referenceCode:
+                type: string
+              status:
+                type: string
+              shortTitle:
+                type: string
+              publicShortTitle:
+                type: string
+              extraMetadata:
+                type: object
+              groups:
+                type: object
+                properties:
+                  leadingGroup:
+                    type: string
+                  subgroups:
+                    type: array
+                    items:
+                      type: string
+                  otherGroups:
+                    type: array
+                    items:
+                      type: string
+              analysisTeam:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    cernCcid:
+                      type: string
+                    firstName:
+                      type: string
+                    lastName:
+                      type: string
+                    isContactEditor:
+                      type: boolean
+              metadata:
+                type: object
+                properties:
+                  collisions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                        year:
+                          type: string
+                        run:
+                          type: string
+                        ecmValue:
+                          type: string
+                        ecmUnit:
+                          type: string
+                        luminosityValue:
+                          type: string
+                        luminosityUnit:
+                          type: string
+                  keywords:
+                    type: array
+                    items:
+                      type: string
+                  mvaMlTools:
+                    type: array
+                    items:
+                      type: string
+                  triggers:
+                    type: array
+                    items:
+                      type: string
+              amiGlance:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    label:
+                      type: string
+                    url:
+                      type: string
+              documentation:
+                type: object
+                properties:
+                  repositories:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        gitlabId:
+                          type: string
+                        type:
+                          type: string
+                        url:
+                          type: string
+                  supportingInternalDocuments:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        label:
+                          type: string
+                        url:
+                          type: string
+              relatedPublications:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    referenceCode:
+                      type: string
+              phase0:
+                type: object
+                properties:
+                  state:
+                    type: string
+                  startDate:
+                    type: string
+                  mainPhysicsAim:
+                    type: string
+                  datasetUsed:
+                    type: string
+                  modelTested:
+                    type: string
+                  methods:
+                    type: string
+                  editorialBoardFormedOn:
+                    type: string
+                  pgcOrSgcSignOffDate:
+                    type: string
+                  analysisContacts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        cernCcid:
+                          type: string
+                        firstName:
+                          type: string
+                        lastName:
+                          type: string
+                        startDate:
+                          type: string
+                        endDate:
+                          type: string
+                  eoiMeeting:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        title:
+                          type: string
+                        date:
+                          type: string
+                        comments:
+                          type: string
+                        label:
+                          type: string
+                        url:
+                          type: string
+                  editorialBoardRequestMeeting:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        title:
+                          type: string
+                        date:
+                          type: string
+                        comments:
+                          type: string
+                        label:
+                          type: string
+                        url:
+                          type: string
+                  preApprovalMeeting:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        title:
+                          type: string
+                        date:
+                          type: string
+                        comments:
+                          type: string
+                        label:
+                          type: string
+                        url:
+                          type: string
+                  approvalMeeting:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        title:
+                          type: string
+                        date:
+                          type: string
+                        comments:
+                          type: string
+                        label:
+                          type: string
+                        url:
+                          type: string
+        numberOfResults:
+          type: integer
+          description: Number of matching records.
+    SearchPaperResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              shortTitle:
+                type: string
+              publicShortTitle:
+                type: string
+              fullTitle:
+                type: string
+              referenceCode:
+                type: string
+              groups:
+                type: object
+                properties:
+                  leadingGroup:
+                    type: string
+                  subgroups:
+                    type: array
+                    items:
+                      type: string
+                  otherGroups:
+                    type: array
+                    items:
+                      type: string
+              documentation:
+                type: object
+                properties:
+                  supportingInternalDocuments:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        label:
+                          type: string
+                        url:
+                          type: string
+              analysisTeam:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    cernCcid:
+                      type: string
+                    firstName:
+                      type: string
+                    lastName:
+                      type: string
+                    isContactEditor:
+                      type: boolean
+              metadata:
+                type: object
+                properties:
+                  collisions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                        year:
+                          type: string
+                        run:
+                          type: string
+                        ecmValue:
+                          type: string
+                        ecmUnit:
+                          type: string
+                        luminosityValue:
+                          type: string
+                        luminosityUnit:
+                          type: string
+                  keywords:
+                    type: array
+                    items:
+                      type: string
+                  mvaMlTools:
+                    type: array
+                    items:
+                      type: string
+              rivetRoutinesUrl:
+                type: string
+              relatedAnalysis:
+                type: object
+                properties:
+                  referenceCode:
+                    type: string
+              phase1:
+                type: object
+                properties:
+                  startDate:
+                    type: string
+                  state:
+                    type: string
+                  editorialBoard:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        cernCcid:
+                          type: string
+                        firstName:
+                          type: string
+                        lastName:
+                          type: string
+                  editorialBoardChairs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        cernCcid:
+                          type: string
+                        firstName:
+                          type: string
+                        lastName:
+                          type: string
+                  editorialBoardExOfficios:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        cernCcid:
+                          type: string
+                        firstName:
+                          type: string
+                        lastName:
+                          type: string
+                  editorialBoardFormedOn:
+                    type: string
+                  languageEditorsSignOffDate:
+                    type: string
+                  presentationDate:
+                    type: string
+                  pgcApprovalDate:
+                    type: string
+                  editorialBoardDraftSignOffDate:
+                    type: string
+                  draftReleasedDate:
+                    type: string
+                  pubcommChairOrDeputyOrDelegated:
+                    type: object
+                    properties:
+                      cernCcid:
+                        type: string
+                      firstName:
+                        type: string
+                      lastName:
+                        type: string
+                  spokespersonOrDeputyOrDelegated:
+                    type: object
+                    properties:
+                      cernCcid:
+                        type: string
+                      firstName:
+                        type: string
+                      lastName:
+                        type: string
+                  atlasMeetingDate:
+                    type: string
+                  pubcommSignOffDate:
+                    type: string
+              phase2:
+                type: object
+                properties:
+                  startDate:
+                    type: string
+                  state:
+                    type: string
+                  editorialBoardDraft2SignOffDate:
+                    type: string
+                  draft2ReleasedDate:
+                    type: string
+                  draft2SentToCernDate:
+                    type: string
+                  draft2CernSignOffDate:
+                    type: string
+                  paperClosureMeeting:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        label:
+                          type: string
+                        url:
+                          type: string
+                  preliminaryPlotsAndResultsReleased:
+                    type: boolean
+                  paperClosureDate:
+                    type: string
+                  editorialBoardRevisedSignOffDate:
+                    type: string
+                  pubcommChairOrDeputyOrDelegated:
+                    type: object
+                    properties:
+                      cernCcid:
+                        type: string
+                      firstName:
+                        type: string
+                      lastName:
+                        type: string
+                  pubcommChairOrDeputyOrDelegatedSignOffDate:
+                    type: string
+                  spokespersonOrDeputyOrDelegatedSignOffDate:
+                    type: string
+              submission:
+                type: object
+                properties:
+                  startDate:
+                    type: string
+                  state:
+                    type: string
+                  arXivUrls:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        label:
+                          type: string
+                        url:
+                          type: string
+                  finalTitleTex:
+                    type: string
+                  finalSubmissionJournal:
+                    type: string
+                  arXivSubmissionDate:
+                    type: string
+                  physicsBriefing:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        label:
+                          type: string
+                        url:
+                          type: string
+                  dateOf1stRefereeReport:
+                    type: string
+                  journalAcceptanceDate:
+                    type: string
+                  dateOf1stProof:
+                    type: string
+                  finalJournalPublication:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        label:
+                          type: string
+                        url:
+                          type: string
+                  publishedOnlineOn:
+                    type: string
+        numberOfResults:
+          type: integer
+          description: Number of matching records.
+    SearchConfnoteResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                type: string
+              shortTitle:
+                type: string
+              publicShortTitle:
+                type: string
+              fullTitle:
+                type: string
+              temporaryReferenceCode:
+                type: string
+              finalReferenceCode:
+                type: string
+              groups:
+                type: object
+                properties:
+                  leadingGroup:
+                    type: string
+                  subgroups:
+                    type: array
+                    items:
+                      type: string
+                  otherGroups:
+                    type: array
+                    items:
+                      type: string
+              documentation:
+                type: object
+                properties:
+                  supportingInternalDocuments:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        label:
+                          type: string
+                        url:
+                          type: string
+              analysisTeam:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    cernCcid:
+                      type: string
+                    firstName:
+                      type: string
+                    lastName:
+                      type: string
+                    isContactEditor:
+                      type: boolean
+              metadata:
+                type: object
+                properties:
+                  collisions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                        year:
+                          type: string
+                        run:
+                          type: string
+                        ecmValue:
+                          type: string
+                        ecmUnit:
+                          type: string
+                        luminosityValue:
+                          type: string
+                        luminosityUnit:
+                          type: string
+                  keywords:
+                    type: array
+                    items:
+                      type: string
+                  mvaMlTools:
+                    type: array
+                    items:
+                      type: string
+              relatedAnalysis:
+                type: object
+                properties:
+                  referenceCode:
+                    type: string
+              phase1:
+                type: object
+                properties:
+                  startDate:
+                    type: string
+                  state:
+                    type: string
+                  draftCdsUrl:
+                    type: string
+                  editorialBoard:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        cernCcid:
+                          type: string
+                        firstName:
+                          type: string
+                        lastName:
+                          type: string
+                  editorialBoardChairs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        cernCcid:
+                          type: string
+                        firstName:
+                          type: string
+                        lastName:
+                          type: string
+                  editorialBoardExOfficios:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        cernCcid:
+                          type: string
+                        firstName:
+                          type: string
+                        lastName:
+                          type: string
+                  editorialBoardFormedOn:
+                    type: string
+                  presentationDate:
+                    type: string
+                  pgcApprovalDate:
+                    type: string
+                  editorialBoardDraftSignOffDate:
+                    type: string
+                  firstSignOffResponsible:
+                    type: object
+                    properties:
+                      cernCcid:
+                        type: string
+                      firstName:
+                        type: string
+                      lastName:
+                        type: string
+                  secondSignOffResponsible:
+                    type: object
+                    properties:
+                      cernCcid:
+                        type: string
+                      firstName:
+                        type: string
+                      lastName:
+                        type: string
+                  firstSignOffDate:
+                    type: string
+                  secondSignOffDate:
+                    type: string
+                  publicWebPageURLForFiguresAndTables:
+                    type: string
+                  releaseDate:
+                    type: string
+        numberOfResults:
+          type: integer
+          description: Number of matching records.
+
+    Error401:
+      $ref: "schemas/errors.yml#/schemas/Error401"
+
+    Error403:
+      $ref: "schemas/errors.yml#/schemas/Error403"
+
+    Error404:
+      $ref: "schemas/errors.yml#/schemas/Error404"
