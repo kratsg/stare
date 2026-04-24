@@ -127,6 +127,7 @@ class SubmissionPhase(_Base):
         return v
 
     def __rich__(self) -> Panel | None:
+        """Return a Rich Panel with submission details, or None if the phase has no renderable fields."""
         rows: list[tuple[str, RenderableType]] = []
 
         def _link_texts(links_field: list[Link]) -> Text:
@@ -187,6 +188,7 @@ class Paper(_Base):
     submission: SubmissionPhase | None = None
 
     def __rich__(self) -> Panel:
+        """Return a Rich Panel summarising the paper for terminal display."""
         sections: list[RenderableType] = []
 
         # --- Titles ---

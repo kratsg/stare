@@ -261,6 +261,7 @@ class EditorialBoard(_ListRootModel[EditorialBoardMember]):
     """Ordered list of editorial board members, rendered as a titled panel."""
 
     def __rich__(self) -> Panel:
+        """Return a Rich Panel listing all editorial board members."""
         eb_table = Table(show_header=False, expand=True)
         eb_table.add_column()
         for eb in self:
@@ -277,6 +278,7 @@ class AnalysisTeam(_ListRootModel[TeamMember]):
     """Ordered list of team members, rendered as a titled panel with contact-editor highlight."""
 
     def __rich__(self) -> Panel:
+        """Return a Rich Panel listing all team members, contact editors first."""
         team_table = Table(show_header=True, header_style="bold magenta", expand=True)
         team_table.add_column("Name")
         team_table.add_column("CCID", justify="right")
@@ -293,6 +295,7 @@ class AnalysisContacts(_ListRootModel[AnalysisContact]):
     """Ordered list of analysis contacts, rendered as a titled panel with date ranges."""
 
     def __rich__(self) -> Panel:
+        """Return a Rich Panel listing all analysis contacts with date ranges."""
         table = Table(show_header=True, header_style="bold magenta", expand=True)
         table.add_column("Name")
         table.add_column("Start", justify="right")
@@ -314,6 +317,7 @@ class Groups(_Base):
     other_groups: list[str] = Field(default_factory=list)
 
     def __rich__(self) -> Panel:
+        """Return a Rich Panel showing leading, sub-, and other groups."""
         group_table = Table.grid(padding=(0, 1))
         group_table.add_column(style="bold cyan", justify="right")
         group_table.add_column()
@@ -338,6 +342,7 @@ class Collision(_Base):
     luminosity_unit: str | None = None
 
     def __rich__(self) -> Panel:
+        """Return a Rich Panel showing run, centre-of-mass energy, and luminosity."""
         physics = Table.grid(padding=(0, 1))
         physics.add_column(style="bold cyan", justify="right")
         physics.add_column()
@@ -351,6 +356,7 @@ class Collisions(_ListRootModel[Collision]):
     """All collision datasets for a resource, rendered as a combined Physics panel."""
 
     def __rich__(self) -> Panel:
+        """Return a Rich Panel combining all collision datasets into one Physics view."""
         physics = Table.grid(padding=(0, 1))
         physics.add_column(style="bold cyan", justify="right")
         physics.add_column()

@@ -40,6 +40,7 @@ class Readers(_ListRootModel[PubNoteReader]):
     """Ordered list of PUB note readers, rendered as a titled panel."""
 
     def __rich__(self) -> Panel:
+        """Return a Rich Panel listing all readers with their assigned role."""
         table = Table(show_header=False, expand=True)
         table.add_column()
         table.add_column(justify="right")
@@ -93,6 +94,7 @@ class PubNote(_Base):
     phase1: PubNotePhase1 | None = None
 
     def __rich__(self) -> Panel:
+        """Return a Rich Panel summarising the PUB note for terminal display."""
         sections: list[RenderableType] = []
 
         # --- Titles ---

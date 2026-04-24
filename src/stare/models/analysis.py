@@ -139,6 +139,7 @@ class Analysis(_Base):
         return data
 
     def __rich__(self) -> Panel:
+        """Return a Rich Panel summarising the analysis for terminal display."""
         sections: list[RenderableType] = []
 
         # --- Titles ---

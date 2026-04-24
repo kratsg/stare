@@ -77,6 +77,7 @@ class ConfNote(_Base):
     phase1: ConfNotePhase1 | None = None
 
     def __rich__(self) -> Panel:
+        """Return a Rich Panel summarising the CONF note for terminal display."""
         sections: list[RenderableType] = []
 
         # --- Titles (explicit labels) ---
