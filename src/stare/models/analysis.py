@@ -182,13 +182,17 @@ class Analysis(_Base):
             timeline = Table.grid(padding=(0, 1))
             timeline.add_column(style="bold cyan", justify="right")
             timeline.add_column()
+            timeline_has_rows = False
 
             if p0.start_date:
                 timeline.add_row("Start", str(p0.start_date))
+                timeline_has_rows = True
             if p0.editorial_board_formed_on:
                 timeline.add_row("EdBoard", str(p0.editorial_board_formed_on))
+                timeline_has_rows = True
             if p0.pgc_or_sgc_sign_off_date:
                 timeline.add_row("PGC/SGC", str(p0.pgc_or_sgc_sign_off_date))
+                timeline_has_rows = True
 
             # Meeting rows — one per type, hyperlinked when a URL is available
             _meeting_labels = {
@@ -198,21 +202,24 @@ class Analysis(_Base):
                 MeetingType.APPROVAL: "Approval",
             }
             for meeting_type, label in _meeting_labels.items():
-                typed = [m for m in p0.meetings if m.meeting_type == meeting_type]
+                typed = [
+                    m for m in p0.meetings if m.meeting_type == meeting_type and m.date
+                ]
                 if not typed:
                     continue
-                latest = max(typed, key=lambda m: m.date or "")
-                if latest.date:
-                    date_str = latest.date.strftime("%Y-%m-%d")
-                    if latest.link and latest.link.url:
-                        cell = Text.from_markup(
-                            f"[link={latest.link.url}]{date_str}[/link]"
-                        )
-                    else:
-                        cell = Text(date_str)
-                    timeline.add_row(label, cell)
+                latest = max(typed, key=lambda m: m.date)  # type: ignore[arg-type,return-value]
+                date_str = latest.date.strftime("%Y-%m-%d")  # type: ignore[union-attr]
+                if latest.link and latest.link.url:
+                    cell = Text.from_markup(
+                        f"[link={latest.link.url}]{date_str}[/link]"
+                    )
+                else:
+                    cell = Text(date_str)
+                timeline.add_row(label, cell)
+                timeline_has_rows = True
 
-            summary_cols.append(Panel(timeline, title="Timeline", expand=True))
+            if timeline_has_rows:
+                summary_cols.append(Panel(timeline, title="Timeline", expand=True))
 
         if summary_cols:
             sections.append(Columns(summary_cols, expand=True))

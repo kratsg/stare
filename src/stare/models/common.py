@@ -196,6 +196,25 @@ class _ListRootModel(RootModel[list[_T]], Generic[_T]):
 
     root: list[_T] = Field(default_factory=list)
 
+    @classmethod
+    def model_validate(
+        cls,
+        obj: Any,
+        *args: Any,
+        verbose: bool = False,
+        **kwargs: Any,
+    ) -> Self:
+        """Validate and wrap ValidationError as ResponseParseError."""
+        try:
+            return super().model_validate(obj, *args, **kwargs)
+        except ValidationError as exc:
+            msg, details = _format_parse_error(cls.__name__, exc, obj=obj)
+            raise ResponseParseError(
+                msg,
+                raw_data=obj if verbose else None,
+                details=details,
+            ) from exc
+
     def __iter__(self) -> Iterator[_T]:  # type: ignore[override]
         return iter(self.root)
 
@@ -346,9 +365,19 @@ class Collision(_Base):
         physics = Table.grid(padding=(0, 1))
         physics.add_column(style="bold cyan", justify="right")
         physics.add_column()
-        physics.add_row("Run", f"{self.run} ({self.year})")
-        physics.add_row("√s", f"{self.ecm_value} {self.ecm_unit}")
-        physics.add_row("L", f"{self.luminosity_value} {self.luminosity_unit}")
+        run_label = " ".join(
+            part for part in [self.run, f"({self.year})" if self.year else None] if part
+        )
+        ecm_label = " ".join(part for part in [self.ecm_value, self.ecm_unit] if part)
+        lumi_label = " ".join(
+            part for part in [self.luminosity_value, self.luminosity_unit] if part
+        )
+        if run_label:
+            physics.add_row("Run", run_label)
+        if ecm_label:
+            physics.add_row("√s", ecm_label)
+        if lumi_label:
+            physics.add_row("L", lumi_label)
         return Panel(physics, title="Physics", expand=True)
 
 
@@ -363,9 +392,23 @@ class Collisions(_ListRootModel[Collision]):
         for i, coll in enumerate(self):
             if i > 0:
                 physics.add_row("", "")
-            physics.add_row("Run", f"{coll.run} ({coll.year})")
-            physics.add_row("√s", f"{coll.ecm_value} {coll.ecm_unit}")
-            physics.add_row("L", f"{coll.luminosity_value} {coll.luminosity_unit}")
+            run_label = " ".join(
+                part
+                for part in [coll.run, f"({coll.year})" if coll.year else None]
+                if part
+            )
+            ecm_label = " ".join(
+                part for part in [coll.ecm_value, coll.ecm_unit] if part
+            )
+            lumi_label = " ".join(
+                part for part in [coll.luminosity_value, coll.luminosity_unit] if part
+            )
+            if run_label:
+                physics.add_row("Run", run_label)
+            if ecm_label:
+                physics.add_row("√s", ecm_label)
+            if lumi_label:
+                physics.add_row("L", lumi_label)
         return Panel(physics, title="Physics", expand=True)
 
 
