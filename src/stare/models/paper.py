@@ -139,7 +139,7 @@ class SubmissionPhase(_Base):
             )
 
         if self.arxiv_urls:
-            rows.append(("arXiv", _link_texts(self.arxiv_urls)))  # pylint: disable=not-an-iterable
+            rows.append(("arXiv", _link_texts(self.arxiv_urls)))
 
         if self.final_submission_journal:
             rows.append(("Journal", Text(self.final_submission_journal)))
@@ -154,10 +154,10 @@ class SubmissionPhase(_Base):
             rows.append(("Published", Text(str(self.published_online_on))))
 
         if self.physics_briefings:
-            rows.append(("Briefings", _link_texts(self.physics_briefings)))  # pylint: disable=not-an-iterable
+            rows.append(("Briefings", _link_texts(self.physics_briefings)))
 
         if self.final_journal_publications:
-            rows.append(("Final", _link_texts(self.final_journal_publications)))  # pylint: disable=not-an-iterable
+            rows.append(("Final", _link_texts(self.final_journal_publications)))
 
         if not rows:
             return None
