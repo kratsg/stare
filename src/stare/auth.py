@@ -195,7 +195,9 @@ class TokenManager:
         try:
             code = code_queue.get(timeout=120)
         except queue.Empty as err:
-            msg = "Authentication timed out (120 seconds). Run `stare auth login` again."
+            msg = (
+                "Authentication timed out (120 seconds). Run `stare auth login` again."
+            )
             raise AuthenticationError(msg) from err
         finally:
             server.server_close()
@@ -347,7 +349,9 @@ class TokenManager:
             msg = f"Token exchange failed (network error): {exc}. Run `stare auth login` again."
             raise TokenExpiredError(msg) from exc
         except ValidationError as exc:
-            msg = f"Token exchange response invalid: {exc}. Run `stare auth login` again."
+            msg = (
+                f"Token exchange response invalid: {exc}. Run `stare auth login` again."
+            )
             raise TokenExpiredError(msg) from exc
         self._exchanged_token = oauth_resp.access_token
         self._exchanged_expires_at = int(time.time()) + oauth_resp.expires_in
@@ -376,12 +380,12 @@ class TokenManager:
             msg = f"Token refresh failed ({exc.response.status_code}). Run `stare auth login` again."
             raise TokenExpiredError(msg) from exc
         except httpx.RequestError as exc:
-            msg = (
-                f"Token refresh failed (network error): {exc}. Run `stare auth login` again."
-            )
+            msg = f"Token refresh failed (network error): {exc}. Run `stare auth login` again."
             raise TokenExpiredError(msg) from exc
         except ValidationError as exc:
-            msg = f"Token refresh response invalid: {exc}. Run `stare auth login` again."
+            msg = (
+                f"Token refresh response invalid: {exc}. Run `stare auth login` again."
+            )
             raise TokenExpiredError(msg) from exc
 
         token = _StoredToken.from_response(oauth_resp)
