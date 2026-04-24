@@ -140,17 +140,23 @@ class PubNote(_Base):
             timeline = Table.grid(padding=(0, 1))
             timeline.add_column(style="bold cyan", justify="right")
             timeline.add_column()
+            timeline_has_rows = False
 
             if p1.start_date:
                 timeline.add_row("Start", str(p1.start_date))
+                timeline_has_rows = True
             if p1.presentation_date:
                 timeline.add_row("Presentation", str(p1.presentation_date))
+                timeline_has_rows = True
             if p1.group_approval_on:
                 timeline.add_row("Group Appr", str(p1.group_approval_on))
+                timeline_has_rows = True
             if p1.release_date:
                 timeline.add_row("Release", str(p1.release_date))
+                timeline_has_rows = True
 
-            summary_cols.append(Panel(timeline, title="Timeline", expand=True))
+            if timeline_has_rows:
+                summary_cols.append(Panel(timeline, title="Timeline", expand=True))
 
         if summary_cols:
             sections.append(Columns(summary_cols, expand=True))
