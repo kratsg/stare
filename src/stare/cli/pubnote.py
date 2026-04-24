@@ -183,10 +183,4 @@ def pubnote_get(
         typer.echo(result.model_dump_json(by_alias=True))
         return
 
-    settings = StareSettings()
-    ref = result.final_reference_code or ""
-    url = pubnote_url(ref, web_base=settings.web_base_url) if ref else None
-    ref_markup = f"[link={url}]{ref}[/link]" if url else ref
-    utils.console.print(f"[bold cyan]{ref_markup}[/bold cyan]  {result.status or ''}")
-    if result.short_title:
-        utils.console.print(result.short_title)
+    utils.console.print(result)

@@ -2,19 +2,25 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from datetime import date
 
 import pytest
 from rich.console import Console
+from rich.panel import Panel
 
 from stare.exceptions import ResponseParseError
 from stare.models.analysis import Analysis, AnalysisPhase0
 from stare.models.common import (
     AmiGlanceLink,
     AnalysisContact,
+    AnalysisContacts,
+    AnalysisTeam,
     Collision,
+    Collisions,
     Documentation,
+    EditorialBoard,
     EditorialBoardMember,
     Groups,
     Link,
@@ -28,8 +34,8 @@ from stare.models.common import (
 from stare.models.confnote import ConfNote, ConfNotePhase1
 from stare.models.enums import ConfnotePhase1State, MeetingType
 from stare.models.errors import ApiErrorResponse
-from stare.models.paper import PaperPhase1, PaperPhase2, SubmissionPhase
-from stare.models.pubnote import PubNote, PubNotePhase1
+from stare.models.paper import Paper, PaperPhase1, PaperPhase2, SubmissionPhase
+from stare.models.pubnote import PubNote, PubNotePhase1, Readers
 from stare.models.search import (
     AnalysisSearchResult,
     ConfNoteSearchResult,
@@ -363,6 +369,7 @@ class TestAnalysis:
         a = Analysis.model_validate(
             {
                 "referenceCode": "ANA-SUSY-2020-01",
+                "status": "Created",
                 "groups": {
                     "leadingGroup": "SUSY",
                     "subgroups": [],
@@ -377,6 +384,7 @@ class TestAnalysis:
         a = Analysis.model_validate(
             {
                 "referenceCode": "ANA-X-2021-01",
+                "status": "Created",
                 "phase0": {"state": "Approval acceptance", "startDate": "2021-01-01"},
             }
         )
@@ -387,6 +395,7 @@ class TestAnalysis:
         a = Analysis.model_validate(
             {
                 "referenceCode": "ANA-X-2021-01",
+                "status": "Created",
                 "analysisTeam": [
                     {
                         "cernCcid": "u1",
@@ -406,30 +415,46 @@ class TestAnalysis:
             Analysis.model_validate({})
 
     def test_extra_metadata_dict_is_preserved(self) -> None:
-        a = Analysis.model_validate({"extraMetadata": {"key": "value"}})
+        a = Analysis.model_validate(
+            {
+                "referenceCode": "ANA-EXOT-2024-01",
+                "status": "Created",
+                "extraMetadata": {"key": "value"},
+            }
+        )
         assert a.extra_metadata == {"key": "value"}
 
     def test_extra_metadata_none_is_preserved(self) -> None:
-        a = Analysis.model_validate({})
+        a = Analysis.model_validate(
+            {"referenceCode": "ANA-EXOT-2024-01", "status": "Created"}
+        )
         assert a.extra_metadata is None
 
     def test_extra_metadata_non_dict_coerced_with_warning(self, caplog) -> None:
         with caplog.at_level(logging.WARNING, logger="stare"):
             a = Analysis.model_validate(
-                {"referenceCode": "ANA-SUSY-2019-04", "extraMetadata": "invalid JSON"}
+                {
+                    "referenceCode": "ANA-SUSY-2019-04",
+                    "status": "Created",
+                    "extraMetadata": "invalid JSON",
+                }
             )
         assert a.extra_metadata == {}
         assert "ANA-SUSY-2019-04" in caplog.text
         assert "extraMetadata" in caplog.text
 
     def test_extra_metadata_non_dict_unknown_ref(self, caplog) -> None:
-        with caplog.at_level(logging.WARNING, logger="stare"):
-            a = Analysis.model_validate({"extraMetadata": 42})
-        assert a.extra_metadata == {}
+        with (
+            caplog.at_level(logging.WARNING, logger="stare"),
+            pytest.raises(ResponseParseError),
+        ):
+            Analysis.model_validate({"extraMetadata": 42})
+        assert "<unknown>" in caplog.text
 
     def test_round_trip_aliases(self) -> None:
         data = {
             "referenceCode": "ANA-X-2021-01",
+            "status": "Created",
             "shortTitle": "Short",
             "publicShortTitle": "Public",
         }
@@ -712,7 +737,14 @@ def test_extracting_context():
 def test_pub_note_search_result_round_trip() -> None:
     payload = {
         "numberOfResults": 1,
-        "results": [{"finalReferenceCode": "ATL-PHYS-PUB-2024-01", "shortTitle": "x"}],
+        "results": [
+            {
+                "temporaryReferenceCode": "ATL-COM-PHYS-2024-001",
+                "finalReferenceCode": "ATL-PHYS-PUB-2024-01",
+                "status": "Phase 1 Active",
+                "shortTitle": "x",
+            }
+        ],
     }
     result = PubNoteSearchResult.model_validate(payload)
     assert result.number_of_results == 1
@@ -726,6 +758,315 @@ def test_pub_note_search_result_empty() -> None:
 
 
 # ---------------------------------------------------------------------------
+# _ListRootModel wrappers — protocol and JSON roundtrip
+# ---------------------------------------------------------------------------
+
+
+class TestListRootModelWrappers:
+    def test_editorial_board_protocol(self) -> None:
+        eb = EditorialBoard.model_validate(
+            [{"cernCcid": "x", "firstName": "A", "lastName": "B", "isChair": True}]
+        )
+        assert len(eb) == 1
+        assert eb[0].is_chair is True
+        assert next(iter(eb)).cern_ccid == "x"
+        assert bool(eb) is True
+        assert bool(EditorialBoard()) is False
+
+    def test_analysis_team_protocol(self) -> None:
+        team = AnalysisTeam.model_validate(
+            [
+                {
+                    "cernCcid": "u1",
+                    "firstName": "Han",
+                    "lastName": "Solo",
+                    "isContactEditor": True,
+                }
+            ]
+        )
+        assert len(team) == 1
+        assert team[0].cern_ccid == "u1"
+        assert bool(team) is True
+        assert bool(AnalysisTeam()) is False
+
+    def test_analysis_contacts_protocol(self) -> None:
+        contacts = AnalysisContacts.model_validate(
+            [{"cernCcid": "c1", "firstName": "Leia", "lastName": "Organa"}]
+        )
+        assert len(contacts) == 1
+        assert contacts[0].first_name == "Leia"
+        assert bool(contacts) is True
+        assert bool(AnalysisContacts()) is False
+
+    def test_collisions_protocol(self) -> None:
+        colls = Collisions.model_validate(
+            [
+                {
+                    "run": "Run 2",
+                    "year": "2015-2018",
+                    "ecmValue": "13",
+                    "luminosityValue": "140",
+                }
+            ]
+        )
+        assert len(colls) == 1
+        assert colls[0].run == "Run 2"
+        assert bool(colls) is True
+        assert bool(Collisions()) is False
+
+    def test_readers_protocol(self) -> None:
+        readers = Readers.model_validate(
+            [
+                {
+                    "cernCcid": "r1",
+                    "firstName": "Obi-Wan",
+                    "lastName": "Kenobi",
+                    "isFirstReader": True,
+                }
+            ]
+        )
+        assert len(readers) == 1
+        assert readers[0].first_name == "Obi-Wan"
+        assert bool(readers) is True
+        assert bool(Readers()) is False
+
+    def test_wrapper_validates_from_flat_list(self) -> None:
+        eb = EditorialBoard.model_validate([{"firstName": "A", "lastName": "B"}])
+        assert isinstance(eb, EditorialBoard)
+        assert isinstance(eb[0], EditorialBoardMember)
+
+    def test_wrapper_dumps_as_flat_list(self) -> None:
+        team = AnalysisTeam.model_validate(
+            [{"cernCcid": "u1", "firstName": "A", "lastName": "B"}]
+        )
+        raw = json.loads(team.model_dump_json(by_alias=True))
+        assert isinstance(raw, list), (
+            "should serialize as a flat JSON array, not {root: [...]}"
+        )
+        assert raw[0]["cernCcid"] == "u1"
+
+    def test_metadata_collisions_field_is_collisions_instance(self) -> None:
+        m = Metadata.model_validate(
+            {
+                "collisions": [
+                    {
+                        "run": "Run 2",
+                        "year": "2018",
+                        "ecmValue": "13",
+                        "luminosityValue": "140",
+                    }
+                ]
+            }
+        )
+        assert isinstance(m.collisions, Collisions)
+        assert len(m.collisions) == 1
+
+
+# ---------------------------------------------------------------------------
+# __rich__ smoke tests — verify __rich__() returns a Panel without crashing
+# ---------------------------------------------------------------------------
+
+
+def _make_console() -> Console:
+    return Console(record=True, width=120, no_color=True)
+
+
+class TestRichRendering:
+    def test_confnote_rich(self) -> None:
+        cn = ConfNote.model_validate(
+            {
+                "temporaryReferenceCode": "CONF-HION-2024-01",
+                "status": "Approved",
+                "shortTitle": "Heavy-ion test",
+                "groups": {"leadingGroup": "HION", "subgroups": [], "otherGroups": []},
+                "metadata": {
+                    "collisions": [
+                        {
+                            "run": "Run 2",
+                            "year": "2018",
+                            "ecmValue": "13",
+                            "luminosityValue": "140",
+                        }
+                    ],
+                    "keywords": ["13 TeV"],
+                },
+                "phase1": {"startDate": "2024-01-01", "releaseDate": "2024-06-01"},
+                "analysisTeam": [
+                    {
+                        "cernCcid": "u1",
+                        "firstName": "Han",
+                        "lastName": "Solo",
+                        "isContactEditor": True,
+                    }
+                ],
+            }
+        )
+        result = cn.__rich__()
+        assert isinstance(result, Panel)
+
+    def test_analysis_rich(self) -> None:
+        a = Analysis.model_validate(
+            {
+                "referenceCode": "ANA-HION-2024-01",
+                "status": "Created",
+                "shortTitle": "Analysis test",
+                "groups": {"leadingGroup": "HION", "subgroups": [], "otherGroups": []},
+                "metadata": {
+                    "collisions": [
+                        {
+                            "run": "Run 3",
+                            "year": "2022",
+                            "ecmValue": "13.6",
+                            "luminosityValue": "35",
+                        }
+                    ],
+                    "keywords": ["13.6 TeV"],
+                },
+                "analysisTeam": [
+                    {
+                        "cernCcid": "u1",
+                        "firstName": "Leia",
+                        "lastName": "Organa",
+                        "isContactEditor": False,
+                    }
+                ],
+            }
+        )
+        result = a.__rich__()
+        assert isinstance(result, Panel)
+
+    def test_paper_rich(self) -> None:
+        p = Paper.model_validate(
+            {
+                "referenceCode": "HDBS-2024-01",
+                "status": "In preparation",
+                "shortTitle": "Paper test",
+                "fullTitle": "A full title",
+                "metadata": {
+                    "collisions": [
+                        {
+                            "run": "Run 2",
+                            "year": "2018",
+                            "ecmValue": "13",
+                            "luminosityValue": "140",
+                        }
+                    ]
+                },
+                "analysisTeam": [
+                    {
+                        "cernCcid": "u2",
+                        "firstName": "Luke",
+                        "lastName": "Skywalker",
+                        "isContactEditor": True,
+                    }
+                ],
+                "phase1": {
+                    "startDate": "2024-01-01",
+                    "editorialBoard": [{"firstName": "Yoda", "lastName": "Master"}],
+                },
+            }
+        )
+        result = p.__rich__()
+        assert isinstance(result, Panel)
+
+    def test_pubnote_rich(self) -> None:
+        pn = PubNote.model_validate(
+            {
+                "temporaryReferenceCode": "ATL-PHYS-PUB-2024-99",
+                "status": "In preparation",
+                "shortTitle": "PubNote test",
+                "phase1": {
+                    "startDate": "2024-03-01",
+                    "readers": [
+                        {
+                            "firstName": "Rey",
+                            "lastName": "Skywalker",
+                            "isFirstReader": True,
+                        }
+                    ],
+                },
+            }
+        )
+        result = pn.__rich__()
+        assert isinstance(result, Panel)
+
+    def test_submission_phase_rich_returns_none_when_empty(self) -> None:
+        s = SubmissionPhase.model_validate({})
+        assert s.__rich__() is None
+
+    def test_submission_phase_rich_returns_panel_when_populated(self) -> None:
+        s = SubmissionPhase.model_validate(
+            {
+                "arXivUrls": [
+                    {
+                        "label": "arXiv:2501.00001",
+                        "url": "https://arxiv.org/abs/2501.00001",
+                    }
+                ],
+                "finalSubmissionJournal": "JHEP",
+            }
+        )
+        result = s.__rich__()
+        assert isinstance(result, Panel)
+
+    def test_collisions_rich_single(self) -> None:
+        colls = Collisions.model_validate(
+            [
+                {
+                    "run": "Run 2",
+                    "year": "2018",
+                    "ecmValue": "13",
+                    "luminosityValue": "140",
+                }
+            ]
+        )
+        result = colls.__rich__()
+        assert isinstance(result, Panel)
+
+    def test_collisions_rich_multiple(self) -> None:
+        colls = Collisions.model_validate(
+            [
+                {
+                    "run": "Run 2",
+                    "year": "2015-2018",
+                    "ecmValue": "13",
+                    "luminosityValue": "140",
+                },
+                {
+                    "run": "Run 3",
+                    "year": "2022-2024",
+                    "ecmValue": "13.6",
+                    "luminosityValue": "35",
+                },
+            ]
+        )
+        result = colls.__rich__()
+        assert isinstance(result, Panel)
+
+    def test_rich_renders_without_crash(self) -> None:
+        """End-to-end: render all four models through a real Console without errors."""
+        cn = ConfNote.model_validate(
+            {"temporaryReferenceCode": "CONF-HION-2024-01", "status": "Approved"}
+        )
+        a = Analysis.model_validate(
+            {"referenceCode": "ANA-HION-2024-01", "status": "Created"}
+        )
+        p = Paper.model_validate(
+            {"referenceCode": "HDBS-2024-01", "status": "In preparation"}
+        )
+        pn = PubNote.model_validate(
+            {
+                "temporaryReferenceCode": "ATL-PHYS-PUB-2024-99",
+                "status": "In preparation",
+            }
+        )
+
+        console = _make_console()
+        for model in (cn, a, p, pn):
+            console.print(model)
+
+
+# ---------------------------------------------------------------------------
 # ConfNote models
 # ---------------------------------------------------------------------------
 
@@ -733,30 +1074,36 @@ def test_pub_note_search_result_empty() -> None:
 class TestConfNote:
     def test_round_trip(self) -> None:
         payload = {
-            "temporaryReferenceCode": "ATLAS-CONF-2024-01",
+            "temporaryReferenceCode": "CONF-HION-2024-01",
             "finalReferenceCode": "ATLAS-CONF-2024-001",
-            "status": "Completed",
+            "status": "Phase 1 Closed",
             "shortTitle": "Test conf note",
         }
         note = ConfNote.model_validate(payload)
-        assert note.temp_reference_code == "ATLAS-CONF-2024-01"
+        assert note.temp_reference_code == "CONF-HION-2024-01"
         assert note.final_reference_code == "ATLAS-CONF-2024-001"
         assert note.short_title == "Test conf note"
         dumped = note.model_dump(by_alias=True, exclude_none=True)
-        assert dumped["temporaryReferenceCode"] == "ATLAS-CONF-2024-01"
+        assert dumped["temporaryReferenceCode"] == "CONF-HION-2024-01"
         assert dumped["finalReferenceCode"] == "ATLAS-CONF-2024-001"
 
     def test_lenient_status_accepts_unknown(self, caplog) -> None:
         with caplog.at_level(logging.WARNING, logger="stare"):
-            note = ConfNote.model_validate({"status": "SomeUnknownStatus"})
+            note = ConfNote.model_validate(
+                {
+                    "temporaryReferenceCode": "CONF-HION-2024-01",
+                    "status": "SomeUnknownStatus",
+                }
+            )
         assert note.status == "SomeUnknownStatus"
         assert "SomeUnknownStatus" in caplog.text
 
     def test_all_optional(self) -> None:
-        note = ConfNote.model_validate({"temporaryReferenceCode": "CONF-EXOT-2024-01"})
+        note = ConfNote.model_validate(
+            {"temporaryReferenceCode": "CONF-EXOT-2024-01", "status": "Phase 1 Closed"}
+        )
         assert note.temp_reference_code == "CONF-EXOT-2024-01"
         assert note.final_reference_code is None
-        assert note.status is None
 
 
 class TestConfNotePhase1:
@@ -781,8 +1128,9 @@ class TestConfNoteSearchResult:
             "numberOfResults": 1,
             "results": [
                 {
-                    "temporaryReferenceCode": "ATLAS-CONF-2024-01",
+                    "temporaryReferenceCode": "CONF-HION-2024-01",
                     "finalReferenceCode": "ATLAS-CONF-2024-001",
+                    "status": "Phase 1 Closed",
                     "shortTitle": "x",
                 }
             ],
@@ -807,26 +1155,39 @@ class TestConfNoteSearchResult:
 class TestPubNote:
     def test_round_trip(self) -> None:
         payload = {
+            "temporaryReferenceCode": "ATL-COM-PHYS-2024-001",
             "finalReferenceCode": "ATL-PHYS-PUB-2024-01",
             "status": "Phase 1 Active",
             "shortTitle": "Test pub note",
         }
         note = PubNote.model_validate(payload)
+        assert note.temp_reference_code == "ATL-COM-PHYS-2024-001"
         assert note.final_reference_code == "ATL-PHYS-PUB-2024-01"
         assert note.short_title == "Test pub note"
         dumped = note.model_dump(by_alias=True, exclude_none=True)
+        assert dumped["temporaryReferenceCode"] == "ATL-COM-PHYS-2024-001"
         assert dumped["finalReferenceCode"] == "ATL-PHYS-PUB-2024-01"
 
     def test_lenient_status_accepts_unknown(self, caplog) -> None:
         with caplog.at_level(logging.WARNING, logger="stare"):
-            note = PubNote.model_validate({"status": "SomeUnknownStatus"})
+            note = PubNote.model_validate(
+                {
+                    "temporaryReferenceCode": "ATL-COM-PHYS-2024-001",
+                    "status": "SomeUnknownStatus",
+                }
+            )
         assert note.status == "SomeUnknownStatus"
         assert "SomeUnknownStatus" in caplog.text
 
     def test_all_optional(self) -> None:
-        note = PubNote.model_validate({})
+        note = PubNote.model_validate(
+            {
+                "temporaryReferenceCode": "ATL-COM-PHYS-2024-001",
+                "status": "Phase 1 Active",
+            }
+        )
+        assert note.temp_reference_code == "ATL-COM-PHYS-2024-001"
         assert note.final_reference_code is None
-        assert note.status is None
 
 
 class TestPubNotePhase1:

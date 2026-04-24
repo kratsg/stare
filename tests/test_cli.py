@@ -54,7 +54,7 @@ SAMPLE_PAPER = Paper.model_validate(
 
 SAMPLE_CONF_NOTE = ConfNote.model_validate(
     {
-        "temporaryReferenceCode": "ATLAS-CONF-2024-01",
+        "temporaryReferenceCode": "CONF-HION-2024-01",
         "status": "Completed",
         "shortTitle": "Test conf note",
     }
@@ -62,6 +62,7 @@ SAMPLE_CONF_NOTE = ConfNote.model_validate(
 
 SAMPLE_PUB_NOTE = PubNote.model_validate(
     {
+        "temporaryReferenceCode": "ATL-COM-PHYS-2024-001",
         "finalReferenceCode": "ATL-PHYS-PUB-2024-01",
         "status": "Phase 1 Closed",
         "shortTitle": "Test pub note",
@@ -99,7 +100,7 @@ SAMPLE_CONF_NOTE_SEARCH = ConfNoteSearchResult.model_validate(
         "numberOfResults": 1,
         "results": [
             {
-                "temporaryReferenceCode": "ATLAS-CONF-2024-01",
+                "temporaryReferenceCode": "CONF-HION-2024-01",
                 "finalReferenceCode": "ATLAS-CONF-2024-001",
                 "status": "Completed",
                 "shortTitle": "Test conf note",
@@ -113,6 +114,7 @@ SAMPLE_PUB_NOTE_SEARCH = PubNoteSearchResult.model_validate(
         "numberOfResults": 1,
         "results": [
             {
+                "temporaryReferenceCode": "ATL-COM-PHYS-2024-001",
                 "finalReferenceCode": "ATL-PHYS-PUB-2024-01",
                 "status": "Phase 1 Closed",
                 "shortTitle": "Test pub note",

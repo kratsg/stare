@@ -12,12 +12,12 @@ from rich.table import Table
 from rich.text import Text
 
 from stare.models.common import (
+    AnalysisTeam,
     Documentation,
-    EditorialBoardMember,
+    EditorialBoard,
     Groups,
     Metadata,
     RelatedPublication,
-    TeamMember,
     _Base,
 )
 from stare.models.enums import LenientConfnotePhase1State, LenientConfnoteStatus
@@ -38,7 +38,7 @@ class ConfNotePhase1(_Base):
     state: LenientConfnotePhase1State | None = None
     start_date: date | None = None
     cds_url: str | None = Field(default=None, alias="cdsDraftNoteUrl")
-    editorial_board: list[EditorialBoardMember] = Field(default_factory=list)
+    editorial_board: EditorialBoard = Field(default_factory=EditorialBoard)
     editorial_board_formed_on: date | None = None
     presentation_date: date | None = None
     pgc_approved_analysis_on: date | None = Field(
@@ -70,7 +70,7 @@ class ConfNote(_Base):
     full_title: str | None = None
     groups: Groups | None = None
     documentation: Documentation | None = None
-    analysis_team: list[TeamMember] = Field(default_factory=list)
+    analysis_team: AnalysisTeam = Field(default_factory=AnalysisTeam)
     metadata: Metadata | None = None
     associated_analysis: RelatedPublication | None = None
     superseded_by: RelatedPublication | None = None
@@ -113,35 +113,12 @@ class ConfNote(_Base):
 
         summary_cols: list[RenderableType] = []
 
-        # --- Physics ---
         if self.metadata and self.metadata.collisions:
-            coll = self.metadata.collisions[0]
-            physics = Table.grid(padding=(0, 1))
-            physics.add_column(style="bold cyan", justify="right")
-            physics.add_column()
+            summary_cols.append(self.metadata.collisions)
 
-            physics.add_row("Run", f"{coll.run} ({coll.year})")
-            physics.add_row("√s", f"{coll.ecm_value} TeV")
-            physics.add_row("L", f"{coll.luminosity_value} fb⁻¹")
-
-            summary_cols.append(Panel(physics, title="Physics", expand=True))
-
-        # --- Groups (with spacing fix) ---
         if self.groups:
-            group_table = Table.grid(padding=(0, 1))
-            group_table.add_column(style="bold cyan", justify="right")
-            group_table.add_column()
+            summary_cols.append(self.groups)
 
-            if self.groups.leading_group:
-                group_table.add_row("Leading", f" {self.groups.leading_group}")
-            if self.groups.subgroups:
-                group_table.add_row("Subgroups", f" {', '.join(self.groups.subgroups)}")
-            if self.groups.other_groups:
-                group_table.add_row("Other", f" {', '.join(self.groups.other_groups)}")
-
-            summary_cols.append(Panel(group_table, title="Groups", expand=True))
-
-        # --- Timeline ---
         if self.phase1:
             p1 = self.phase1
             timeline = Table.grid(padding=(0, 1))
@@ -168,37 +145,11 @@ class ConfNote(_Base):
 
         people_cols: list[RenderableType] = []
 
-        # --- Analysis Team ---
         if self.analysis_team:
-            team_table = Table(
-                show_header=True, header_style="bold magenta", expand=True
-            )
-            team_table.add_column("Name")
-            team_table.add_column("CCID", justify="right")
+            people_cols.append(self.analysis_team)
 
-            team_sorted = sorted(
-                self.analysis_team, key=lambda p: not p.is_contact_editor
-            )
-
-            for p in team_sorted:
-                name = f"{p.first_name} {p.last_name}"
-                if p.is_contact_editor:
-                    name = f"[bold yellow]★ {name}[/bold yellow]"
-                team_table.add_row(name, p.cern_ccid or "")
-
-            people_cols.append(
-                Panel(team_table, title=f"Team ({len(self.analysis_team)})")
-            )
-
-        # --- Editorial Board ---
         if self.phase1 and self.phase1.editorial_board:
-            eb_table = Table(show_header=False, expand=True)
-            eb_table.add_column()
-
-            for eb in self.phase1.editorial_board:
-                eb_table.add_row(f"{eb.first_name} {eb.last_name}")
-
-            people_cols.append(Panel(eb_table, title="Editorial Board"))
+            people_cols.append(self.phase1.editorial_board)
 
         if people_cols:
             sections.append(Columns(people_cols, expand=True))
@@ -215,7 +166,7 @@ class ConfNote(_Base):
             header.append(f" ({self.final_reference_code})", style="bold")
 
         if self.status:
-            header.append(f"\n{self.status.value}", style="yellow")
+            header.append(f"\n{self.status}", style="yellow")
 
         return Panel(
             Group(*sections),
