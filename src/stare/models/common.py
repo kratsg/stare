@@ -347,8 +347,8 @@ class Collision(_Base):
         physics.add_column(style="bold cyan", justify="right")
         physics.add_column()
         physics.add_row("Run", f"{self.run} ({self.year})")
-        physics.add_row("√s", f"{self.ecm_value} TeV")
-        physics.add_row("L", f"{self.luminosity_value} fb⁻¹")
+        physics.add_row("√s", f"{self.ecm_value} {self.ecm_unit}")
+        physics.add_row("L", f"{self.luminosity_value} {self.luminosity_unit}")
         return Panel(physics, title="Physics", expand=True)
 
 
@@ -364,8 +364,8 @@ class Collisions(_ListRootModel[Collision]):
             if i > 0:
                 physics.add_row("", "")
             physics.add_row("Run", f"{coll.run} ({coll.year})")
-            physics.add_row("√s", f"{coll.ecm_value} TeV")
-            physics.add_row("L", f"{coll.luminosity_value} fb⁻¹")
+            physics.add_row("√s", f"{coll.ecm_value} {coll.ecm_unit}")
+            physics.add_row("L", f"{coll.luminosity_value} {coll.luminosity_unit}")
         return Panel(physics, title="Physics", expand=True)
 
 
