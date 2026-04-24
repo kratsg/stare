@@ -26,8 +26,8 @@ from stare.models.common import (
     _Base,
 )
 from stare.models.enums import (
+    AnalysisStatus,
     LenientAnalysisPhase0State,
-    LenientAnalysisStatus,
     MeetingType,
 )
 from stare.settings import StareSettings
@@ -110,7 +110,7 @@ class Analysis(_Base):
 
     reference_code: str = Field(pattern=r"^ANA-[A-Z]+-\d{4}-\d{2}$")
     creation_date: date | None = None
-    status: LenientAnalysisStatus
+    status: AnalysisStatus
     short_title: str | None = None
     public_short_title: str | None = None
     groups: Groups | None = None

@@ -876,7 +876,7 @@ class TestRichRendering:
         cn = ConfNote.model_validate(
             {
                 "temporaryReferenceCode": "CONF-HION-2024-01",
-                "status": "Approved",
+                "status": "Phase 1 Active",
                 "shortTitle": "Heavy-ion test",
                 "groups": {"leadingGroup": "HION", "subgroups": [], "otherGroups": []},
                 "metadata": {
@@ -939,7 +939,7 @@ class TestRichRendering:
         p = Paper.model_validate(
             {
                 "referenceCode": "HDBS-2024-01",
-                "status": "In preparation",
+                "status": "Phase 1 Active",
                 "shortTitle": "Paper test",
                 "fullTitle": "A full title",
                 "metadata": {
@@ -973,7 +973,7 @@ class TestRichRendering:
         pn = PubNote.model_validate(
             {
                 "temporaryReferenceCode": "ATL-PHYS-PUB-2024-99",
-                "status": "In preparation",
+                "status": "Phase 1 Active",
                 "shortTitle": "PubNote test",
                 "phase1": {
                     "startDate": "2024-03-01",
@@ -1046,18 +1046,18 @@ class TestRichRendering:
     def test_rich_renders_without_crash(self) -> None:
         """End-to-end: render all four models through a real Console without errors."""
         cn = ConfNote.model_validate(
-            {"temporaryReferenceCode": "CONF-HION-2024-01", "status": "Approved"}
+            {"temporaryReferenceCode": "CONF-HION-2024-01", "status": "Phase 1 Active"}
         )
         a = Analysis.model_validate(
             {"referenceCode": "ANA-HION-2024-01", "status": "Created"}
         )
         p = Paper.model_validate(
-            {"referenceCode": "HDBS-2024-01", "status": "In preparation"}
+            {"referenceCode": "HDBS-2024-01", "status": "Phase 1 Active"}
         )
         pn = PubNote.model_validate(
             {
                 "temporaryReferenceCode": "ATL-PHYS-PUB-2024-99",
-                "status": "In preparation",
+                "status": "Phase 1 Active",
             }
         )
 
@@ -1087,16 +1087,14 @@ class TestConfNote:
         assert dumped["temporaryReferenceCode"] == "CONF-HION-2024-01"
         assert dumped["finalReferenceCode"] == "ATLAS-CONF-2024-001"
 
-    def test_lenient_status_accepts_unknown(self, caplog) -> None:
-        with caplog.at_level(logging.WARNING, logger="stare"):
-            note = ConfNote.model_validate(
+    def test_strict_status_rejects_unknown(self) -> None:
+        with pytest.raises(ResponseParseError):
+            ConfNote.model_validate(
                 {
                     "temporaryReferenceCode": "CONF-HION-2024-01",
                     "status": "SomeUnknownStatus",
                 }
             )
-        assert note.status == "SomeUnknownStatus"
-        assert "SomeUnknownStatus" in caplog.text
 
     def test_all_optional(self) -> None:
         note = ConfNote.model_validate(
@@ -1168,16 +1166,14 @@ class TestPubNote:
         assert dumped["temporaryReferenceCode"] == "ATL-COM-PHYS-2024-001"
         assert dumped["finalReferenceCode"] == "ATL-PHYS-PUB-2024-01"
 
-    def test_lenient_status_accepts_unknown(self, caplog) -> None:
-        with caplog.at_level(logging.WARNING, logger="stare"):
-            note = PubNote.model_validate(
+    def test_strict_status_rejects_unknown(self) -> None:
+        with pytest.raises(ResponseParseError):
+            PubNote.model_validate(
                 {
                     "temporaryReferenceCode": "ATL-COM-PHYS-2024-001",
                     "status": "SomeUnknownStatus",
                 }
             )
-        assert note.status == "SomeUnknownStatus"
-        assert "SomeUnknownStatus" in caplog.text
 
     def test_all_optional(self) -> None:
         note = PubNote.model_validate(

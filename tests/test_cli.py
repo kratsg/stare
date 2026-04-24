@@ -55,7 +55,7 @@ SAMPLE_PAPER = Paper.model_validate(
 SAMPLE_CONF_NOTE = ConfNote.model_validate(
     {
         "temporaryReferenceCode": "CONF-HION-2024-01",
-        "status": "Completed",
+        "status": "Phase 1 Closed",
         "shortTitle": "Test conf note",
     }
 )
@@ -102,7 +102,7 @@ SAMPLE_CONF_NOTE_SEARCH = ConfNoteSearchResult.model_validate(
             {
                 "temporaryReferenceCode": "CONF-HION-2024-01",
                 "finalReferenceCode": "ATLAS-CONF-2024-001",
-                "status": "Completed",
+                "status": "Phase 1 Closed",
                 "shortTitle": "Test conf note",
             }
         ],

@@ -20,7 +20,7 @@ from stare.models.common import (
     _Base,
     _ListRootModel,
 )
-from stare.models.enums import LenientConfnotePhase1State, LenientConfnoteStatus
+from stare.models.enums import ConfnoteStatus, LenientConfnotePhase1State
 from stare.settings import StareSettings
 from stare.urls import pubnote_url
 
@@ -80,7 +80,7 @@ class PubNote(_Base):
 
     temp_reference_code: str = Field(alias="temporaryReferenceCode")
     final_reference_code: str | None = Field(default=None, alias="finalReferenceCode")
-    status: LenientConfnoteStatus
+    status: ConfnoteStatus
     short_title: str | None = None
     public_short_title: str | None = None
     full_title: str | None = None
