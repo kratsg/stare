@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import date
+from datetime import date, datetime
 from typing import Any
 
 from pydantic import Field, SerializationInfo, model_serializer, model_validator
@@ -202,13 +202,15 @@ class Analysis(_Base):
                 MeetingType.APPROVAL: "Approval",
             }
             for meeting_type, label in _meeting_labels.items():
-                typed = [
-                    m for m in p0.meetings if m.meeting_type == meeting_type and m.date
+                dated: list[tuple[datetime, TypedMeeting]] = [
+                    (m.date, m)
+                    for m in p0.meetings
+                    if m.meeting_type == meeting_type and m.date is not None
                 ]
-                if not typed:
+                if not dated:
                     continue
-                latest = max(typed, key=lambda m: m.date)  # type: ignore[arg-type,return-value]
-                date_str = latest.date.strftime("%Y-%m-%d")  # type: ignore[union-attr]
+                meeting_date, latest = max(dated, key=lambda pair: pair[0])
+                date_str = meeting_date.strftime("%Y-%m-%d")
                 if latest.link and latest.link.url:
                     cell = Text.from_markup(
                         f"[link={latest.link.url}]{date_str}[/link]"
