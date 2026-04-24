@@ -150,7 +150,7 @@ class TokenManager:
             msg = (
                 f"Port {self._settings.callback_port} is already in use. "
                 f"Set STARE_CALLBACK_PORT to a free port and register that "
-                f"redirect URI with the Keycloak client, then run `stare login` again."
+                f"redirect URI with the Keycloak client, then run `stare auth login` again."
             )
             raise AuthenticationError(msg) from exc
         server.timeout = 125.0  # slightly longer than the queue timeout below
@@ -195,7 +195,7 @@ class TokenManager:
         try:
             code = code_queue.get(timeout=120)
         except queue.Empty as err:
-            msg = "Authentication timed out (120 seconds). Run `stare login` again."
+            msg = "Authentication timed out (120 seconds). Run `stare auth login` again."
             raise AuthenticationError(msg) from err
         finally:
             server.server_close()
@@ -309,12 +309,12 @@ class TokenManager:
         with self._thread_lock, self._file_lock:
             token = self._storage.load()
             if token is None:
-                msg = "Not authenticated. Run `stare login` first."
+                msg = "Not authenticated. Run `stare auth login` first."
                 raise AuthenticationError(msg)
 
             if token.is_expired_with_margin(self._settings.token_expiry_margin_seconds):
                 if not token.refresh_token:
-                    msg = "Access token has expired and no refresh token is available. Run `stare login` again."
+                    msg = "Access token has expired and no refresh token is available. Run `stare auth login` again."
                     raise TokenExpiredError(msg)
                 token = self._refresh(token.refresh_token)
 
@@ -341,13 +341,13 @@ class TokenManager:
                 oauth_resp = _OAuthTokenResponse.model_validate(response.json())
 
         except httpx.HTTPStatusError as exc:
-            msg = f"Token exchange failed ({exc.response.status_code}). Run `stare login` again."
+            msg = f"Token exchange failed ({exc.response.status_code}). Run `stare auth login` again."
             raise TokenExpiredError(msg) from exc
         except httpx.RequestError as exc:
-            msg = f"Token exchange failed (network error): {exc}. Run `stare login` again."
+            msg = f"Token exchange failed (network error): {exc}. Run `stare auth login` again."
             raise TokenExpiredError(msg) from exc
         except ValidationError as exc:
-            msg = f"Token exchange response invalid: {exc}. Run `stare login` again."
+            msg = f"Token exchange response invalid: {exc}. Run `stare auth login` again."
             raise TokenExpiredError(msg) from exc
         self._exchanged_token = oauth_resp.access_token
         self._exchanged_expires_at = int(time.time()) + oauth_resp.expires_in
@@ -373,15 +373,15 @@ class TokenManager:
             self._storage.delete()
             self._exchanged_token = None
             self._exchanged_expires_at = 0
-            msg = f"Token refresh failed ({exc.response.status_code}). Run `stare login` again."
+            msg = f"Token refresh failed ({exc.response.status_code}). Run `stare auth login` again."
             raise TokenExpiredError(msg) from exc
         except httpx.RequestError as exc:
             msg = (
-                f"Token refresh failed (network error): {exc}. Run `stare login` again."
+                f"Token refresh failed (network error): {exc}. Run `stare auth login` again."
             )
             raise TokenExpiredError(msg) from exc
         except ValidationError as exc:
-            msg = f"Token refresh response invalid: {exc}. Run `stare login` again."
+            msg = f"Token refresh response invalid: {exc}. Run `stare auth login` again."
             raise TokenExpiredError(msg) from exc
 
         token = _StoredToken.from_response(oauth_resp)
