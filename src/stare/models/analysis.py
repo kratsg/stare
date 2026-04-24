@@ -3,28 +3,35 @@
 from __future__ import annotations
 
 import logging
-from datetime import date
+from datetime import date, datetime
 from typing import Any
 
 from pydantic import Field, SerializationInfo, model_serializer, model_validator
+from rich.columns import Columns
+from rich.console import Group, RenderableType
+from rich.panel import Panel
+from rich.table import Table
+from rich.text import Text
 
 from stare.models.common import (
     AmiGlanceLink,
-    AnalysisContact,
+    AnalysisContacts,
+    AnalysisTeam,
     Documentation,
-    EditorialBoardMember,
+    EditorialBoard,
     Groups,
     Metadata,
     RelatedPublication,
-    TeamMember,
     TypedMeeting,
     _Base,
 )
 from stare.models.enums import (
+    AnalysisStatus,
     LenientAnalysisPhase0State,
-    LenientAnalysisStatus,
     MeetingType,
 )
+from stare.settings import StareSettings
+from stare.urls import analysis_url
 
 _logger = logging.getLogger("stare")
 
@@ -55,8 +62,8 @@ class AnalysisPhase0(_Base):
     methods: str | None = None
     editorial_board_formed_on: date | None = None
     pgc_or_sgc_sign_off_date: date | None = None
-    analysis_contacts: list[AnalysisContact] = Field(default_factory=list)
-    editorial_board: list[EditorialBoardMember] = Field(default_factory=list)
+    analysis_contacts: AnalysisContacts = Field(default_factory=AnalysisContacts)
+    editorial_board: EditorialBoard = Field(default_factory=EditorialBoard)
     meetings: list[TypedMeeting] = Field(default_factory=list)
 
     @model_validator(mode="before")
@@ -101,17 +108,15 @@ class AnalysisPhase0(_Base):
 class Analysis(_Base):
     """A single ATLAS analysis record."""
 
-    reference_code: str | None = Field(
-        default=None, pattern=r"^ANA-[A-Z]+-\d{4}-\d{2}$"
-    )
+    reference_code: str = Field(pattern=r"^ANA-[A-Z]+-\d{4}-\d{2}$")
     creation_date: date | None = None
-    status: LenientAnalysisStatus | None = None
+    status: AnalysisStatus
     short_title: str | None = None
     public_short_title: str | None = None
     groups: Groups | None = None
     ami_glance: list[AmiGlanceLink] = Field(default_factory=list)
     documentation: Documentation | None = None
-    analysis_team: list[TeamMember] = Field(default_factory=list)
+    analysis_team: AnalysisTeam = Field(default_factory=AnalysisTeam)
     metadata: Metadata | None = None
     related_publications: list[RelatedPublication] = Field(default_factory=list)
     phase0: AnalysisPhase0 | None = None
@@ -132,3 +137,127 @@ class Analysis(_Base):
             )
             data["extraMetadata"] = {}
         return data
+
+    def __rich__(self) -> Panel:
+        """Return a Rich Panel summarising the analysis for terminal display."""
+        sections: list[RenderableType] = []
+
+        # --- Titles ---
+        title_lines: list[RenderableType] = []
+
+        if self.short_title:
+            title_lines.append(Text(f"Title: {self.short_title}", style="bold"))
+
+        if self.public_short_title:
+            title_lines.append(Text(f"Public: {self.public_short_title}", style="dim"))
+
+        if self.documentation and self.documentation.supporting_internal_documents:
+            title_lines.extend(
+                Text.from_markup(f"Support: [link={d.url}]{d.label or d.url}[/link]")
+                for d in self.documentation.supporting_internal_documents
+                if d.url
+            )
+
+        if self.metadata and self.metadata.keywords:
+            kw = ", ".join(k for k in self.metadata.keywords if k != "None")
+            if kw:
+                title_lines.append(Text(f"Keywords: {kw}", style="cyan"))
+
+        sections.append(Group(*title_lines))
+
+        # ================================
+        # --- 3 COLUMN SUMMARY ---
+        # ================================
+
+        summary_cols: list[RenderableType] = []
+
+        if self.metadata and self.metadata.collisions:
+            summary_cols.append(self.metadata.collisions)
+
+        if self.groups:
+            summary_cols.append(self.groups)
+
+        if self.phase0:
+            p0 = self.phase0
+            timeline = Table.grid(padding=(0, 1))
+            timeline.add_column(style="bold cyan", justify="right")
+            timeline.add_column()
+            timeline_has_rows = False
+
+            if p0.start_date:
+                timeline.add_row("Start", str(p0.start_date))
+                timeline_has_rows = True
+            if p0.editorial_board_formed_on:
+                timeline.add_row("EdBoard", str(p0.editorial_board_formed_on))
+                timeline_has_rows = True
+            if p0.pgc_or_sgc_sign_off_date:
+                timeline.add_row("PGC/SGC", str(p0.pgc_or_sgc_sign_off_date))
+                timeline_has_rows = True
+
+            # Meeting rows — one per type, hyperlinked when a URL is available
+            _meeting_labels = {
+                MeetingType.EOI: "EOI",
+                MeetingType.EDITORIAL_BOARD_REQUEST: "EB Req",
+                MeetingType.PRE_APPROVAL: "Pre-appr",
+                MeetingType.APPROVAL: "Approval",
+            }
+            for meeting_type, label in _meeting_labels.items():
+                dated: list[tuple[datetime, TypedMeeting]] = [
+                    (m.date, m)
+                    for m in p0.meetings
+                    if m.meeting_type == meeting_type and m.date is not None
+                ]
+                if not dated:
+                    continue
+                meeting_date, latest = max(dated, key=lambda pair: pair[0])
+                date_str = meeting_date.strftime("%Y-%m-%d")
+                if latest.link and latest.link.url:
+                    cell = Text.from_markup(
+                        f"[link={latest.link.url}]{date_str}[/link]"
+                    )
+                else:
+                    cell = Text(date_str)
+                timeline.add_row(label, cell)
+                timeline_has_rows = True
+
+            if timeline_has_rows:
+                summary_cols.append(Panel(timeline, title="Timeline", expand=True))
+
+        if summary_cols:
+            sections.append(Columns(summary_cols, expand=True))
+
+        # ================================
+        # --- PEOPLE ---
+        # ================================
+
+        people_cols: list[RenderableType] = []
+
+        if self.analysis_team:
+            people_cols.append(self.analysis_team)
+
+        if self.phase0 and self.phase0.editorial_board:
+            people_cols.append(self.phase0.editorial_board)
+
+        if self.phase0 and self.phase0.analysis_contacts:
+            people_cols.append(self.phase0.analysis_contacts)
+
+        if people_cols:
+            sections.append(Columns(people_cols, expand=True))
+
+        # --- Header ---
+        settings = StareSettings()
+        url = analysis_url(self.reference_code, web_base=settings.web_base_url)
+
+        header = Text.from_markup(
+            f"[bold cyan][link={url}]{self.reference_code}[/link][/bold cyan]"
+        )
+
+        if self.status:
+            header.append(f"\n{self.status}", style="yellow")
+
+        return Panel(
+            Group(*sections),
+            title=header,
+            expand=True,
+            border_style="blue",
+        )

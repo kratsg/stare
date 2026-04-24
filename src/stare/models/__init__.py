@@ -7,8 +7,12 @@ from stare.models.auth import JwtClaims, TokenInfo
 from stare.models.common import (
     AmiGlanceLink,
     AnalysisContact,
+    AnalysisContacts,
+    AnalysisTeam,
     Collision,
+    Collisions,
     Documentation,
+    EditorialBoard,
     EditorialBoardMember,
     Groups,
     InternalDocument,
@@ -38,7 +42,7 @@ from stare.models.enums import (
 )
 from stare.models.errors import ApiErrorResponse
 from stare.models.paper import Paper, PaperPhase1, PaperPhase2, SubmissionPhase
-from stare.models.pubnote import PubNote, PubNotePhase1, PubNoteReader
+from stare.models.pubnote import PubNote, PubNotePhase1, PubNoteReader, Readers
 from stare.models.search import (
     AnalysisSearchResult,
     ConfNoteSearchResult,
@@ -53,19 +57,23 @@ __all__ = [
     "AmiGlanceLink",
     "Analysis",
     "AnalysisContact",
+    "AnalysisContacts",
     "AnalysisPhase0",
     "AnalysisPhase0State",
     "AnalysisSearchResult",
     "AnalysisStatus",
+    "AnalysisTeam",
     "ApiErrorResponse",
     "Collision",
     "CollisionType",
+    "Collisions",
     "ConfNote",
     "ConfNotePhase1",
     "ConfNoteSearchResult",
     "ConfnotePhase1State",
     "ConfnoteStatus",
     "Documentation",
+    "EditorialBoard",
     "EditorialBoardMember",
     "Groups",
     "InternalDocument",
@@ -89,6 +97,7 @@ __all__ = [
     "PubNoteSearchResult",
     "PublicationRef",
     "PublicationType",
+    "Readers",
     "RelatedPublication",
     "Repository",
     "RepositoryType",
