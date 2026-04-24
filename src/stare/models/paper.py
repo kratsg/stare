@@ -119,8 +119,8 @@ class SubmissionPhase(_Base):
 class Paper(_Base):
     """A published ATLAS paper."""
 
-    reference_code: str | None = Field(default=None, pattern=r"^[A-Z]+-\d{4}-\d{2}$")
-    status: LenientPaperStatus | None = None
+    reference_code: str = Field(pattern=r"^[A-Z]+-\d{4}-\d{2}$")
+    status: LenientPaperStatus
     short_title: str | None = None
     public_short_title: str | None = None
     full_title: str | None = None

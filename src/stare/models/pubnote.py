@@ -51,8 +51,9 @@ class PubNotePhase1(_Base):
 class PubNote(_Base):
     """An ATLAS PUB note."""
 
+    temp_reference_code: str = Field(alias="temporaryReferenceCode")
     final_reference_code: str | None = Field(default=None, alias="finalReferenceCode")
-    status: LenientConfnoteStatus | None = None
+    status: LenientConfnoteStatus
     short_title: str | None = None
     public_short_title: str | None = None
     full_title: str | None = None

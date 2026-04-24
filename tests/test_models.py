@@ -5,8 +5,10 @@ from __future__ import annotations
 import logging
 from datetime import date
 
+import pytest
 from rich.console import Console
 
+from stare.exceptions import ResponseParseError
 from stare.models.analysis import Analysis, AnalysisPhase0
 from stare.models.common import (
     AmiGlanceLink,
@@ -399,10 +401,9 @@ class TestAnalysis:
         assert len(a.analysis_team) == 1
         assert a.analysis_team[0].cern_ccid == "u1"
 
-    def test_all_optional(self) -> None:
-        a = Analysis.model_validate({})
-        assert a.reference_code is None
-        assert a.phase0 is None
+    def test_not_all_optional(self) -> None:
+        with pytest.raises(ResponseParseError):
+            Analysis.model_validate({})
 
     def test_extra_metadata_dict_is_preserved(self) -> None:
         a = Analysis.model_validate({"extraMetadata": {"key": "value"}})
@@ -752,8 +753,8 @@ class TestConfNote:
         assert "SomeUnknownStatus" in caplog.text
 
     def test_all_optional(self) -> None:
-        note = ConfNote.model_validate({})
-        assert note.temp_reference_code is None
+        note = ConfNote.model_validate({"temporaryReferenceCode": "CONF-EXOT-2024-01"})
+        assert note.temp_reference_code == "CONF-EXOT-2024-01"
         assert note.final_reference_code is None
         assert note.status is None
 
