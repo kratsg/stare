@@ -14,6 +14,7 @@ import respx
 from pydantic import BaseModel as PydanticBase
 from pydantic import ValidationError
 
+from stare._version import version as _stare_version
 from stare.client import Glance
 from stare.dsl import DSLValidationError
 from stare.dsl.models import Condition, Operator
@@ -133,6 +134,16 @@ def test_glance_injects_auth_header(test_settings: StareSettings) -> None:
         with Glance(settings=test_settings, token="bearer-token") as g:
             g.analyses.search()
         assert rx.calls[0].request.headers["Authorization"] == "Bearer bearer-token"
+
+
+def test_glance_sends_user_agent_header(test_settings: StareSettings) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchAnalysis").mock(
+            return_value=httpx.Response(200, json=SAMPLE_SEARCH)
+        )
+        with Glance(settings=test_settings, token="tok") as g:
+            g.analyses.search()
+        assert rx.calls[0].request.headers["user-agent"] == f"stare/{_stare_version}"
 
 
 # ---------------------------------------------------------------------------

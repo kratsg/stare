@@ -11,6 +11,7 @@ from hishel import CacheOptions, SpecificationPolicy, SyncSqliteStorage
 from hishel.httpx import SyncCacheTransport
 from pydantic import TypeAdapter, ValidationError
 
+from stare._version import version as __version__
 from stare.auth import TokenManager
 from stare.dsl import Expression, parse_dsl
 from stare.dsl.models import Condition, Operator
@@ -409,6 +410,7 @@ class Glance:
             base_url=self._settings.base_url,
             transport=transport,
             event_hooks={"request": [self._inject_auth]},
+            headers={"user-agent": f"stare/{__version__}"},
         )
         self.analyses = AnalysisResource(self._http)
         self.papers = PaperResource(self._http)
