@@ -1,4 +1,4 @@
-"""Paper resource models (Phase1, Phase2, SubmissionPhase)."""
+"""Paper resource models (Phase1, Phase2, PublicationPhase)."""
 
 from __future__ import annotations
 
@@ -42,26 +42,26 @@ class PaperPhase1(_Base):
     state: LenientPaperPhase1State | None = None
     start_date: date | None = None
     editorial_board: EditorialBoard = Field(default_factory=EditorialBoard)
-    editorial_board_formed_on: date | None = None
-    signed_off_by_language_editors_on: date | None = None
+    editorial_board_formed_date: date | None = Field(
+        default=None, alias="editorialBoardFormedDate"
+    )
+    language_editors_sign_off_date: date | None = Field(
+        default=None, alias="languageEditorsSignOffDate"
+    )
     presentation_date: date | None = None
-    pgc_approved_analysis_on: date | None = Field(
-        default=None, alias="principalGroupCoordinatorApprovedAnalysisOn"
+    pgc_approval_date: date | None = Field(default=None, alias="pgcApprovalDate")
+    eb_draft_sign_off_date: date | None = Field(
+        default=None, alias="editorialBoardDraftSignOffDate"
     )
-    eb_draft_sign_off: str | None = Field(
-        default=None, alias="editorialBoardDraftSignOff"
-    )
-    draft_released_on: date | None = Field(default=None, alias="draftReleasedDate")
+    draft_released_date: date | None = Field(default=None, alias="draftReleasedDate")
     pub_committee_chair: Person | None = Field(
-        default=None, alias="publicationCommitteeChairDeputyOrDelegatedTo"
+        default=None, alias="pubcommChairOrDeputyOrDelegated"
     )
     spokesperson: Person | None = Field(
-        default=None, alias="spokespersonDeputyOrDelegatedTo"
+        default=None, alias="spokespersonOrDeputyOrDelegated"
     )
     atlas_meeting_date: date | None = None
-    phase1_signed_off_by_pub_committee_on: date | None = Field(
-        default=None, alias="phase1SignedOffByPublicationCommitteeChairOn"
-    )
+    pubcomm_sign_off_date: date | None = Field(default=None, alias="pubcommSignOffDate")
 
 
 class PaperPhase2(_Base):
@@ -69,51 +69,63 @@ class PaperPhase2(_Base):
 
     state: LenientPaperPhase2State | None = None
     start_date: date | None = None
-    eb_draft2_sign_off_on: date | None = Field(
-        default=None, alias="editorialBoardDraft2SignOffOn"
+    eb_draft2_sign_off_date: date | None = Field(
+        default=None, alias="editorialBoardDraft2SignOffDate"
     )
-    draft2_released_on: date | None = Field(default=None, alias="draft2ReleasedDate")
-    sent_draft2_to_cern_on: date | None = None
-    draft2_cern_sign_off_on: date | None = Field(
+    draft2_released_date: date | None = Field(default=None, alias="draft2ReleasedDate")
+    draft2_sent_to_cern_date: date | None = Field(
+        default=None, alias="draft2SentToCernDate"
+    )
+    draft2_cern_sign_off_date: date | None = Field(
         default=None, alias="draft2CernSignOffDate"
     )
-    paper_closure_meeting_urls: list[Link] = Field(default_factory=list)
+    paper_closure_meeting: list[Link] = Field(
+        default_factory=list, alias="paperClosureMeeting"
+    )
     preliminary_plots_released: bool | None = Field(
         default=None, alias="preliminaryPlotsAndResultsReleased"
     )
-    date_of_paper_closure: date | None = None
-    revised_draft_signed_off_by_eb_chair_on: date | None = Field(
-        default=None, alias="revisedDraftSignedOffByEditorialBoardChairOn"
+    paper_closure_date: date | None = Field(default=None, alias="paperClosureDate")
+    editorial_board_revised_sign_off_date: date | None = Field(
+        default=None, alias="editorialBoardRevisedSignOffDate"
     )
     pub_committee_chair_or_deputy: Person | None = Field(
-        default=None, alias="publicationCommitteeChairOrDeputy"
+        default=None, alias="pubcommChairOrDeputyOrDelegated"
     )
-    revised_draft_signed_off_by_pub_committee_on: date | None = Field(
-        default=None, alias="revisedDraftSignedOffByPublicationCommitteeChairOrDeputyOn"
+    pubcomm_chair_or_deputy_sign_off_date: date | None = Field(
+        default=None, alias="pubcommChairOrDeputySignOffDate"
     )
-    revised_draft_signed_off_by_spokesperson_delegated_on: date | None = None
-    revised_draft_signed_off_by_spokesperson_or_deputy_on: date | None = None
+    spokesperson_delegated_sign_off_date: date | None = Field(
+        default=None, alias="spokespersonDelegatedSignOffDate"
+    )
+    spokesperson_or_deputy_sign_off_date: date | None = Field(
+        default=None, alias="spokespersonOrDeputySignOffDate"
+    )
 
 
-class SubmissionPhase(_Base):
-    """Submission phase: arXiv, journal, final publication."""
+class PublicationPhase(_Base):
+    """Publication phase: arXiv, journal, final publication."""
 
     state: LenientPaperSubmissionState | None = None
     start_date: date | None = None
     arxiv_urls: list[Link] = Field(default_factory=list, alias="arXivUrls")
-    final_title: str | None = Field(default=None, alias="finalTitleTex")
+    final_title_tex: str | None = Field(default=None, alias="finalTitleTex")
     final_submission_journal: str | None = None
     arxiv_submission_date: AwareDatetime | None = Field(
         default=None, alias="arXivSubmissionDate"
     )
-    physics_briefings: list[Link] = Field(default_factory=list, alias="physicsBriefing")
-    date_of_1st_referee_report: date | None = None
+    physics_briefing: list[Link] = Field(default_factory=list, alias="physicsBriefing")
+    first_referee_report_date: date | None = Field(
+        default=None, alias="1stRefereeReportDate"
+    )
     journal_acceptance_date: date | None = None
-    date_of_1st_proof: date | None = None
-    final_journal_publications: list[Link] = Field(
+    first_proof_date: date | None = Field(default=None, alias="1stProofDate")
+    final_journal_publication: list[Link] = Field(
         default_factory=list, alias="finalJournalPublication"
     )
-    published_online_on: date | None = None
+    published_online_date: date | None = Field(
+        default=None, alias="publishedOnlineDate"
+    )
 
     @field_validator("arxiv_submission_date", mode="before")
     @classmethod
@@ -127,7 +139,7 @@ class SubmissionPhase(_Base):
         return v
 
     def __rich__(self) -> Panel | None:
-        """Return a Rich Panel with submission details, or None if the phase has no renderable fields."""
+        """Return a Rich Panel with publication details, or None if the phase has no renderable fields."""
         rows: list[tuple[str, RenderableType]] = []
 
         def _link_texts(links_field: list[Link]) -> Text:
@@ -150,14 +162,14 @@ class SubmissionPhase(_Base):
         if self.journal_acceptance_date:
             rows.append(("Accepted", Text(str(self.journal_acceptance_date))))
 
-        if self.published_online_on:
-            rows.append(("Published", Text(str(self.published_online_on))))
+        if self.published_online_date:
+            rows.append(("Published", Text(str(self.published_online_date))))
 
-        if self.physics_briefings:
-            rows.append(("Briefings", _link_texts(self.physics_briefings)))
+        if self.physics_briefing:
+            rows.append(("Briefings", _link_texts(self.physics_briefing)))
 
-        if self.final_journal_publications:
-            rows.append(("Final", _link_texts(self.final_journal_publications)))
+        if self.final_journal_publication:
+            rows.append(("Final", _link_texts(self.final_journal_publication)))
 
         if not rows:
             return None
@@ -167,7 +179,7 @@ class SubmissionPhase(_Base):
         grid.add_column()
         for label, value in rows:
             grid.add_row(label, value)
-        return Panel(grid, title="Submission", expand=True)
+        return Panel(grid, title="Publication Phase", expand=True)
 
 
 class Paper(_Base):
@@ -182,10 +194,13 @@ class Paper(_Base):
     documentation: Documentation | None = None
     analysis_team: AnalysisTeam = Field(default_factory=AnalysisTeam)
     metadata: Metadata | None = None
+    rivet_routines_url: str | None = Field(default=None, alias="rivetRoutinesUrl")
     associated_analysis: RelatedPublication | None = None
     phase1: PaperPhase1 | None = None
     phase2: PaperPhase2 | None = None
-    submission: SubmissionPhase | None = None
+    publication_phase: PublicationPhase | None = Field(
+        default=None, alias="publicationPhase"
+    )
 
     def __rich__(self) -> Panel:
         """Return a Rich Panel summarising the paper for terminal display."""
@@ -211,7 +226,9 @@ class Paper(_Base):
             )
 
         if self.metadata and self.metadata.keywords:
-            kw = ", ".join(k for k in self.metadata.keywords if k != "None")
+            kw = ", ".join(
+                k.name for k in self.metadata.keywords if k.name and k.name != "None"
+            )
             if kw:
                 title_lines.append(Text(f"Keywords: {kw}", style="cyan"))
 
@@ -239,32 +256,32 @@ class Paper(_Base):
             if p1.start_date:
                 timeline.add_row("Start", str(p1.start_date))
                 timeline_has_rows = True
-            if p1.editorial_board_formed_on:
-                timeline.add_row("EdBoard", str(p1.editorial_board_formed_on))
+            if p1.editorial_board_formed_date:
+                timeline.add_row("EdBoard", str(p1.editorial_board_formed_date))
                 timeline_has_rows = True
             if p1.presentation_date:
                 timeline.add_row("Presentation", str(p1.presentation_date))
                 timeline_has_rows = True
-            if p1.draft_released_on:
-                timeline.add_row("Draft 1", str(p1.draft_released_on))
+            if p1.draft_released_date:
+                timeline.add_row("Draft 1", str(p1.draft_released_date))
                 timeline_has_rows = True
 
         if self.phase2:
             p2 = self.phase2
-            if p2.draft2_released_on:
-                timeline.add_row("Draft 2", str(p2.draft2_released_on))
+            if p2.draft2_released_date:
+                timeline.add_row("Draft 2", str(p2.draft2_released_date))
                 timeline_has_rows = True
-            if p2.date_of_paper_closure:
-                timeline.add_row("Closure", str(p2.date_of_paper_closure))
+            if p2.paper_closure_date:
+                timeline.add_row("Closure", str(p2.paper_closure_date))
                 timeline_has_rows = True
 
-        if self.submission:
-            sub = self.submission
-            if sub.arxiv_submission_date:
-                timeline.add_row("arXiv", str(sub.arxiv_submission_date.date()))
+        if self.publication_phase:
+            pub = self.publication_phase
+            if pub.arxiv_submission_date:  # pylint: disable=no-member
+                timeline.add_row("arXiv", str(pub.arxiv_submission_date.date()))  # pylint: disable=no-member
                 timeline_has_rows = True
-            if sub.published_online_on:
-                timeline.add_row("Published", str(sub.published_online_on))
+            if pub.published_online_date:  # pylint: disable=no-member
+                timeline.add_row("Published", str(pub.published_online_date))  # pylint: disable=no-member
                 timeline_has_rows = True
 
         if timeline_has_rows:
@@ -288,11 +305,11 @@ class Paper(_Base):
         if people_cols:
             sections.append(Columns(people_cols, expand=True))
 
-        # --- Submission section ---
-        if self.submission:
-            sub_panel = self.submission.__rich__()
-            if sub_panel is not None:
-                sections.append(sub_panel)
+        # --- Publication Phase section ---
+        if self.publication_phase:
+            pub_panel = self.publication_phase.__rich__()  # pylint: disable=no-member
+            if pub_panel is not None:
+                sections.append(pub_panel)
 
         # --- Header ---
         settings = StareSettings()

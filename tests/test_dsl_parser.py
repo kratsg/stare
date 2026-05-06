@@ -19,7 +19,7 @@ def test_simple_equality() -> None:
 
 
 def test_contain_operator() -> None:
-    expr = parse_dsl("metadata.keywords contain jets", mode="analysis")
+    expr = parse_dsl("metadata.keywords.name contain jets", mode="analysis")
     assert isinstance(expr, Condition)
     assert expr.operator == "contain"
     assert expr.value == "jets"
@@ -32,9 +32,9 @@ def test_snake_case_normalized() -> None:
 
 
 def test_nested_snake_normalized() -> None:
-    expr = parse_dsl("metadata.mva_ml_tools contain jets", mode="analysis")
+    expr = parse_dsl("metadata.mva_ml_tools.name contain jets", mode="analysis")
     assert isinstance(expr, Condition)
-    assert expr.field == "metadata.mvaMlTools"
+    assert expr.field == "metadata.mvaMlTools.name"
 
 
 def test_and_expression() -> None:
@@ -51,14 +51,18 @@ def test_or_expression() -> None:
 
 def test_round_trip_canonicalizes_case() -> None:
     """Mixed-case and/or input is normalized to uppercase AND/OR in output."""
-    src_in = "status = ACTIVE or status = PENDING and metadata.keywords contain jets"
-    src_out = "status = ACTIVE OR status = PENDING AND metadata.keywords contain jets"
+    src_in = (
+        "status = ACTIVE or status = PENDING and metadata.keywords.name contain jets"
+    )
+    src_out = (
+        "status = ACTIVE OR status = PENDING AND metadata.keywords.name contain jets"
+    )
     expr = parse_dsl(src_in, mode="analysis")
     assert expr.to_dsl() == src_out
 
 
 def test_canonical_form_is_idempotent() -> None:
-    src = "status = ACTIVE OR status = PENDING AND metadata.keywords contain jets"
+    src = "status = ACTIVE OR status = PENDING AND metadata.keywords.name contain jets"
     assert parse_dsl(src, mode="analysis").to_dsl() == src
 
 

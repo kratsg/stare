@@ -20,7 +20,7 @@ from stare.models.common import (
     _Base,
     _ListRootModel,
 )
-from stare.models.enums import ConfnoteStatus, LenientConfnotePhase1State
+from stare.models.enums import LenientPubnotePhase_1_dataState, PubnoteStatus
 from stare.settings import StareSettings
 from stare.urls import pubnote_url
 
@@ -59,19 +59,29 @@ class Readers(_ListRootModel[PubNoteReader]):
 class PubNotePhase1(_Base):
     """Phase 1 lifecycle metadata for a PUB note."""
 
-    state: LenientConfnotePhase1State | None = None
+    state: LenientPubnotePhase_1_dataState | None = None
     start_date: date | None = None
-    draft_cds_url: str | None = Field(default=None, alias="draftNoteCdsUrl")
+    draft_cds_url: str | None = Field(default=None, alias="draftCdsUrl")
     readers: Readers = Field(default_factory=Readers)
     presentation_date: date | None = None
-    group_approval_on: date | None = None
-    first_reader_draft_sign_off: str | None = None
-    date_of_atlas_circulation: date | None = None
-    proceed_to_sign_off_on: date | None = None
-    first_reader_sign_off: str | None = None
-    second_reader_sign_off: str | None = None
+    group_approval_date: date | None = Field(default=None, alias="groupApprovalDate")
+    first_reader_draft_sign_off_date: date | None = Field(
+        default=None, alias="firstReaderDraftSignOffDate"
+    )
+    atlas_circulation_date: date | None = Field(
+        default=None, alias="atlasCirculationDate"
+    )
+    proceed_to_sign_off_date: date | None = Field(
+        default=None, alias="proceedToSignOffDate"
+    )
+    first_reader_sign_off_date: date | None = Field(
+        default=None, alias="firstReaderSignOffDate"
+    )
+    second_reader_sign_off_date: date | None = Field(
+        default=None, alias="secondReaderSignOffDate"
+    )
     public_web_page_url: str | None = Field(
-        default=None, alias="publicWebPageUrlForFiguresAndTables"
+        default=None, alias="publicWebPageURLForFiguresAndTables"
     )
     release_date: date | None = None
 
@@ -79,9 +89,11 @@ class PubNotePhase1(_Base):
 class PubNote(_Base):
     """An ATLAS PUB note."""
 
-    temp_reference_code: str = Field(alias="temporaryReferenceCode")
+    temp_reference_code: str | None = Field(
+        default=None, alias="temporaryReferenceCode"
+    )
     final_reference_code: str | None = Field(default=None, alias="finalReferenceCode")
-    status: ConfnoteStatus
+    status: PubnoteStatus | None = None
     short_title: str | None = None
     public_short_title: str | None = None
     full_title: str | None = None
@@ -89,8 +101,12 @@ class PubNote(_Base):
     documentation: Documentation | None = None
     analysis_team: AnalysisTeam = Field(default_factory=AnalysisTeam)
     metadata: Metadata | None = None
-    associated_analysis: RelatedPublication | None = None
-    superseded_by: RelatedPublication | None = None
+    associated_analysis: RelatedPublication | None = Field(
+        default=None, alias="relatedAnalysis"
+    )
+    superseded_by: list[RelatedPublication] = Field(
+        default_factory=list, alias="supersededBy"
+    )
     phase1: PubNotePhase1 | None = None
 
     def __rich__(self) -> Panel:
@@ -117,7 +133,9 @@ class PubNote(_Base):
             )
 
         if self.metadata and self.metadata.keywords:
-            kw = ", ".join(k for k in self.metadata.keywords if k != "None")
+            kw = ", ".join(
+                k.name for k in self.metadata.keywords if k.name and k.name != "None"
+            )
             if kw:
                 title_lines.append(Text(f"Keywords: {kw}", style="cyan"))
 
@@ -148,8 +166,8 @@ class PubNote(_Base):
             if p1.presentation_date:
                 timeline.add_row("Presentation", str(p1.presentation_date))
                 timeline_has_rows = True
-            if p1.group_approval_on:
-                timeline.add_row("Group Appr", str(p1.group_approval_on))
+            if p1.group_approval_date:
+                timeline.add_row("Group Appr", str(p1.group_approval_date))
                 timeline_has_rows = True
             if p1.release_date:
                 timeline.add_row("Release", str(p1.release_date))
@@ -178,13 +196,12 @@ class PubNote(_Base):
 
         # --- Header ---
         settings = StareSettings()
-        url = pubnote_url(self.temp_reference_code, web_base=settings.web_base_url)
+        ref = self.temp_reference_code or self.final_reference_code or ""
+        url = pubnote_url(ref, web_base=settings.web_base_url)
 
-        header = Text.from_markup(
-            f"[bold cyan][link={url}]{self.temp_reference_code}[/link][/bold cyan]"
-        )
+        header = Text.from_markup(f"[bold cyan][link={url}]{ref}[/link][/bold cyan]")
 
-        if self.final_reference_code:
+        if self.final_reference_code and self.final_reference_code != ref:
             header.append(f" ({self.final_reference_code})", style="bold")
 
         if self.status:

@@ -77,11 +77,12 @@ def test_array_of_strings_included() -> None:
     assert "metadata.keywords" in fields
 
 
-def test_array_of_objects_excluded() -> None:
+def test_array_of_objects_subfields_included() -> None:
     fields = extract_string_fields(_MINI_SCHEMA)
-    assert "metadata.collisions.type" not in fields
-    assert "metadata.collisions.year" not in fields
-    assert "phase0.analysisContacts.cernCcid" not in fields
+    assert "metadata.collisions.type" in fields
+    assert "metadata.collisions.year" in fields
+    assert "phase0.analysisContacts.cernCcid" in fields
+    assert "phase0.analysisContacts.firstName" in fields
 
 
 def test_object_without_properties_excluded() -> None:
@@ -99,11 +100,10 @@ def test_nested_simple_string_inside_object() -> None:
     assert "phase0.state" in fields
 
 
-def test_no_array_object_children() -> None:
+def test_array_object_children_are_included() -> None:
     fields = extract_string_fields(_MINI_SCHEMA)
-    for f in fields:
-        assert "analysisContacts" not in f
-        assert "collisions" not in f
+    assert any("analysisContacts" in f for f in fields)
+    assert any("collisions" in f for f in fields)
 
 
 def test_output_is_sorted() -> None:

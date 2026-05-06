@@ -14,8 +14,6 @@ from stare.exceptions import ResponseParseError
 from stare.models.analysis import Analysis, AnalysisPhase0
 from stare.models.common import (
     AmiGlanceLink,
-    AnalysisContact,
-    AnalysisContacts,
     AnalysisTeam,
     Collision,
     Collisions,
@@ -34,7 +32,7 @@ from stare.models.common import (
 from stare.models.confnote import ConfNote, ConfNotePhase1
 from stare.models.enums import ConfnotePhase1State, MeetingType
 from stare.models.errors import ApiErrorResponse
-from stare.models.paper import Paper, PaperPhase1, PaperPhase2, SubmissionPhase
+from stare.models.paper import Paper, PaperPhase1, PaperPhase2, PublicationPhase
 from stare.models.pubnote import PubNote, PubNotePhase1, Readers
 from stare.models.search import (
     AnalysisSearchResult,
@@ -121,29 +119,18 @@ class TestEditorialBoardMember:
         assert m.is_ex_officio is None
 
 
-class TestAnalysisContact:
-    def test_parse(self) -> None:
-        c = AnalysisContact.model_validate(
-            {
-                "cernCcid": "abc",
-                "firstName": "A",
-                "lastName": "B",
-                "email": "a@b.com",
-                "startDate": "2023-01-01",
-                "endDate": "2024-01-01",
-            }
-        )
-        assert c.start_date == date(2023, 1, 1)
-        assert c.end_date == date(2024, 1, 1)
-
-
 class TestGroups:
     def test_parse(self) -> None:
         g = Groups.model_validate(
-            {"leadingGroup": "SUSY", "subgroups": ["Run2"], "otherGroups": []}
+            {
+                "leadingGroup": {"name": "SUSY"},
+                "subgroups": [{"name": "Run2"}],
+                "otherGroups": [],
+            }
         )
-        assert g.leading_group == "SUSY"
-        assert g.subgroups == ["Run2"]
+        assert g.leading_group is not None
+        assert g.leading_group.name == "SUSY"
+        assert g.subgroups[0].name == "Run2"
         assert g.other_groups == []
 
     def test_all_optional(self) -> None:
@@ -171,8 +158,11 @@ class TestCollision:
 
 class TestMetadata:
     def test_parse_keywords(self) -> None:
-        m = Metadata.model_validate({"keywords": ["Higgs", "di-boson"]})
-        assert m.keywords == ["Higgs", "di-boson"]
+        m = Metadata.model_validate(
+            {"keywords": [{"name": "Higgs"}, {"name": "di-boson"}]}
+        )
+        assert m.keywords[0].name == "Higgs"
+        assert m.keywords[1].name == "di-boson"
 
     def test_collisions(self) -> None:
         m = Metadata.model_validate(
@@ -200,8 +190,7 @@ class TestMetadata:
         assert m.statistical_tools == []
         assert m.mva_ml_tools == []
         assert m.triggers == []
-        assert m.analysis_frameworks is None
-        assert m.rivet_routines == []
+        assert m.analysis_framework is None
 
 
 class TestDocumentation:
@@ -371,14 +360,15 @@ class TestAnalysis:
                 "referenceCode": "ANA-SUSY-2020-01",
                 "status": "Created",
                 "groups": {
-                    "leadingGroup": "SUSY",
+                    "leadingGroup": {"name": "SUSY"},
                     "subgroups": [],
                     "otherGroups": [],
                 },
             }
         )
         assert a.groups is not None
-        assert a.groups.leading_group == "SUSY"
+        assert a.groups.leading_group is not None
+        assert a.groups.leading_group.name == "SUSY"
 
     def test_nested_phase0(self) -> None:
         a = Analysis.model_validate(
@@ -470,15 +460,15 @@ class TestAnalysis:
 
 
 class TestPaperPhase1:
-    def test_draft_released_on(self) -> None:
+    def test_draft_released_date(self) -> None:
         p = PaperPhase1.model_validate({"draftReleasedDate": "2024-06-01"})
-        assert p.draft_released_on is not None
-        assert p.draft_released_on == date(2024, 6, 1)
+        assert p.draft_released_date is not None
+        assert p.draft_released_date == date(2024, 6, 1)
 
     def test_all_optional(self) -> None:
         p = PaperPhase1.model_validate({})
         assert p.state is None
-        assert p.draft_released_on is None
+        assert p.draft_released_date is None
 
 
 class TestPaperPhase2:
@@ -490,8 +480,8 @@ class TestPaperPhase2:
                 "preliminaryPlotsAndResultsReleased": True,
             }
         )
-        assert p.draft2_released_on == date(2024, 7, 1)
-        assert p.draft2_cern_sign_off_on == date(2024, 8, 1)
+        assert p.draft2_released_date == date(2024, 7, 1)
+        assert p.draft2_cern_sign_off_date == date(2024, 8, 1)
         assert p.preliminary_plots_released is True
 
     def test_preliminary_plots_false(self) -> None:
@@ -500,14 +490,14 @@ class TestPaperPhase2:
 
     def test_all_optional(self) -> None:
         p = PaperPhase2.model_validate({})
-        assert p.draft2_released_on is None
-        assert p.draft2_cern_sign_off_on is None
+        assert p.draft2_released_date is None
+        assert p.draft2_cern_sign_off_date is None
         assert p.preliminary_plots_released is None
 
 
-class TestSubmissionPhase:
+class TestPublicationPhase:
     def test_arxiv_urls(self) -> None:
-        s = SubmissionPhase.model_validate(
+        s = PublicationPhase.model_validate(
             {
                 "arXivUrls": [
                     {
@@ -521,32 +511,32 @@ class TestSubmissionPhase:
         assert s.arxiv_urls[0].label == "arXiv:2501.00001"
 
     def test_physics_briefings(self) -> None:
-        s = SubmissionPhase.model_validate(
+        s = PublicationPhase.model_validate(
             {
                 "physicsBriefing": [
                     {"label": "Physics Briefing", "url": "https://atlas.cern/pb/1"}
                 ]
             }
         )
-        assert len(s.physics_briefings) == 1
-        assert s.physics_briefings[0].label == "Physics Briefing"
+        assert len(s.physics_briefing) == 1
+        assert s.physics_briefing[0].label == "Physics Briefing"
 
     def test_final_journal_publications(self) -> None:
-        s = SubmissionPhase.model_validate(
+        s = PublicationPhase.model_validate(
             {
                 "finalJournalPublication": [
                     {"label": "JHEP 01 (2025) 001", "url": "https://doi.org/10.1007/x"}
                 ]
             }
         )
-        assert len(s.final_journal_publications) == 1
-        assert s.final_journal_publications[0].label == "JHEP 01 (2025) 001"
+        assert len(s.final_journal_publication) == 1
+        assert s.final_journal_publication[0].label == "JHEP 01 (2025) 001"
 
     def test_all_optional(self) -> None:
-        s = SubmissionPhase.model_validate({})
+        s = PublicationPhase.model_validate({})
         assert s.arxiv_urls == []
-        assert s.physics_briefings == []
-        assert s.final_journal_publications == []
+        assert s.physics_briefing == []
+        assert s.final_journal_publication == []
 
 
 # ---------------------------------------------------------------------------
@@ -561,7 +551,7 @@ class TestAnalysisSearchResult:
                 "numberOfResults": 2,
                 "results": [
                     {"referenceCode": "ANA-A-2021-01", "status": "Created"},
-                    {"referenceCode": "ANA-B-2021-01", "status": "Analysis Closed"},
+                    {"referenceCode": "ANA-B-2021-01", "status": "Closed"},
                 ],
             }
         )
@@ -789,15 +779,6 @@ class TestListRootModelWrappers:
         assert bool(team) is True
         assert bool(AnalysisTeam()) is False
 
-    def test_analysis_contacts_protocol(self) -> None:
-        contacts = AnalysisContacts.model_validate(
-            [{"cernCcid": "c1", "firstName": "Leia", "lastName": "Organa"}]
-        )
-        assert len(contacts) == 1
-        assert contacts[0].first_name == "Leia"
-        assert bool(contacts) is True
-        assert bool(AnalysisContacts()) is False
-
     def test_collisions_protocol(self) -> None:
         colls = Collisions.model_validate(
             [
@@ -878,7 +859,11 @@ class TestRichRendering:
                 "temporaryReferenceCode": "CONF-HION-2024-01",
                 "status": "Phase 1 Active",
                 "shortTitle": "Heavy-ion test",
-                "groups": {"leadingGroup": "HION", "subgroups": [], "otherGroups": []},
+                "groups": {
+                    "leadingGroup": {"name": "HION"},
+                    "subgroups": [],
+                    "otherGroups": [],
+                },
                 "metadata": {
                     "collisions": [
                         {
@@ -888,7 +873,7 @@ class TestRichRendering:
                             "luminosityValue": "140",
                         }
                     ],
-                    "keywords": ["13 TeV"],
+                    "keywords": [{"name": "13 TeV"}],
                 },
                 "phase1": {"startDate": "2024-01-01", "releaseDate": "2024-06-01"},
                 "analysisTeam": [
@@ -910,7 +895,11 @@ class TestRichRendering:
                 "referenceCode": "ANA-HION-2024-01",
                 "status": "Created",
                 "shortTitle": "Analysis test",
-                "groups": {"leadingGroup": "HION", "subgroups": [], "otherGroups": []},
+                "groups": {
+                    "leadingGroup": {"name": "HION"},
+                    "subgroups": [],
+                    "otherGroups": [],
+                },
                 "metadata": {
                     "collisions": [
                         {
@@ -920,7 +909,7 @@ class TestRichRendering:
                             "luminosityValue": "35",
                         }
                     ],
-                    "keywords": ["13.6 TeV"],
+                    "keywords": [{"name": "13.6 TeV"}],
                 },
                 "analysisTeam": [
                     {
@@ -990,12 +979,12 @@ class TestRichRendering:
         result = pn.__rich__()
         assert isinstance(result, Panel)
 
-    def test_submission_phase_rich_returns_none_when_empty(self) -> None:
-        s = SubmissionPhase.model_validate({})
+    def test_publication_phase_rich_returns_none_when_empty(self) -> None:
+        s = PublicationPhase.model_validate({})
         assert s.__rich__() is None
 
-    def test_submission_phase_rich_returns_panel_when_populated(self) -> None:
-        s = SubmissionPhase.model_validate(
+    def test_publication_phase_rich_returns_panel_when_populated(self) -> None:
+        s = PublicationPhase.model_validate(
             {
                 "arXivUrls": [
                     {
@@ -1076,7 +1065,7 @@ class TestConfNote:
         payload = {
             "temporaryReferenceCode": "CONF-HION-2024-01",
             "finalReferenceCode": "ATLAS-CONF-2024-001",
-            "status": "Phase 1 Closed",
+            "status": "Phase 1 Finished",
             "shortTitle": "Test conf note",
         }
         note = ConfNote.model_validate(payload)
@@ -1098,7 +1087,10 @@ class TestConfNote:
 
     def test_all_optional(self) -> None:
         note = ConfNote.model_validate(
-            {"temporaryReferenceCode": "CONF-EXOT-2024-01", "status": "Phase 1 Closed"}
+            {
+                "temporaryReferenceCode": "CONF-EXOT-2024-01",
+                "status": "Phase 1 Finished",
+            }
         )
         assert note.temp_reference_code == "CONF-EXOT-2024-01"
         assert note.final_reference_code is None
@@ -1128,7 +1120,7 @@ class TestConfNoteSearchResult:
                 {
                     "temporaryReferenceCode": "CONF-HION-2024-01",
                     "finalReferenceCode": "ATLAS-CONF-2024-001",
-                    "status": "Phase 1 Closed",
+                    "status": "Phase 1 Finished",
                     "shortTitle": "x",
                 }
             ],

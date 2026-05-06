@@ -17,6 +17,7 @@ from stare.models.common import (
     EditorialBoard,
     Groups,
     Metadata,
+    Person,
     RelatedPublication,
     _Base,
 )
@@ -25,34 +26,27 @@ from stare.settings import StareSettings
 from stare.urls import confnote_url
 
 
-class _SignOffResponsible(_Base):
-    cern_ccid: str | None = None
-    first_name: str | None = None
-    last_name: str | None = None
-    email: str | None = None
-
-
 class ConfNotePhase1(_Base):
     """Phase 1 lifecycle metadata for a CONF note."""
 
     state: LenientConfnotePhase1State | None = None
     start_date: date | None = None
-    cds_url: str | None = Field(default=None, alias="cdsDraftNoteUrl")
+    draft_cds_url: str | None = Field(default=None, alias="draftCdsUrl")
     editorial_board: EditorialBoard = Field(default_factory=EditorialBoard)
-    editorial_board_formed_on: date | None = None
+    editorial_board_formed_date: date | None = Field(
+        default=None, alias="editorialBoardFormedDate"
+    )
     presentation_date: date | None = None
-    pgc_approved_analysis_on: date | None = Field(
-        default=None, alias="principalGroupCoordinatorApprovedAnalysisOn"
+    pgc_approval_date: date | None = Field(default=None, alias="pgcApprovalDate")
+    eb_draft_sign_off_date: date | None = Field(
+        default=None, alias="editorialBoardDraftSignOffDate"
     )
-    eb_draft_sign_off: str | None = Field(
-        default=None, alias="editorialBoardDraftSignOff"
-    )
-    first_sign_off_responsible: _SignOffResponsible | None = None
-    second_sign_off_responsible: _SignOffResponsible | None = None
-    first_sign_off: str | None = None
-    second_sign_off: str | None = None
+    first_sign_off_responsible: Person | None = None
+    second_sign_off_responsible: Person | None = None
+    first_sign_off_date: date | None = Field(default=None, alias="firstSignOffDate")
+    second_sign_off_date: date | None = Field(default=None, alias="secondSignOffDate")
     public_web_page_url: str | None = Field(
-        default=None, alias="publicWebPageUrlForFiguresAndTables"
+        default=None, alias="publicWebPageURLForFiguresAndTables"
     )
     release_date: date | None = None
 
@@ -72,8 +66,12 @@ class ConfNote(_Base):
     documentation: Documentation | None = None
     analysis_team: AnalysisTeam = Field(default_factory=AnalysisTeam)
     metadata: Metadata | None = None
-    associated_analysis: RelatedPublication | None = None
-    superseded_by: RelatedPublication | None = None
+    associated_analysis: RelatedPublication | None = Field(
+        default=None, alias="relatedAnalysis"
+    )
+    superseded_by: list[RelatedPublication] = Field(
+        default_factory=list, alias="supersededBy"
+    )
     phase1: ConfNotePhase1 | None = None
 
     def __rich__(self) -> Panel:
@@ -102,7 +100,9 @@ class ConfNote(_Base):
 
         # --- Keywords (inline, no panel) ---
         if self.metadata and self.metadata.keywords:
-            kw = ", ".join(k for k in self.metadata.keywords if k != "None")
+            kw = ", ".join(
+                k.name for k in self.metadata.keywords if k.name and k.name != "None"
+            )
             if kw:
                 title_lines.append(Text(f"Keywords: {kw}", style="cyan"))
 
@@ -128,8 +128,8 @@ class ConfNote(_Base):
 
             if p1.start_date:
                 timeline.add_row("Start", str(p1.start_date))
-            if p1.editorial_board_formed_on:
-                timeline.add_row("EdBoard", str(p1.editorial_board_formed_on))
+            if p1.editorial_board_formed_date:
+                timeline.add_row("EdBoard", str(p1.editorial_board_formed_date))
             if p1.presentation_date:
                 timeline.add_row("Presentation", str(p1.presentation_date))
             if p1.release_date:

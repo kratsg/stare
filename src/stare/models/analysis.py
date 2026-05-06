@@ -15,7 +15,6 @@ from rich.text import Text
 
 from stare.models.common import (
     AmiGlanceLink,
-    AnalysisContacts,
     AnalysisTeam,
     Documentation,
     EditorialBoard,
@@ -60,9 +59,10 @@ class AnalysisPhase0(_Base):
     dataset_used: str | None = None
     model_tested: str | None = None
     methods: str | None = None
-    editorial_board_formed_on: date | None = None
+    editorial_board_formed_date: date | None = Field(
+        default=None, alias="editorialBoardFormedDate"
+    )
     pgc_or_sgc_sign_off_date: date | None = None
-    analysis_contacts: AnalysisContacts = Field(default_factory=AnalysisContacts)
     editorial_board: EditorialBoard = Field(default_factory=EditorialBoard)
     meetings: list[TypedMeeting] = Field(default_factory=list)
 
@@ -159,7 +159,9 @@ class Analysis(_Base):
             )
 
         if self.metadata and self.metadata.keywords:
-            kw = ", ".join(k for k in self.metadata.keywords if k != "None")
+            kw = ", ".join(
+                k.name for k in self.metadata.keywords if k.name and k.name != "None"
+            )
             if kw:
                 title_lines.append(Text(f"Keywords: {kw}", style="cyan"))
 
@@ -187,8 +189,8 @@ class Analysis(_Base):
             if p0.start_date:
                 timeline.add_row("Start", str(p0.start_date))
                 timeline_has_rows = True
-            if p0.editorial_board_formed_on:
-                timeline.add_row("EdBoard", str(p0.editorial_board_formed_on))
+            if p0.editorial_board_formed_date:
+                timeline.add_row("EdBoard", str(p0.editorial_board_formed_date))
                 timeline_has_rows = True
             if p0.pgc_or_sgc_sign_off_date:
                 timeline.add_row("PGC/SGC", str(p0.pgc_or_sgc_sign_off_date))
@@ -237,9 +239,6 @@ class Analysis(_Base):
 
         if self.phase0 and self.phase0.editorial_board:
             people_cols.append(self.phase0.editorial_board)
-
-        if self.phase0 and self.phase0.analysis_contacts:
-            people_cols.append(self.phase0.analysis_contacts)
 
         if people_cols:
             sections.append(Columns(people_cols, expand=True))
