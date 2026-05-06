@@ -85,7 +85,7 @@ API.
 
 ---
 
-### `phase3.state` — Phase 2 (Paper)
+### `phase2.state` — Phase 2 (Paper)
 
 | Raw Value                  | Display Label                                                         |
 | -------------------------- | --------------------------------------------------------------------- |
