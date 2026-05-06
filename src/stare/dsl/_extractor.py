@@ -27,6 +27,9 @@ def extract_string_fields(schema: dict[str, Any], _prefix: str = "") -> list[str
             items = prop.get("items", {})
             if items.get("type") == "string":
                 results.append(path)
+            elif items.get("type") == "object" and "properties" in items:
+                # array-of-objects: emit <arr>.<leaf> for each string leaf
+                results.extend(extract_string_fields(items, path))
         elif kind == "object" and "properties" in prop:
             results.extend(extract_string_fields(prop, path))
 

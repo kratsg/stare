@@ -78,6 +78,8 @@ def class_name(section: str, variant: str | None) -> str:
 
         if "paper" in v:
             return f"Paper{base}"
+        if "pubnote" in v:
+            return f"Pubnote{base}"
         if "confnote" in v or "conf" in v:
             return f"Confnote{base}"
         if "analysis" in v:
