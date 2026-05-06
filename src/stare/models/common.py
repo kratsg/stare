@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import TYPE_CHECKING, Generic, TypeVar
 
 from pydantic import (
@@ -283,8 +283,8 @@ class AnalysisFramework(_Base):
 class AnalysisContactAssignment(_Base):
     """Date range for an analysis-contact assignment."""
 
-    start_date: str | None = None
-    end_date: str | None = None
+    start_date: date | None = None
+    end_date: date | None = None
 
 
 class Person(_Base):
