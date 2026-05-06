@@ -59,9 +59,7 @@ class AnalysisPhase0(_Base):
     dataset_used: str | None = None
     model_tested: str | None = None
     methods: str | None = None
-    editorial_board_formed_date: date | None = Field(
-        default=None, alias="editorialBoardFormedDate"
-    )
+    editorial_board_formed_date: date | None = None
     pgc_or_sgc_sign_off_date: date | None = None
     editorial_board: EditorialBoard = Field(default_factory=EditorialBoard)
     meetings: list[TypedMeeting] = Field(default_factory=list)
