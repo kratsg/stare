@@ -1,6 +1,6 @@
-| Group      | Fields                                                                                                                                                                                   |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Top-level  | `creationDate`, `publicShortTitle`, `referenceCode`, `shortTitle`, `status`                                                                                                              |
-| `groups`   | `groups.leadingGroup`, `groups.otherGroups`, `groups.subgroups`                                                                                                                          |
-| `metadata` | `metadata.keywords`, `metadata.mvaMlTools`, `metadata.triggers`                                                                                                                          |
-| `phase0`   | `phase0.datasetUsed`, `phase0.editorialBoardFormedOn`, `phase0.mainPhysicsAim`, `phase0.methods`, `phase0.modelTested`, `phase0.pgcOrSgcSignOffDate`, `phase0.startDate`, `phase0.state` |
+| Group      | Fields                                                                                                                                                                                     |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Top-level  | `creationDate`, `publicShortTitle`, `referenceCode`, `shortTitle`, `status`                                                                                                                |
+| `groups`   | `groups.leadingGroup.name`                                                                                                                                                                 |
+| `metadata` | `metadata.analysisFramework.histogramming`, `metadata.analysisFramework.ntupling`                                                                                                          |
+| `phase0`   | `phase0.datasetUsed`, `phase0.editorialBoardFormedDate`, `phase0.mainPhysicsAim`, `phase0.methods`, `phase0.modelTested`, `phase0.pgcOrSgcSignOffDate`, `phase0.startDate`, `phase0.state` |

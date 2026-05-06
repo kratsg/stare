@@ -199,7 +199,7 @@ class TestPaperPhase1State:
         )
         assert (
             M.model_validate({"value": "Editorial Board Draft Sign-off"}).value
-            == PaperPhase1State.LGP_APPROVED
+            == PaperPhase1State.LPG_APPROVED
         )
 
     def test_live_api_workflow_states(self) -> None:
