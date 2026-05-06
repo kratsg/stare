@@ -482,17 +482,17 @@ class TestPaperPhase2:
         )
         assert p.draft2_released_date == date(2024, 7, 1)
         assert p.draft2_cern_sign_off_date == date(2024, 8, 1)
-        assert p.preliminary_plots_released is True
+        assert p.preliminary_plots_and_results_released is True
 
     def test_preliminary_plots_false(self) -> None:
         p = PaperPhase2.model_validate({"preliminaryPlotsAndResultsReleased": False})
-        assert p.preliminary_plots_released is False
+        assert p.preliminary_plots_and_results_released is False
 
     def test_all_optional(self) -> None:
         p = PaperPhase2.model_validate({})
         assert p.draft2_released_date is None
         assert p.draft2_cern_sign_off_date is None
-        assert p.preliminary_plots_released is None
+        assert p.preliminary_plots_and_results_released is None
 
 
 class TestPublicationPhase:

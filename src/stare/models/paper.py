@@ -42,26 +42,16 @@ class PaperPhase1(_Base):
     state: LenientPaperPhase1State | None = None
     start_date: date | None = None
     editorial_board: EditorialBoard = Field(default_factory=EditorialBoard)
-    editorial_board_formed_date: date | None = Field(
-        default=None, alias="editorialBoardFormedDate"
-    )
-    language_editors_sign_off_date: date | None = Field(
-        default=None, alias="languageEditorsSignOffDate"
-    )
+    editorial_board_formed_date: date | None = None
+    language_editors_sign_off_date: date | None = None
     presentation_date: date | None = None
-    pgc_approval_date: date | None = Field(default=None, alias="pgcApprovalDate")
-    eb_draft_sign_off_date: date | None = Field(
-        default=None, alias="editorialBoardDraftSignOffDate"
-    )
-    draft_released_date: date | None = Field(default=None, alias="draftReleasedDate")
-    pub_committee_chair: Person | None = Field(
-        default=None, alias="pubcommChairOrDeputyOrDelegated"
-    )
-    spokesperson: Person | None = Field(
-        default=None, alias="spokespersonOrDeputyOrDelegated"
-    )
+    pgc_approval_date: date | None = None
+    editorial_board_draft_sign_off_date: date | None = None
+    draft_released_date: date | None = None
+    pubcomm_chair_or_deputy_or_delegated: Person | None = None
+    spokesperson_or_deputy_or_delegated: Person | None = None
     atlas_meeting_date: date | None = None
-    pubcomm_sign_off_date: date | None = Field(default=None, alias="pubcommSignOffDate")
+    pubcomm_sign_off_date: date | None = None
 
 
 class PaperPhase2(_Base):
@@ -69,38 +59,18 @@ class PaperPhase2(_Base):
 
     state: LenientPaperPhase2State | None = None
     start_date: date | None = None
-    eb_draft2_sign_off_date: date | None = Field(
-        default=None, alias="editorialBoardDraft2SignOffDate"
-    )
-    draft2_released_date: date | None = Field(default=None, alias="draft2ReleasedDate")
-    draft2_sent_to_cern_date: date | None = Field(
-        default=None, alias="draft2SentToCernDate"
-    )
-    draft2_cern_sign_off_date: date | None = Field(
-        default=None, alias="draft2CernSignOffDate"
-    )
-    paper_closure_meeting: list[Link] = Field(
-        default_factory=list, alias="paperClosureMeeting"
-    )
-    preliminary_plots_released: bool | None = Field(
-        default=None, alias="preliminaryPlotsAndResultsReleased"
-    )
-    paper_closure_date: date | None = Field(default=None, alias="paperClosureDate")
-    editorial_board_revised_sign_off_date: date | None = Field(
-        default=None, alias="editorialBoardRevisedSignOffDate"
-    )
-    pub_committee_chair_or_deputy: Person | None = Field(
-        default=None, alias="pubcommChairOrDeputyOrDelegated"
-    )
-    pubcomm_chair_or_deputy_sign_off_date: date | None = Field(
-        default=None, alias="pubcommChairOrDeputySignOffDate"
-    )
-    spokesperson_delegated_sign_off_date: date | None = Field(
-        default=None, alias="spokespersonDelegatedSignOffDate"
-    )
-    spokesperson_or_deputy_sign_off_date: date | None = Field(
-        default=None, alias="spokespersonOrDeputySignOffDate"
-    )
+    editorial_board_draft2_sign_off_date: date | None = None
+    draft2_released_date: date | None = None
+    draft2_sent_to_cern_date: date | None = None
+    draft2_cern_sign_off_date: date | None = None
+    paper_closure_meeting: list[Link] = Field(default_factory=list)
+    preliminary_plots_and_results_released: bool | None = None
+    paper_closure_date: date | None = None
+    editorial_board_revised_sign_off_date: date | None = None
+    pubcomm_chair_or_deputy_or_delegated: Person | None = None
+    pubcomm_chair_or_deputy_sign_off_date: date | None = None
+    spokesperson_delegated_sign_off_date: date | None = None
+    spokesperson_or_deputy_sign_off_date: date | None = None
 
 
 class PublicationPhase(_Base):
@@ -108,24 +78,16 @@ class PublicationPhase(_Base):
 
     state: LenientPaperSubmissionState | None = None
     start_date: date | None = None
-    arxiv_urls: list[Link] = Field(default_factory=list, alias="arXivUrls")
-    final_title_tex: str | None = Field(default=None, alias="finalTitleTex")
+    arxiv_urls: list[Link] = Field(default_factory=list)
+    final_title_tex: str | None = None
     final_submission_journal: str | None = None
-    arxiv_submission_date: AwareDatetime | None = Field(
-        default=None, alias="arXivSubmissionDate"
-    )
-    physics_briefing: list[Link] = Field(default_factory=list, alias="physicsBriefing")
-    first_referee_report_date: date | None = Field(
-        default=None, alias="1stRefereeReportDate"
-    )
+    arxiv_submission_date: AwareDatetime | None = None
+    physics_briefing: list[Link] = Field(default_factory=list)
+    first_referee_report_date: date | None = None
     journal_acceptance_date: date | None = None
     first_proof_date: date | None = Field(default=None, alias="1stProofDate")
-    final_journal_publication: list[Link] = Field(
-        default_factory=list, alias="finalJournalPublication"
-    )
-    published_online_date: date | None = Field(
-        default=None, alias="publishedOnlineDate"
-    )
+    final_journal_publication: list[Link] = Field(default_factory=list)
+    published_online_date: date | None = None
 
     @field_validator("arxiv_submission_date", mode="before")
     @classmethod
@@ -194,13 +156,11 @@ class Paper(_Base):
     documentation: Documentation | None = None
     analysis_team: AnalysisTeam = Field(default_factory=AnalysisTeam)
     metadata: Metadata | None = None
-    rivet_routines_url: str | None = Field(default=None, alias="rivetRoutinesUrl")
+    rivet_routines_url: str | None = None
     associated_analysis: RelatedPublication | None = None
     phase1: PaperPhase1 | None = None
     phase2: PaperPhase2 | None = None
-    publication_phase: PublicationPhase | None = Field(
-        default=None, alias="publicationPhase"
-    )
+    publication_phase: PublicationPhase | None = None
 
     def __rich__(self) -> Panel:
         """Return a Rich Panel summarising the paper for terminal display."""
