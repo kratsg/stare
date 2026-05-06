@@ -78,7 +78,7 @@ class PublicationPhase(_Base):
 
     state: LenientPaperSubmissionState | None = None
     start_date: date | None = None
-    arxiv_urls: list[Link] = Field(default_factory=list)
+    arxiv_urls: list[Link] = Field(default_factory=list, alias="arXivUrls")
     final_title_tex: str | None = None
     final_submission_journal: str | None = None
     arxiv_submission_date: AwareDatetime | None = None
