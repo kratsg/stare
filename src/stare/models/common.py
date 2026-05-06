@@ -247,6 +247,46 @@ AmiGlanceLink = Link
 InternalDocument = Link
 
 
+class _NamedItem(_Base):
+    """A single-field wrapper for API objects of the form ``{name: str}``."""
+
+    name: str | None = None
+
+
+class Group(_NamedItem):
+    """A physics group (leading group, subgroup, or other group)."""
+
+
+class Keyword(_NamedItem):
+    """A metadata keyword."""
+
+
+class StatTool(_NamedItem):
+    """A statistical analysis tool."""
+
+
+class MvaMlTool(_NamedItem):
+    """An MVA or machine-learning tool."""
+
+
+class Trigger(_NamedItem):
+    """A trigger name."""
+
+
+class AnalysisFramework(_Base):
+    """Ntupling and histogramming framework names for an analysis."""
+
+    ntupling: str | None = None
+    histogramming: str | None = None
+
+
+class AnalysisContactAssignment(_Base):
+    """Date range for an analysis-contact assignment."""
+
+    start_date: date | None = None
+    end_date: date | None = None
+
+
 class Person(_Base):
     """A CERN person (base for team members, contacts, board members)."""
 
@@ -260,6 +300,9 @@ class TeamMember(Person):
     """A member of an analysis team."""
 
     is_contact_editor: bool | None = None
+    # Analysis endpoint only; omitted by paper/confnote/pubnote responses.
+    is_analysis_contact: bool | None = None
+    analysis_contact_assignments: AnalysisContactAssignment | None = None
 
 
 class EditorialBoardMember(Person):
@@ -267,13 +310,6 @@ class EditorialBoardMember(Person):
 
     is_chair: bool | None = None
     is_ex_officio: bool | None = None
-
-
-class AnalysisContact(Person):
-    """An analysis contact with a start/end assignment period."""
-
-    start_date: date | None = None
-    end_date: date | None = None
 
 
 class EditorialBoard(_ListRootModel[EditorialBoardMember]):
@@ -310,42 +346,30 @@ class AnalysisTeam(_ListRootModel[TeamMember]):
         return Panel(team_table, title=f"Team ({len(self)})")
 
 
-class AnalysisContacts(_ListRootModel[AnalysisContact]):
-    """Ordered list of analysis contacts, rendered as a titled panel with date ranges."""
-
-    def __rich__(self) -> Panel:
-        """Return a Rich Panel listing all analysis contacts with date ranges."""
-        table = Table(show_header=True, header_style="bold magenta", expand=True)
-        table.add_column("Name")
-        table.add_column("Start", justify="right")
-        table.add_column("End", justify="right")
-        for c in self:
-            table.add_row(
-                f"{c.first_name} {c.last_name}",
-                str(c.start_date) if c.start_date else "",
-                str(c.end_date) if c.end_date else "",
-            )
-        return Panel(table, title="Contacts")
-
-
 class Groups(_Base):
     """Leading group, subgroups, and other groups for a publication."""
 
-    leading_group: str | None = None
-    subgroups: list[str] = Field(default_factory=list)
-    other_groups: list[str] = Field(default_factory=list)
+    leading_group: Group | None = None
+    subgroups: list[Group] = Field(default_factory=list)
+    other_groups: list[Group] = Field(default_factory=list)
 
     def __rich__(self) -> Panel:
         """Return a Rich Panel showing leading, sub-, and other groups."""
         group_table = Table.grid(padding=(0, 1))
         group_table.add_column(style="bold cyan", justify="right")
         group_table.add_column()
-        if self.leading_group:
-            group_table.add_row("Leading", f" {self.leading_group}")
+        if self.leading_group and self.leading_group.name:
+            group_table.add_row("Leading", f" {self.leading_group.name}")
         if self.subgroups:
-            group_table.add_row("Subgroups", f" {', '.join(self.subgroups)}")
+            group_table.add_row(
+                "Subgroups",
+                f" {', '.join(g.name for g in self.subgroups if g.name)}",  # pylint: disable=not-an-iterable
+            )
         if self.other_groups:
-            group_table.add_row("Other", f" {', '.join(self.other_groups)}")
+            group_table.add_row(
+                "Other",
+                f" {', '.join(g.name for g in self.other_groups if g.name)}",  # pylint: disable=not-an-iterable
+            )
         return Panel(group_table, title="Groups", expand=True)
 
 
@@ -415,18 +439,18 @@ class Collisions(_ListRootModel[Collision]):
 class Metadata(_Base):
     """Physics and technical metadata shared across resource types.
 
-    Not all fields are populated for every resource type; absent fields are None.
+    Not all fields are populated for every resource type; absent fields default
+    to empty lists or None.
     """
 
     collisions: Collisions = Field(default_factory=Collisions)
-    keywords: list[str] = Field(default_factory=list)
-    statistical_tools: list[str] = Field(default_factory=list)
-    mva_ml_tools: list[str] = Field(default_factory=list)
-    triggers: list[str] = Field(default_factory=list)
-    # Analysis-specific; None means no frameworks reported (distinct from empty dict)
-    analysis_frameworks: dict[str, list[str]] | None = None
-    # Paper-specific
-    rivet_routines: list[str] = Field(default_factory=list)
+    keywords: list[Keyword] = Field(default_factory=list)
+    statistical_tools: list[StatTool] = Field(default_factory=list, alias="statTools")
+    mva_ml_tools: list[MvaMlTool] = Field(default_factory=list, alias="mvaMlTools")
+    # Analysis endpoint only; empty for paper/confnote/pubnote.
+    triggers: list[Trigger] = Field(default_factory=list)
+    # Analysis endpoint only.
+    analysis_framework: AnalysisFramework | None = None
 
 
 class Repository(Link):

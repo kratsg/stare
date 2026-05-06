@@ -49,7 +49,7 @@ class TestAnalysisStatus:
     def test_known_values_parse(self) -> None:
         M = _model(AnalysisStatus)
         assert (
-            M.model_validate({"value": "Analysis Closed"}).value
+            M.model_validate({"value": "Closed"}).value
             == AnalysisStatus.ANALYSIS_CLOSED
         )
         assert (
@@ -57,7 +57,7 @@ class TestAnalysisStatus:
             == AnalysisStatus.PHASE0_ACTIVE
         )
         assert (
-            M.model_validate({"value": "Phase 0 Closed"}).value
+            M.model_validate({"value": "Phase 0 Finished"}).value
             == AnalysisStatus.PHASE0_CLOSED
         )
         assert M.model_validate({"value": "Created"}).value == AnalysisStatus.CREATED
@@ -85,7 +85,7 @@ class TestPaperStatus:
     def test_known_values_parse(self) -> None:
         M = _model(PaperStatus)
         assert (
-            M.model_validate({"value": "Completed"}).value
+            M.model_validate({"value": "Publication Phase Finished"}).value
             == PaperStatus.SUBMISSION_CLOSED
         )
 
@@ -187,7 +187,7 @@ class TestPaperPhase1State:
             == PaperPhase1State.NOT_STARTED
         )
         assert (
-            M.model_validate({"value": "Phase Closed"}).value
+            M.model_validate({"value": "Phase 1 Finished"}).value
             == PaperPhase1State.FINISHED
         )
 
@@ -199,7 +199,7 @@ class TestPaperPhase1State:
         )
         assert (
             M.model_validate({"value": "Editorial Board Draft Sign-off"}).value
-            == PaperPhase1State.LGP_APPROVED
+            == PaperPhase1State.LPG_APPROVED
         )
 
     def test_live_api_workflow_states(self) -> None:
@@ -222,7 +222,7 @@ class TestPaperPhase2State:
             == PaperPhase2State.STARTED
         )
         assert (
-            M.model_validate({"value": "Phase Closed"}).value
+            M.model_validate({"value": "Phase 2 Finished"}).value
             == PaperPhase2State.FINISHED
         )
 
@@ -268,7 +268,7 @@ class TestPaperSubmissionState:
             == PaperSubmissionState.NOT_STARTED
         )
         assert (
-            M.model_validate({"value": "Submission Closed"}).value
+            M.model_validate({"value": "Publication Phase Finished"}).value
             == PaperSubmissionState.FINISHED
         )
 
@@ -314,7 +314,7 @@ class TestConfnotePhase1State:
             == ConfnotePhase1State.NOT_STARTED
         )
         assert (
-            M.model_validate({"value": "Phase Closed"}).value
+            M.model_validate({"value": "Phase 1 Finished"}).value
             == ConfnotePhase1State.FINISHED
         )
         assert (

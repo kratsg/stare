@@ -54,7 +54,7 @@ SAMPLE_ANALYSIS = {
     "status": "Phase 0 Active",
     "shortTitle": "Test analysis",
     "publicShortTitle": "Public test",
-    "groups": {"leadingGroup": "HDBS", "subgroups": [], "otherGroups": []},
+    "groups": {"leadingGroup": {"name": "HDBS"}, "subgroups": [], "otherGroups": []},
     "phase0": {"state": "Auxiliary metadata"},
 }
 
@@ -65,7 +65,7 @@ SAMPLE_SEARCH = {
 
 SAMPLE_PAPER = {
     "referenceCode": "HDBS-2024-01",
-    "status": "Completed",
+    "status": "Phase 1 Active",
     "shortTitle": "Test paper",
 }
 

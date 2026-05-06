@@ -15,6 +15,7 @@ tags:
   - name: Analysis
   - name: Paper
   - name: Confnote
+  - name: Pubnote
 
 paths:
   /searchAnalysis:
@@ -231,6 +232,78 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error403"
+  /searchPubnote:
+    get:
+      tags:
+        - Pubnote
+      summary: Search pubnotes
+      description: >
+        Searches pubnotes with support for filtering, sorting, and pagination.
+        Filters are passed as a DSL query string via the `queryString`
+        parameter.
+      operationId: searchPubnote
+      security:
+        - oauth2: []
+      parameters:
+        - name: offset
+          in: query
+          description: Pagination offset (number of records to skip).
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: limit
+          in: query
+          description: Maximum number of records to return.
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: sortBy
+          in: query
+          description: Field name to sort results by.
+          required: false
+          schema:
+            type: string
+        - name: sortDesc
+          in: query
+          description: Sort in descending order when true.
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: queryString
+          in: query
+          description: >
+            URL-encoded DSL filter string. Supports operators such as `contain`,
+            `not-contain`, `=`, and `!=` over the available searchable
+            properties (e.g. status, temporaryReferenceCode, metadata.keywords,
+            phase1.state). Example: `temporaryReferenceCode =
+            <temporaryReferenceCode>`.
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchPubnoteResponse"
+        "400":
+          description: Invalid query parameters.
+        "401":
+          description: Invalid or missing authentication token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error401"
+        "403":
+          description: Action forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error403"
 
 components:
   securitySchemes:
@@ -269,15 +342,47 @@ components:
                 type: object
                 properties:
                   leadingGroup:
-                    type: string
+                    type: object
+                    properties:
+                      name:
+                        type: string
                   subgroups:
                     type: array
                     items:
-                      type: string
+                      type: object
+                      properties:
+                        name:
+                          type: string
                   otherGroups:
                     type: array
                     items:
-                      type: string
+                      type: object
+                      properties:
+                        name:
+                          type: string
+              documentation:
+                type: object
+                properties:
+                  repositories:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        gitlabId:
+                          type: string
+                        type:
+                          type: string
+                        url:
+                          type: string
+                  supportingInternalDocuments:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        label:
+                          type: string
+                        url:
+                          type: string
               analysisTeam:
                 type: array
                 items:
@@ -289,8 +394,21 @@ components:
                       type: string
                     lastName:
                       type: string
+                    email:
+                      type: string
                     isContactEditor:
                       type: boolean
+                    isAnalysisContact:
+                      type: boolean
+                    analysisContactAssignments:
+                      type: object
+                      properties:
+                        startDate:
+                          type: string
+                          nullable: true
+                        endDate:
+                          type: string
+                          nullable: true
               metadata:
                 type: object
                 properties:
@@ -316,15 +434,38 @@ components:
                   keywords:
                     type: array
                     items:
-                      type: string
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                  statTools:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
                   mvaMlTools:
                     type: array
                     items:
-                      type: string
+                      type: object
+                      properties:
+                        name:
+                          type: string
                   triggers:
                     type: array
                     items:
-                      type: string
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                  analysisFramework:
+                    type: object
+                    properties:
+                      ntupling:
+                        type: string
+                      histogramming:
+                        type: string
               amiGlance:
                 type: array
                 items:
@@ -334,44 +475,21 @@ components:
                       type: string
                     url:
                       type: string
-              documentation:
-                type: object
-                properties:
-                  repositories:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        gitlabId:
-                          type: string
-                        type:
-                          type: string
-                        url:
-                          type: string
-                  supportingInternalDocuments:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        label:
-                          type: string
-                        url:
-                          type: string
               relatedPublications:
                 type: array
                 items:
                   type: object
                   properties:
-                    type:
-                      type: string
                     referenceCode:
+                      type: string
+                    type:
                       type: string
               phase0:
                 type: object
                 properties:
-                  state:
-                    type: string
                   startDate:
+                    type: string
+                  state:
                     type: string
                   mainPhysicsAim:
                     type: string
@@ -381,11 +499,7 @@ components:
                     type: string
                   methods:
                     type: string
-                  editorialBoardFormedOn:
-                    type: string
-                  pgcOrSgcSignOffDate:
-                    type: string
-                  analysisContacts:
+                  editorialBoard:
                     type: array
                     items:
                       type: object
@@ -396,10 +510,16 @@ components:
                           type: string
                         lastName:
                           type: string
-                        startDate:
+                        email:
                           type: string
-                        endDate:
-                          type: string
+                        isChair:
+                          type: boolean
+                        isExOfficio:
+                          type: boolean
+                  editorialBoardFormedDate:
+                    type: string
+                  pgcOrSgcSignOffDate:
+                    type: string
                   eoiMeeting:
                     type: array
                     items:
@@ -471,6 +591,8 @@ components:
           items:
             type: object
             properties:
+              referenceCode:
+                type: string
               status:
                 type: string
               shortTitle:
@@ -479,21 +601,28 @@ components:
                 type: string
               fullTitle:
                 type: string
-              referenceCode:
-                type: string
               groups:
                 type: object
                 properties:
                   leadingGroup:
-                    type: string
+                    type: object
+                    properties:
+                      name:
+                        type: string
                   subgroups:
                     type: array
                     items:
-                      type: string
+                      type: object
+                      properties:
+                        name:
+                          type: string
                   otherGroups:
                     type: array
                     items:
-                      type: string
+                      type: object
+                      properties:
+                        name:
+                          type: string
               documentation:
                 type: object
                 properties:
@@ -516,6 +645,8 @@ components:
                     firstName:
                       type: string
                     lastName:
+                      type: string
+                    email:
                       type: string
                     isContactEditor:
                       type: boolean
@@ -544,17 +675,32 @@ components:
                   keywords:
                     type: array
                     items:
-                      type: string
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                  statTools:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
                   mvaMlTools:
                     type: array
                     items:
-                      type: string
+                      type: object
+                      properties:
+                        name:
+                          type: string
               rivetRoutinesUrl:
                 type: string
               relatedAnalysis:
                 type: object
                 properties:
                   referenceCode:
+                    type: string
+                  type:
                     type: string
               phase1:
                 type: object
@@ -574,29 +720,13 @@ components:
                           type: string
                         lastName:
                           type: string
-                  editorialBoardChairs:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        cernCcid:
+                        email:
                           type: string
-                        firstName:
-                          type: string
-                        lastName:
-                          type: string
-                  editorialBoardExOfficios:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        cernCcid:
-                          type: string
-                        firstName:
-                          type: string
-                        lastName:
-                          type: string
-                  editorialBoardFormedOn:
+                        isChair:
+                          type: boolean
+                        isExOfficio:
+                          type: boolean
+                  editorialBoardFormedDate:
                     type: string
                   languageEditorsSignOffDate:
                     type: string
@@ -617,6 +747,8 @@ components:
                         type: string
                       lastName:
                         type: string
+                      email:
+                        type: string
                   spokespersonOrDeputyOrDelegated:
                     type: object
                     properties:
@@ -625,6 +757,8 @@ components:
                       firstName:
                         type: string
                       lastName:
+                        type: string
+                      email:
                         type: string
                   atlasMeetingDate:
                     type: string
@@ -669,11 +803,15 @@ components:
                         type: string
                       lastName:
                         type: string
-                  pubcommChairOrDeputyOrDelegatedSignOffDate:
+                      email:
+                        type: string
+                  pubcommChairOrDeputySignOffDate:
                     type: string
-                  spokespersonOrDeputyOrDelegatedSignOffDate:
+                  spokespersonDelegatedSignOffDate:
                     type: string
-              submission:
+                  spokespersonOrDeputySignOffDate:
+                    type: string
+              publicationPhase:
                 type: object
                 properties:
                   startDate:
@@ -704,11 +842,11 @@ components:
                           type: string
                         url:
                           type: string
-                  dateOf1stRefereeReport:
+                  1stRefereeReportDate:
                     type: string
                   journalAcceptanceDate:
                     type: string
-                  dateOf1stProof:
+                  1stProofDate:
                     type: string
                   finalJournalPublication:
                     type: array
@@ -719,7 +857,7 @@ components:
                           type: string
                         url:
                           type: string
-                  publishedOnlineOn:
+                  publishedOnlineDate:
                     type: string
         numberOfResults:
           type: integer
@@ -732,6 +870,10 @@ components:
           items:
             type: object
             properties:
+              temporaryReferenceCode:
+                type: string
+              finalReferenceCode:
+                type: string
               status:
                 type: string
               shortTitle:
@@ -740,23 +882,28 @@ components:
                 type: string
               fullTitle:
                 type: string
-              temporaryReferenceCode:
-                type: string
-              finalReferenceCode:
-                type: string
               groups:
                 type: object
                 properties:
                   leadingGroup:
-                    type: string
+                    type: object
+                    properties:
+                      name:
+                        type: string
                   subgroups:
                     type: array
                     items:
-                      type: string
+                      type: object
+                      properties:
+                        name:
+                          type: string
                   otherGroups:
                     type: array
                     items:
-                      type: string
+                      type: object
+                      properties:
+                        name:
+                          type: string
               documentation:
                 type: object
                 properties:
@@ -779,6 +926,8 @@ components:
                     firstName:
                       type: string
                     lastName:
+                      type: string
+                    email:
                       type: string
                     isContactEditor:
                       type: boolean
@@ -807,16 +956,40 @@ components:
                   keywords:
                     type: array
                     items:
-                      type: string
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                  statTools:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
                   mvaMlTools:
                     type: array
                     items:
-                      type: string
+                      type: object
+                      properties:
+                        name:
+                          type: string
               relatedAnalysis:
                 type: object
                 properties:
                   referenceCode:
                     type: string
+                  type:
+                    type: string
+              supersededBy:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    referenceCode:
+                      type: string
+                    type:
+                      type: string
               phase1:
                 type: object
                 properties:
@@ -837,29 +1010,13 @@ components:
                           type: string
                         lastName:
                           type: string
-                  editorialBoardChairs:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        cernCcid:
+                        email:
                           type: string
-                        firstName:
-                          type: string
-                        lastName:
-                          type: string
-                  editorialBoardExOfficios:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        cernCcid:
-                          type: string
-                        firstName:
-                          type: string
-                        lastName:
-                          type: string
-                  editorialBoardFormedOn:
+                        isChair:
+                          type: boolean
+                        isExOfficio:
+                          type: boolean
+                  editorialBoardFormedDate:
                     type: string
                   presentationDate:
                     type: string
@@ -876,6 +1033,8 @@ components:
                         type: string
                       lastName:
                         type: string
+                      email:
+                        type: string
                   secondSignOffResponsible:
                     type: object
                     properties:
@@ -885,9 +1044,186 @@ components:
                         type: string
                       lastName:
                         type: string
+                      email:
+                        type: string
                   firstSignOffDate:
                     type: string
                   secondSignOffDate:
+                    type: string
+                  publicWebPageURLForFiguresAndTables:
+                    type: string
+                  releaseDate:
+                    type: string
+        numberOfResults:
+          type: integer
+          description: Number of matching records.
+    SearchPubnoteResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              temporaryReferenceCode:
+                type: string
+              finalReferenceCode:
+                type: string
+              status:
+                type: string
+              shortTitle:
+                type: string
+              publicShortTitle:
+                type: string
+              fullTitle:
+                type: string
+              groups:
+                type: object
+                properties:
+                  leadingGroup:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                  subgroups:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                  otherGroups:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+              documentation:
+                type: object
+                properties:
+                  supportingInternalDocuments:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        label:
+                          type: string
+                        url:
+                          type: string
+              analysisTeam:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    cernCcid:
+                      type: string
+                    firstName:
+                      type: string
+                    lastName:
+                      type: string
+                    email:
+                      type: string
+                    isContactEditor:
+                      type: boolean
+              metadata:
+                type: object
+                properties:
+                  collisions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                        year:
+                          type: string
+                        run:
+                          type: string
+                        ecmValue:
+                          type: string
+                        ecmUnit:
+                          type: string
+                        luminosityValue:
+                          type: string
+                        luminosityUnit:
+                          type: string
+                  keywords:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                  statTools:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                  mvaMlTools:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+              relatedAnalysis:
+                type: object
+                properties:
+                  referenceCode:
+                    type: string
+                  type:
+                    type: string
+              supersededBy:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    referenceCode:
+                      type: string
+                    type:
+                      type: string
+              phase1:
+                type: object
+                properties:
+                  startDate:
+                    type: string
+                  state:
+                    type: string
+                  draftCdsUrl:
+                    type: string
+                  readers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        cernCcid:
+                          type: string
+                        firstName:
+                          type: string
+                        lastName:
+                          type: string
+                        email:
+                          type: string
+                        isFirstReader:
+                          type: boolean
+                        isSecondReader:
+                          type: boolean
+                  presentationDate:
+                    type: string
+                  groupApprovalDate:
+                    type: string
+                  firstReaderDraftSignOffDate:
+                    type: string
+                  atlasCirculationDate:
+                    type: string
+                  proceedToSignOffDate:
+                    type: string
+                  firstReaderSignOffDate:
+                    type: string
+                  secondReaderSignOffDate:
                     type: string
                   publicWebPageURLForFiguresAndTables:
                     type: string

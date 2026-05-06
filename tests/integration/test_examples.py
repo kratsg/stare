@@ -65,7 +65,8 @@ def test_filter_with_dsl(glance: Glance) -> None:
     assert result.number_of_results > 0
     for analysis in result.results:
         assert analysis.groups is not None
-        assert analysis.groups.leading_group == "HIGG"
+        assert analysis.groups.leading_group is not None
+        assert analysis.groups.leading_group.name == "HIGG"
 
 
 @pytest.mark.slow
@@ -125,13 +126,13 @@ def test_paper_submission_data(glance: Glance) -> None:
     result = glance.papers.search(query=f"referenceCode = {_REF_PAPER}", limit=1)
     assert len(result.results) == 1
     paper = result.results[0]
-    assert paper.submission is not None
-    assert len(paper.submission.arxiv_urls) >= 1
-    for link in paper.submission.arxiv_urls:
+    assert paper.publication_phase is not None
+    assert len(paper.publication_phase.arxiv_urls) >= 1
+    for link in paper.publication_phase.arxiv_urls:
         assert link.url is not None
-    assert isinstance(paper.submission.physics_briefings, list)
-    assert isinstance(paper.submission.final_journal_publications, list)
-    assert len(paper.submission.final_journal_publications) >= 1
+    assert isinstance(paper.publication_phase.physics_briefing, list)
+    assert isinstance(paper.publication_phase.final_journal_publication, list)
+    assert len(paper.publication_phase.final_journal_publication) >= 1
 
 
 # ---------------------------------------------------------------------------
