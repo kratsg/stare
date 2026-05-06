@@ -31,23 +31,17 @@ class ConfNotePhase1(_Base):
 
     state: LenientConfnotePhase1State | None = None
     start_date: date | None = None
-    draft_cds_url: str | None = Field(default=None, alias="draftCdsUrl")
+    draft_cds_url: str | None = None
     editorial_board: EditorialBoard = Field(default_factory=EditorialBoard)
-    editorial_board_formed_date: date | None = Field(
-        default=None, alias="editorialBoardFormedDate"
-    )
+    editorial_board_formed_date: date | None = None
     presentation_date: date | None = None
-    pgc_approval_date: date | None = Field(default=None, alias="pgcApprovalDate")
-    eb_draft_sign_off_date: date | None = Field(
-        default=None, alias="editorialBoardDraftSignOffDate"
-    )
+    pgc_approval_date: date | None = None
+    editorial_board_draft_sign_off_date: date | None = None
     first_sign_off_responsible: Person | None = None
     second_sign_off_responsible: Person | None = None
-    first_sign_off_date: date | None = Field(default=None, alias="firstSignOffDate")
-    second_sign_off_date: date | None = Field(default=None, alias="secondSignOffDate")
-    public_web_page_url: str | None = Field(
-        default=None, alias="publicWebPageURLForFiguresAndTables"
-    )
+    first_sign_off_date: date | None = None
+    second_sign_off_date: date | None = None
+    public_web_page_url_for_figures_and_tables: str | None = None
     release_date: date | None = None
 
 
@@ -57,7 +51,7 @@ class ConfNote(_Base):
     temp_reference_code: str = Field(
         alias="temporaryReferenceCode", pattern=r"^CONF-[A-Z]{4}-\d{4}-\d{2}$"
     )
-    final_reference_code: str | None = Field(default=None, alias="finalReferenceCode")
+    final_reference_code: str | None = None
     status: ConfnoteStatus
     short_title: str | None = None
     public_short_title: str | None = None
@@ -66,12 +60,8 @@ class ConfNote(_Base):
     documentation: Documentation | None = None
     analysis_team: AnalysisTeam = Field(default_factory=AnalysisTeam)
     metadata: Metadata | None = None
-    associated_analysis: RelatedPublication | None = Field(
-        default=None, alias="relatedAnalysis"
-    )
-    superseded_by: list[RelatedPublication] = Field(
-        default_factory=list, alias="supersededBy"
-    )
+    related_analysis: RelatedPublication | None = None
+    superseded_by: list[RelatedPublication] = Field(default_factory=list)
     phase1: ConfNotePhase1 | None = None
 
     def __rich__(self) -> Panel:
