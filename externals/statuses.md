@@ -3,34 +3,43 @@ API.
 
 ### `status` — Analysis
 
-| Raw Value         | Display Label   |
-| ----------------- | --------------- |
-| `created`         | Created         |
-| `analysis_closed` | Analysis Closed |
-| `phase0_active`   | Phase 0 Active  |
-| `phase0_closed`   | Phase 0 Closed  |
+| Raw Value         | Display Label    |
+| ----------------- | ---------------- |
+| `created`         | Created          |
+| `analysis_closed` | Closed           |
+| `phase0_active`   | Phase 0 Active   |
+| `phase0_closed`   | Phase 0 Finished |
 
 ### `status` — Paper
 
-| Raw Value           | Display Label            |
-| ------------------- | ------------------------ |
-| `created`           | Not Started              |
-| `analysis_closed`   | Closed                   |
-| `phase1_active`     | Phase 1 Active           |
-| `phase1_closed`     | Phase 1 Closed           |
-| `phase3_active`     | Phase 2 Active           |
-| `phase3_closed`     | Phase 2 Closed           |
-| `submission_active` | Publication Phase Active |
-| `submission_closed` | Completed                |
+| Raw Value           | Display Label              |
+| ------------------- | -------------------------- |
+| `created`           | Not Started                |
+| `analysis_closed`   | Closed                     |
+| `phase1_active`     | Phase 1 Active             |
+| `phase1_closed`     | Phase 1 Finished           |
+| `phase3_active`     | Phase 2 Active             |
+| `phase3_closed`     | Phase 2 Finished           |
+| `submission_active` | Publication Phase Active   |
+| `submission_closed` | Publication Phase Finished |
 
 ### `status` — Confnote
 
-| Raw Value         | Display Label   |
-| ----------------- | --------------- |
-| `created`         | Created         |
-| `analysis_closed` | Analysis Closed |
-| `phase1_active`   | Phase 1 Active  |
-| `phase1_closed`   | Phase 1 Closed  |
+| Raw Value         | Display Label    |
+| ----------------- | ---------------- |
+| `created`         | Created          |
+| `analysis_closed` | Closed           |
+| `phase1_active`   | Phase 1 Active   |
+| `phase1_closed`   | Phase 1 Finished |
+
+### `status` — Pubnote
+
+| Raw Value         | Display Label    |
+| ----------------- | ---------------- |
+| `created`         | Created          |
+| `analysis_closed` | Closed           |
+| `phase1_active`   | Phase 1 Active   |
+| `phase1_closed`   | Phase 1 Finished |
 
 ---
 
@@ -70,13 +79,13 @@ API.
 | `not_started`          | Phase 1 Data                   |
 | `started`              | Editorial Board                |
 | `approved_by_reviewer` | Analysis Review                |
-| `lgp_approved`         | Editorial Board Draft Sign-off |
+| `lpg_approved`         | Editorial Board Draft Sign-off |
 | `review_closed`        | Draft 1 Released to ATLAS      |
-| `finished`             | Phase Closed                   |
+| `finished`             | Phase 1 Finished               |
 
 ---
 
-### `phase2.state` — Phase 2 (Paper)
+### `phase3.state` — Phase 2 (Paper)
 
 | Raw Value                  | Display Label                                                         |
 | -------------------------- | --------------------------------------------------------------------- |
@@ -85,29 +94,29 @@ API.
 | `update_edboard`           | Revised Draft Final Sign-off by Editorial Board Chair                 |
 | `updated_Pubcomm`          | Revised Draft Final Sign-off by Publication Committee Chair or Deputy |
 | `updated_SpokespersonDate` | Final Sign-off by Spokesperson or Deputy                              |
-| `finished`                 | Phase Closed                                                          |
+| `finished`                 | Phase 2 Finished                                                      |
 
 ---
 
 ### `submission.state` — Submission phase (Paper)
 
-| Raw Value                 | Display Label             |
-| ------------------------- | ------------------------- |
-| `not_started`             | Publication Phase Launch  |
-| `started`                 | Tarball Receiving         |
-| `tarball_received`        | CERN and ATLAS Collection |
-| `submitted_to_arxiv`      | Journal Submission        |
-| `submitted_to_journal`    | Journal Reports Receiving |
-| `journal_report_received` | Journal Reports Answering |
-| `journal_report_answered` | Journal Acceptance        |
-| `accepted_by_journal`     | Proofs Receiving          |
-| `proof_received`          | Proofs Answering          |
-| `proof_answered`          | Online Publication        |
-| `published_online`        | Final ArXiv Replacement   |
-| `erratum_requested`       | Erratum Submission        |
-| `erratum_submitted`       | Erratum Acceptance        |
-| `final_arxiv_replaced`    | Paper Finish              |
-| `finished`                | Submission Closed         |
+| Raw Value                 | Display Label              |
+| ------------------------- | -------------------------- |
+| `not_started`             | Publication Phase Launch   |
+| `started`                 | Tarball Receiving          |
+| `tarball_received`        | CERN and ATLAS Collection  |
+| `submitted_to_arxiv`      | Journal Submission         |
+| `submitted_to_journal`    | Journal Reports Receiving  |
+| `journal_report_received` | Journal Reports Answering  |
+| `journal_report_answered` | Journal Acceptance         |
+| `accepted_by_journal`     | Proofs Receiving           |
+| `proof_received`          | Proofs Answering           |
+| `proof_answered`          | Online Publication         |
+| `published_online`        | Final ArXiv Replacement    |
+| `erratum_requested`       | Erratum Submission         |
+| `erratum_submitted`       | Erratum Acceptance         |
+| `final_arxiv_replaced`    | Paper Finish               |
+| `finished`                | Publication Phase Finished |
 
 ---
 
@@ -125,4 +134,20 @@ API.
 | `edBoardSignOff`       | Editorial Board Draft Sign-off                |
 | `draft_released`       | ATLAS Review Organized by Physics Coordinator |
 | `review_closed`        | Draft 1 Released to ATLAS                     |
-| `finished`             | Phase Closed                                  |
+| `finished`             | Phase 1 Finished                              |
+
+### `phase_1_data.state` — Phase 1 (Pubnote)
+
+| Raw Value               | Display Label                                        |
+| ----------------------- | ---------------------------------------------------- |
+| `not_started`           | Phase 1 Data                                         |
+| `started`               | Readers Data                                         |
+| `readers_choosen`       | Pubnote review and production of draft               |
+| `draft_released`        | Draft Released by First Reader for ATLAS Circulation |
+| `atlas_circulation`     | ATLAS Circulation                                    |
+| `conveners_approval`    | Group Approval                                       |
+| `atlas_approved`        | Proceed to Sign-Off                                  |
+| `setSignOffResponsible` | Sign-Off Readers                                     |
+| `first_signed`          | Readers Sign-Off Dates and Final Sign-Off            |
+| `second_signed`         | Finish Phase                                         |
+| `finished`              | Phase 1 Finished                                     |

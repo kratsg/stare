@@ -57,10 +57,9 @@ class AnalysisStatus(StrEnum):
     """Auto-generated enum."""
 
     CREATED = "Created"
-    ANALYSIS_CLOSED = "Analysis Closed"
+    ANALYSIS_CLOSED = "Closed"
     PHASE0_ACTIVE = "Phase 0 Active"
-    PHASE0_CLOSED = "Phase 0 Closed"
-
+    PHASE0_CLOSED = "Phase 0 Finished"
 
 class PaperStatus(StrEnum):
     """Auto-generated enum."""
@@ -68,21 +67,27 @@ class PaperStatus(StrEnum):
     CREATED = "Not Started"
     ANALYSIS_CLOSED = "Closed"
     PHASE1_ACTIVE = "Phase 1 Active"
-    PHASE1_CLOSED = "Phase 1 Closed"
+    PHASE1_CLOSED = "Phase 1 Finished"
     PHASE3_ACTIVE = "Phase 2 Active"
-    PHASE3_CLOSED = "Phase 2 Closed"
+    PHASE3_CLOSED = "Phase 2 Finished"
     SUBMISSION_ACTIVE = "Publication Phase Active"
-    SUBMISSION_CLOSED = "Completed"
-
+    SUBMISSION_CLOSED = "Publication Phase Finished"
 
 class ConfnoteStatus(StrEnum):
     """Auto-generated enum."""
 
     CREATED = "Created"
-    ANALYSIS_CLOSED = "Analysis Closed"
+    ANALYSIS_CLOSED = "Closed"
     PHASE1_ACTIVE = "Phase 1 Active"
-    PHASE1_CLOSED = "Phase 1 Closed"
+    PHASE1_CLOSED = "Phase 1 Finished"
 
+class Status(StrEnum):
+    """Auto-generated enum."""
+
+    CREATED = "Created"
+    ANALYSIS_CLOSED = "Closed"
+    PHASE1_ACTIVE = "Phase 1 Active"
+    PHASE1_CLOSED = "Phase 1 Finished"
 
 class AnalysisPhase0State(StrEnum):
     """Auto-generated enum."""
@@ -94,9 +99,7 @@ class AnalysisPhase0State(StrEnum):
     FIRST_ANALYSIS_DATA = "Analysis metadata"
     ANALYSIS_COORDINATORS_TIMELINE = "Analysis contacts' target date"
     SECOND_ANALYSIS_DATA = "Auxiliary metadata"
-    INTERNAL_NOTE_EDITORS_DEFINITION = (
-        "Internal note editors and contact editors appointment"
-    )
+    INTERNAL_NOTE_EDITORS_DEFINITION = "Internal note editors and contact editors appointment"
     EDBOARD_REQUEST_MEETING_DATA = "Editorial Board request meeting and formation data"
     EDBOARD_MEETING_DATA = "Editorial Board meeting data"
     PRE_APPROVAL_MEETING_DATA = "Pre approval meeting data"
@@ -108,14 +111,9 @@ class AnalysisPhase0State(StrEnum):
     PAPER_SKIP = "Skipped to Paper"
     CONF_SKIP = "Skipped to CONF Note"
     PUB_SKIP = "Skipped to PUB Note"
-    PAPER_CONTACT_EDITORS_DEFINITION = (
-        "Contact editors and Editorial Board appointment (skipped to Paper)"
-    )
-    CONF_CONTACT_EDITORS_DEFINITION = (
-        "Contact editors and Editorial Board appointment (skipped to CONF note)"
-    )
+    PAPER_CONTACT_EDITORS_DEFINITION = "Contact editors and Editorial Board appointment (skipped to Paper)"
+    CONF_CONTACT_EDITORS_DEFINITION = "Contact editors and Editorial Board appointment (skipped to CONF note)"
     PUB_CONTACT_EDITORS_DEFINITION = "Contact editors appointment (skipped to PUB note)"
-
 
 class PaperPhase1State(StrEnum):
     """Auto-generated enum."""
@@ -123,23 +121,19 @@ class PaperPhase1State(StrEnum):
     NOT_STARTED = "Phase 1 Data"
     STARTED = "Editorial Board"
     APPROVED_BY_REVIEWER = "Analysis Review"
-    LGP_APPROVED = "Editorial Board Draft Sign-off"
+    LPG_APPROVED = "Editorial Board Draft Sign-off"
     REVIEW_CLOSED = "Draft 1 Released to ATLAS"
-    FINISHED = "Phase Closed"
+    FINISHED = "Phase 1 Finished"
 
-
-class PaperPhase2State(StrEnum):
+class PaperPhase3State(StrEnum):
     """Auto-generated enum."""
 
     STARTED = "Phase 2 Data"
     FINAL_REVIEW_CLOSED = "Draft 2 Approval Process"
     UPDATE_EDBOARD = "Revised Draft Final Sign-off by Editorial Board Chair"
-    UPDATED_PUBCOMM = (
-        "Revised Draft Final Sign-off by Publication Committee Chair or Deputy"
-    )
+    UPDATED_PUBCOMM = "Revised Draft Final Sign-off by Publication Committee Chair or Deputy"
     UPDATED_SPOKESPERSONDATE = "Final Sign-off by Spokesperson or Deputy"
-    FINISHED = "Phase Closed"
-
+    FINISHED = "Phase 2 Finished"
 
 class PaperSubmissionState(StrEnum):
     """Auto-generated enum."""
@@ -158,8 +152,7 @@ class PaperSubmissionState(StrEnum):
     ERRATUM_REQUESTED = "Erratum Submission"
     ERRATUM_SUBMITTED = "Erratum Acceptance"
     FINAL_ARXIV_REPLACED = "Paper Finish"
-    FINISHED = "Submission Closed"
-
+    FINISHED = "Publication Phase Finished"
 
 class ConfnotePhase1State(StrEnum):
     """Auto-generated enum."""
@@ -174,8 +167,22 @@ class ConfnotePhase1State(StrEnum):
     EDBOARDSIGNOFF = "Editorial Board Draft Sign-off"
     DRAFT_RELEASED = "ATLAS Review Organized by Physics Coordinator"
     REVIEW_CLOSED = "Draft 1 Released to ATLAS"
-    FINISHED = "Phase Closed"
+    FINISHED = "Phase 1 Finished"
 
+class Phase_1_dataState(StrEnum):
+    """Auto-generated enum."""
+
+    NOT_STARTED = "Phase 1 Data"
+    STARTED = "Readers Data"
+    READERS_CHOOSEN = "Pubnote review and production of draft"
+    DRAFT_RELEASED = "Draft Released by First Reader for ATLAS Circulation"
+    ATLAS_CIRCULATION = "ATLAS Circulation"
+    CONVENERS_APPROVAL = "Group Approval"
+    ATLAS_APPROVED = "Proceed to Sign-Off"
+    SETSIGNOFFRESPONSIBLE = "Sign-Off Readers"
+    FIRST_SIGNED = "Readers Sign-Off Dates and Final Sign-Off"
+    SECOND_SIGNED = "Finish Phase"
+    FINISHED = "Phase 1 Finished"
 
 # <AUTO-GENERATED-ENUMS:END>
 
