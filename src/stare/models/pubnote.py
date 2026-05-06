@@ -61,28 +61,16 @@ class PubNotePhase1(_Base):
 
     state: LenientPubnotePhase_1_dataState | None = None
     start_date: date | None = None
-    draft_cds_url: str | None = Field(default=None, alias="draftCdsUrl")
+    draft_cds_url: str | None = None
     readers: Readers = Field(default_factory=Readers)
     presentation_date: date | None = None
-    group_approval_date: date | None = Field(default=None, alias="groupApprovalDate")
-    first_reader_draft_sign_off_date: date | None = Field(
-        default=None, alias="firstReaderDraftSignOffDate"
-    )
-    atlas_circulation_date: date | None = Field(
-        default=None, alias="atlasCirculationDate"
-    )
-    proceed_to_sign_off_date: date | None = Field(
-        default=None, alias="proceedToSignOffDate"
-    )
-    first_reader_sign_off_date: date | None = Field(
-        default=None, alias="firstReaderSignOffDate"
-    )
-    second_reader_sign_off_date: date | None = Field(
-        default=None, alias="secondReaderSignOffDate"
-    )
-    public_web_page_url: str | None = Field(
-        default=None, alias="publicWebPageURLForFiguresAndTables"
-    )
+    group_approval_date: date | None = None
+    first_reader_draft_sign_off_date: date | None = None
+    atlas_circulation_date: date | None = None
+    proceed_to_sign_off_date: date | None = None
+    first_reader_sign_off_date: date | None = None
+    second_reader_sign_off_date: date | None = None
+    public_web_page_url: str | None = None
     release_date: date | None = None
 
 
@@ -92,7 +80,7 @@ class PubNote(_Base):
     temp_reference_code: str | None = Field(
         default=None, alias="temporaryReferenceCode"
     )
-    final_reference_code: str | None = Field(default=None, alias="finalReferenceCode")
+    final_reference_code: str | None = None
     status: PubnoteStatus | None = None
     short_title: str | None = None
     public_short_title: str | None = None
@@ -101,12 +89,8 @@ class PubNote(_Base):
     documentation: Documentation | None = None
     analysis_team: AnalysisTeam = Field(default_factory=AnalysisTeam)
     metadata: Metadata | None = None
-    associated_analysis: RelatedPublication | None = Field(
-        default=None, alias="relatedAnalysis"
-    )
-    superseded_by: list[RelatedPublication] = Field(
-        default_factory=list, alias="supersededBy"
-    )
+    related_analysis: RelatedPublication | None = None
+    superseded_by: list[RelatedPublication] = Field(default_factory=list)
     phase1: PubNotePhase1 | None = None
 
     def __rich__(self) -> Panel:
