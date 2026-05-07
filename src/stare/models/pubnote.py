@@ -20,7 +20,7 @@ from stare.models.common import (
     _Base,
     _ListRootModel,
 )
-from stare.models.enums import LenientPubnotePhase_1_dataState, PubnoteStatus
+from stare.models.enums import LenientPubnotePhase1State, PubnoteStatus
 from stare.settings import StareSettings
 from stare.urls import pubnote_url
 
@@ -59,7 +59,7 @@ class Readers(_ListRootModel[PubNoteReader]):
 class PubNotePhase1(_Base):
     """Phase 1 lifecycle metadata for a PUB note."""
 
-    state: LenientPubnotePhase_1_dataState | None = None
+    state: LenientPubnotePhase1State | None = None
     start_date: date | None = None
     draft_cds_url: str | None = None
     readers: Readers = Field(default_factory=Readers)

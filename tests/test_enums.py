@@ -20,8 +20,8 @@ from stare.models.enums import (
     LenientRepositoryType,
     PaperPhase1State,
     PaperPhase2State,
+    PaperPublicationphaseState,
     PaperStatus,
-    PaperSubmissionState,
     PublicationType,
     RepositoryType,
 )
@@ -260,49 +260,49 @@ class TestPaperPhase2State:
         )
 
 
-class TestPaperSubmissionState:
+class TestPaperPublicationphaseState:
     def test_human_readable_states(self) -> None:
-        M = _model(PaperSubmissionState)
+        M = _model(PaperPublicationphaseState)
         assert (
             M.model_validate({"value": "Publication Phase Launch"}).value
-            == PaperSubmissionState.NOT_STARTED
+            == PaperPublicationphaseState.NOT_STARTED
         )
         assert (
             M.model_validate({"value": "Publication Phase Finished"}).value
-            == PaperSubmissionState.FINISHED
+            == PaperPublicationphaseState.FINISHED
         )
 
     def test_internal_workflow_states(self) -> None:
-        M = _model(PaperSubmissionState)
+        M = _model(PaperPublicationphaseState)
         assert (
             M.model_validate({"value": "Journal Submission"}).value
-            == PaperSubmissionState.SUBMITTED_TO_ARXIV
+            == PaperPublicationphaseState.SUBMITTED_TO_ARXIV
         )
         assert (
             M.model_validate({"value": "Journal Reports Receiving"}).value
-            == PaperSubmissionState.SUBMITTED_TO_JOURNAL
+            == PaperPublicationphaseState.SUBMITTED_TO_JOURNAL
         )
 
     def test_live_api_workflow_states(self) -> None:
-        M = _model(PaperSubmissionState)
+        M = _model(PaperPublicationphaseState)
         assert (
             M.model_validate({"value": "Journal Reports Answering"}).value
-            == PaperSubmissionState.JOURNAL_REPORT_RECEIVED
+            == PaperPublicationphaseState.JOURNAL_REPORT_RECEIVED
         )
         assert (
             M.model_validate({"value": "Final ArXiv Replacement"}).value
-            == PaperSubmissionState.PUBLISHED_ONLINE
+            == PaperPublicationphaseState.PUBLISHED_ONLINE
         )
 
     def test_additional_workflow_states(self) -> None:
-        M = _model(PaperSubmissionState)
+        M = _model(PaperPublicationphaseState)
         assert (
             M.model_validate({"value": "Erratum Submission"}).value
-            == PaperSubmissionState.ERRATUM_REQUESTED
+            == PaperPublicationphaseState.ERRATUM_REQUESTED
         )
         assert (
             M.model_validate({"value": "Paper Finish"}).value
-            == PaperSubmissionState.FINAL_ARXIV_REPLACED
+            == PaperPublicationphaseState.FINAL_ARXIV_REPLACED
         )
 
 

@@ -100,7 +100,7 @@ validation error.
 
 ::: stare.models.enums.PaperPhase2State
 
-::: stare.models.enums.PaperSubmissionState
+::: stare.models.enums.PaperPublicationphaseState
 
 ::: stare.models.enums.ConfnotePhase1State
 

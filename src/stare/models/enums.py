@@ -150,7 +150,7 @@ class PaperPhase2State(StrEnum):
     FINISHED = "Phase 2 Finished"
 
 
-class PaperSubmissionState(StrEnum):
+class PaperPublicationphaseState(StrEnum):
     """Auto-generated enum."""
 
     NOT_STARTED = "Publication Phase Launch"
@@ -186,7 +186,7 @@ class ConfnotePhase1State(StrEnum):
     FINISHED = "Phase 1 Finished"
 
 
-class PubnotePhase_1_dataState(StrEnum):  # pylint: disable=invalid-name
+class PubnotePhase1State(StrEnum):
     """Auto-generated enum."""
 
     NOT_STARTED = "Phase 1 Data"
@@ -243,9 +243,9 @@ LenientMeetingType = _lenient(MeetingType)
 LenientAnalysisPhase0State = _lenient(AnalysisPhase0State)
 LenientPaperPhase1State = _lenient(PaperPhase1State)
 LenientPaperPhase2State = _lenient(PaperPhase2State)
-LenientPaperSubmissionState = _lenient(PaperSubmissionState)
+LenientPaperPublicationphaseState = _lenient(PaperPublicationphaseState)
 LenientConfnotePhase1State = _lenient(ConfnotePhase1State)
-LenientPubnotePhase_1_dataState = _lenient(PubnotePhase_1_dataState)  # pylint: disable=invalid-name
+LenientPubnotePhase1State = _lenient(PubnotePhase1State)  # pylint: disable=invalid-name
 LenientAnalysisStatus = _lenient(AnalysisStatus)
 LenientPaperStatus = _lenient(PaperStatus)
 LenientConfnoteStatus = _lenient(ConfnoteStatus)

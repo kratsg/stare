@@ -26,7 +26,7 @@ from stare.models.common import (
 from stare.models.enums import (
     LenientPaperPhase1State,
     LenientPaperPhase2State,
-    LenientPaperSubmissionState,
+    LenientPaperPublicationphaseState,
     PaperStatus,
 )
 from stare.settings import StareSettings
@@ -76,7 +76,7 @@ class PaperPhase2(_Base):
 class PublicationPhase(_Base):
     """Publication phase: arXiv, journal, final publication."""
 
-    state: LenientPaperSubmissionState | None = None
+    state: LenientPaperPublicationphaseState | None = None
     start_date: date | None = None
     arxiv_urls: list[Link] = Field(default_factory=list, alias="arXivUrls")
     final_title_tex: str | None = None
