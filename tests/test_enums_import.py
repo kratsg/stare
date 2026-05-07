@@ -11,7 +11,7 @@ def test_enums_module_imports_cleanly():
         "LenientAnalysisPhase0State",
         "LenientPaperPhase1State",
         "LenientPaperPhase2State",
-        "LenientPaperSubmissionState",
+        "LenientPaperPublicationphaseState",
         "LenientAnalysisStatus",
         "LenientPaperStatus",
         "LenientConfnoteStatus",

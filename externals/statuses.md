@@ -98,7 +98,7 @@ API.
 
 ---
 
-### `submission.state` — Submission phase (Paper)
+### `publicationPhase.state` — Publication phase (Paper)
 
 | Raw Value                 | Display Label              |
 | ------------------------- | -------------------------- |
@@ -136,7 +136,7 @@ API.
 | `review_closed`        | Draft 1 Released to ATLAS                     |
 | `finished`             | Phase 1 Finished                              |
 
-### `phase_1_data.state` — Phase 1 (Pubnote)
+### `phase1.state` — Phase 1 (Pubnote)
 
 | Raw Value               | Display Label                                        |
 | ----------------------- | ---------------------------------------------------- |
