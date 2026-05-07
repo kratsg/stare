@@ -189,8 +189,6 @@ class TestMetadata:
         assert m.keywords == []
         assert m.statistical_tools == []
         assert m.mva_ml_tools == []
-        assert m.triggers == []
-        assert m.analysis_framework is None
 
 
 class TestDocumentation:

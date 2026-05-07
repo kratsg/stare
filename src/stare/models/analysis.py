@@ -15,12 +15,14 @@ from rich.text import Text
 
 from stare.models.common import (
     AmiGlanceLink,
+    AnalysisFramework,
     AnalysisTeam,
     Documentation,
     EditorialBoard,
     Groups,
     Metadata,
     RelatedPublication,
+    Trigger,
     TypedMeeting,
     _Base,
 )
@@ -42,6 +44,11 @@ _MEETING_API_KEYS: dict[str, str] = {
     MeetingType.APPROVAL: "approvalMeeting",
 }
 _MEETING_API_KEY_TO_TYPE: dict[str, str] = {v: k for k, v in _MEETING_API_KEYS.items()}
+
+
+class AnalysisMetadata(Metadata):
+    triggers: list[Trigger] = Field(default_factory=list)
+    analysis_framework: AnalysisFramework | None = None
 
 
 class AnalysisPhase0(_Base):
@@ -115,7 +122,7 @@ class Analysis(_Base):
     ami_glance: list[AmiGlanceLink] = Field(default_factory=list)
     documentation: Documentation | None = None
     analysis_team: AnalysisTeam = Field(default_factory=AnalysisTeam)
-    metadata: Metadata | None = None
+    metadata: AnalysisMetadata | None = None
     related_publications: list[RelatedPublication] = Field(default_factory=list)
     phase0: AnalysisPhase0 | None = None
     extra_metadata: dict[str, Any] | None = None

@@ -447,10 +447,6 @@ class Metadata(_Base):
     keywords: list[Keyword] = Field(default_factory=list)
     statistical_tools: list[StatTool] = Field(default_factory=list, alias="statTools")
     mva_ml_tools: list[MvaMlTool] = Field(default_factory=list, alias="mvaMlTools")
-    # Analysis endpoint only; empty for paper/confnote/pubnote.
-    triggers: list[Trigger] = Field(default_factory=list)
-    # Analysis endpoint only.
-    analysis_framework: AnalysisFramework | None = None
 
 
 class Repository(Link):
