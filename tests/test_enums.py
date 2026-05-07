@@ -17,12 +17,14 @@ from stare.models.enums import (
     LenientConfnotePhase1State,
     LenientConfnoteStatus,
     LenientPublicationType,
+    LenientPubnotePhase1State,
     LenientRepositoryType,
     PaperPhase1State,
     PaperPhase2State,
     PaperPublicationphaseState,
     PaperStatus,
     PublicationType,
+    PubnotePhase1State,
     RepositoryType,
 )
 
@@ -304,6 +306,40 @@ class TestPaperPublicationphaseState:
             M.model_validate({"value": "Paper Finish"}).value
             == PaperPublicationphaseState.FINAL_ARXIV_REPLACED
         )
+
+
+class TestPubnotePhase1State:
+    def test_human_readable_states(self) -> None:
+
+        M = _model(PubnotePhase1State)
+        assert (
+            M.model_validate({"value": "Phase 1 Data"}).value
+            == PubnotePhase1State.NOT_STARTED
+        )
+        assert (
+            M.model_validate({"value": "Phase 1 Finished"}).value
+            == PubnotePhase1State.FINISHED
+        )
+
+    def test_internal_workflow_states(self) -> None:
+
+        M = _model(PubnotePhase1State)
+        assert (
+            M.model_validate({"value": "Readers Data"}).value
+            == PubnotePhase1State.STARTED
+        )
+        assert (
+            M.model_validate({"value": "ATLAS Circulation"}).value
+            == PubnotePhase1State.ATLAS_CIRCULATION
+        )
+
+    def test_unknown_falls_back(self, caplog) -> None:
+
+        M = _model(LenientPubnotePhase1State)
+        with caplog.at_level(logging.WARNING, logger="stare"):
+            result = M.model_validate({"value": "Some Future State"})
+        assert result.value == "Some Future State"
+        assert "PubnotePhase1State" in caplog.text
 
 
 class TestConfnotePhase1State:
