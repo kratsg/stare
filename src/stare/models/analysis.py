@@ -47,6 +47,8 @@ _MEETING_API_KEY_TO_TYPE: dict[str, str] = {v: k for k, v in _MEETING_API_KEYS.i
 
 
 class AnalysisMetadata(Metadata):
+    """Additional physics and technical metadata for analyses."""
+
     triggers: list[Trigger] = Field(default_factory=list)
     analysis_framework: AnalysisFramework | None = None
 
