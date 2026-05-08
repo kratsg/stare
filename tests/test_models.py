@@ -1083,7 +1083,7 @@ class TestConfNote:
                 }
             )
 
-    def test_all_optional(self) -> None:
+    def test_final_reference_code_optional(self) -> None:
         note = ConfNote.model_validate(
             {
                 "temporaryReferenceCode": "CONF-EXOT-2024-01",
@@ -1165,7 +1165,7 @@ class TestPubNote:
                 }
             )
 
-    def test_all_optional(self) -> None:
+    def test_final_reference_code_optional(self) -> None:
         note = PubNote.model_validate(
             {
                 "temporaryReferenceCode": "PUB-EXOT-2026-03",
