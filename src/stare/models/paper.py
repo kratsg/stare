@@ -13,7 +13,6 @@ from rich.table import Table
 from rich.text import Text
 
 from stare.models.common import (
-    AnalysisTeam,
     Documentation,
     EditorialBoard,
     Groups,
@@ -21,6 +20,8 @@ from stare.models.common import (
     Metadata,
     Person,
     RelatedPublication,
+    RequiredLink,
+    Team,
     _Base,
 )
 from stare.models.enums import (
@@ -33,6 +34,8 @@ from stare.settings import StareSettings
 from stare.urls import paper_url
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from rich.console import RenderableType
 
 
@@ -63,7 +66,7 @@ class PaperPhase2(_Base):
     draft2_released_date: date | None = None
     draft2_sent_to_cern_date: date | None = None
     draft2_cern_sign_off_date: date | None = None
-    paper_closure_meeting: list[Link] = Field(default_factory=list)
+    paper_closure_meeting: list[RequiredLink] = Field(default_factory=list)
     preliminary_plots_and_results_released: bool | None = None
     paper_closure_date: date | None = None
     editorial_board_revised_sign_off_date: date | None = None
@@ -78,19 +81,19 @@ class PublicationPhase(_Base):
 
     state: LenientPaperPublicationphaseState | None = None
     start_date: date | None = None
-    arxiv_urls: list[Link] = Field(default_factory=list, alias="arXivUrls")
+    arxiv_urls: list[RequiredLink] = Field(default_factory=list, alias="arXivUrls")
     final_title_tex: str | None = None
     final_submission_journal: str | None = None
     arxiv_submission_date: AwareDatetime | None = Field(
         default=None, alias="arXivSubmissionDate"
     )
-    physics_briefing: list[Link] = Field(default_factory=list)
+    physics_briefing: list[RequiredLink] = Field(default_factory=list)
     first_referee_report_date: AwareDatetime | None = Field(
         default=None, alias="1stRefereeReportDate"
     )
     journal_acceptance_date: date | None = None
     first_proof_date: AwareDatetime | None = Field(default=None, alias="1stProofDate")
-    final_journal_publication: list[Link] = Field(default_factory=list)
+    final_journal_publication: list[RequiredLink] = Field(default_factory=list)
     published_online_date: AwareDatetime | None = None
 
     @field_validator("arxiv_submission_date", mode="before")
@@ -108,7 +111,7 @@ class PublicationPhase(_Base):
         """Return a Rich Panel with publication details, or None if the phase has no renderable fields."""
         rows: list[tuple[str, RenderableType]] = []
 
-        def _link_texts(links_field: list[Link]) -> Text:
+        def _link_texts(links_field: Sequence[Link]) -> Text:
             return Text(", ").join(
                 Text.from_markup(f"[link={lnk.url}]{lnk.label or lnk.url}[/link]")
                 if lnk.url
@@ -158,7 +161,7 @@ class Paper(_Base):
     full_title: str | None = None
     groups: Groups | None = None
     documentation: Documentation | None = None
-    analysis_team: AnalysisTeam = Field(default_factory=AnalysisTeam)
+    analysis_team: Team = Field(default_factory=Team)
     metadata: Metadata | None = None
     rivet_routines_url: str | None = None
     related_analysis: RelatedPublication | None = None

@@ -234,7 +234,7 @@ class Link(_Base):
     """A labelled URL, optionally rendered as a Rich clickable hyperlink."""
 
     label: str | None = None
-    url: str
+    url: str | None = None
 
     def __rich__(self) -> Text:
         """Render as a Rich clickable hyperlink when a URL is present."""
@@ -244,9 +244,15 @@ class Link(_Base):
         return Text(display)
 
 
-# Backward-compat aliases so existing imports keep working.
-AmiGlanceLink = Link
-InternalDocument = Link
+class RequiredLink(Link):
+    """A Link where the url is contractually guaranteed to be present."""
+
+    url: str
+
+
+# Aliases for semantically-required-url contexts.
+AmiGlanceLink = RequiredLink
+InternalDocument = RequiredLink
 
 
 class _NamedItem(_Base):
@@ -306,12 +312,17 @@ class Person(_Base):
 
 
 class TeamMember(Person):
-    """A member of an analysis team."""
+    """A member of an analysis team (paper/confnote/pubnote variant)."""
 
     is_contact_editor: bool
-    # Required key per api.yml; null when the analysis-contact concept does not apply.
-    is_analysis_contact: bool | None
+    is_analysis_contact: bool | None = None
     analysis_contact_assignments: AnalysisContactAssignment | None = None
+
+
+class AnalysisTeamMember(TeamMember):
+    """Analysis-resource team member: isAnalysisContact is required and non-nullable."""
+
+    is_analysis_contact: bool
 
 
 class EditorialBoardMember(Person):
@@ -338,21 +349,28 @@ class EditorialBoard(_ListRootModel[EditorialBoardMember]):
         return Panel(eb_table, title="Editorial Board")
 
 
-class AnalysisTeam(_ListRootModel[TeamMember]):
-    """Ordered list of team members, rendered as a titled panel with contact-editor highlight."""
+class _TeamRichMixin:
+    """Shared Rich panel rendering for team-member list wrappers."""
 
     def __rich__(self) -> Panel:
-        """Return a Rich Panel listing all team members, contact editors first."""
         team_table = Table(show_header=True, header_style="bold magenta", expand=True)
         team_table.add_column("Name")
         team_table.add_column("CCID", justify="right")
-        team_sorted = sorted(self, key=lambda p: not p.is_contact_editor)
+        team_sorted = sorted(self, key=lambda p: not p.is_contact_editor)  # type: ignore[call-overload]
         for p in team_sorted:
             name = f"{p.first_name} {p.last_name}"
             if p.is_contact_editor:
                 name = f"[bold yellow]★ {name}[/bold yellow]"
             team_table.add_row(name, p.cern_ccid or "")
-        return Panel(team_table, title=f"Team ({len(self)})")
+        return Panel(team_table, title=f"Team ({len(self)})")  # type: ignore[arg-type]
+
+
+class Team(_TeamRichMixin, _ListRootModel[TeamMember]):
+    """Ordered list of team members for paper/confnote/pubnote resources."""
+
+
+class AnalysisTeam(_TeamRichMixin, _ListRootModel[AnalysisTeamMember]):
+    """Ordered list of team members for Analysis resources (isAnalysisContact required)."""
 
 
 class Groups(_Base):
@@ -469,7 +487,7 @@ class Documentation(_Base):
     """Repositories and supporting documents for a publication."""
 
     repositories: list[Repository] = Field(default_factory=list)
-    supporting_internal_documents: list[Link] = Field(default_factory=list)
+    supporting_internal_documents: list[InternalDocument] = Field(default_factory=list)
 
 
 class Meeting(_Base):
@@ -490,11 +508,11 @@ class Meeting(_Base):
         if not isinstance(data, dict):
             return data
         # API sends flat label/url fields; fold them into a nested Link object.
-        # Only construct a Link when url is present — Link.url is required.
+        # Build a Link when either field is present so label-only entries are preserved.
         if "link" not in data and ("label" in data or "url" in data):
             label = data.pop("label", None)
             url = data.pop("url", None)
-            if url is not None:
+            if label is not None or url is not None:
                 data["link"] = {"label": label, "url": url}
         return data
 

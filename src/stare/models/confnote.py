@@ -12,13 +12,13 @@ from rich.table import Table
 from rich.text import Text
 
 from stare.models.common import (
-    AnalysisTeam,
     Documentation,
     EditorialBoard,
     Groups,
     Metadata,
     Person,
     RelatedPublication,
+    Team,
     _Base,
 )
 from stare.models.enums import ConfnoteStatus, LenientConfnotePhase1State
@@ -60,7 +60,7 @@ class ConfNote(_Base):
     full_title: str | None = None
     groups: Groups | None = None
     documentation: Documentation | None = None
-    analysis_team: AnalysisTeam = Field(default_factory=AnalysisTeam)
+    analysis_team: Team = Field(default_factory=Team)
     metadata: Metadata | None = None
     related_analysis: RelatedPublication | None = None
     superseded_by: list[RelatedPublication] = Field(default_factory=list)

@@ -17,6 +17,7 @@ from stare.models.common import (
     AmiGlanceLink,
     AnalysisFramework,
     AnalysisTeam,
+    AnalysisTeamMember,
     Collision,
     Collisions,
     Documentation,
@@ -29,6 +30,8 @@ from stare.models.common import (
     Metadata,
     Person,
     RelatedPublication,
+    RequiredLink,
+    Team,
     TeamMember,
     _extract_context,
 )
@@ -92,19 +95,44 @@ class TestTeamMember:
                 "lastName": "Y",
                 "email": "x@y.com",
                 "isContactEditor": True,
-                "isAnalysisContact": False,
             }
         )
         assert m.cern_ccid == "x"
         assert m.is_contact_editor is True
+        assert m.is_analysis_contact is None
 
     def test_is_contact_editor_required(self) -> None:
         with pytest.raises(ResponseParseError):
             TeamMember.model_validate({})
 
+    def test_is_analysis_contact_optional(self) -> None:
+        m = TeamMember.model_validate({"isContactEditor": False})
+        assert m.is_analysis_contact is None
+
+    def test_is_analysis_contact_accepts_null(self) -> None:
+        m = TeamMember.model_validate(
+            {"isContactEditor": False, "isAnalysisContact": None}
+        )
+        assert m.is_analysis_contact is None
+
+
+class TestAnalysisTeamMember:
+    def test_parse_with_is_analysis_contact(self) -> None:
+        m = AnalysisTeamMember.model_validate(
+            {"isContactEditor": True, "isAnalysisContact": False}
+        )
+        assert m.is_contact_editor is True
+        assert m.is_analysis_contact is False
+
     def test_is_analysis_contact_required(self) -> None:
         with pytest.raises(ResponseParseError):
-            TeamMember.model_validate({"isContactEditor": True})
+            AnalysisTeamMember.model_validate({"isContactEditor": True})
+
+    def test_is_analysis_contact_non_nullable(self) -> None:
+        with pytest.raises(ResponseParseError):
+            AnalysisTeamMember.model_validate(
+                {"isContactEditor": True, "isAnalysisContact": None}
+            )
 
 
 class TestEditorialBoardMember:
@@ -271,10 +299,12 @@ class TestMeeting:
         assert m.title is None
         assert m.link is None
 
-    def test_label_only_drops_link(self) -> None:
+    def test_label_only_preserves_link(self) -> None:
         m = Meeting.model_validate({"title": "EOI", "label": "Indico"})
         assert m.title == "EOI"
-        assert m.link is None
+        assert m.link is not None
+        assert m.link.label == "Indico"
+        assert m.link.url is None
 
 
 class TestLink:
@@ -294,8 +324,34 @@ class TestLink:
         with pytest.raises(ResponseParseError):
             Link.model_validate({"label": "No link"})
 
-    def test_ami_glance_link_is_link(self) -> None:
+    def test_label_only_link(self) -> None:
+        link = Link.model_validate({"label": "No url"})
+        assert link.label == "No url"
+        assert link.url is None
+
+    def test_empty_link(self) -> None:
+        link = Link.model_validate({})
+        assert link.label is None
+        assert link.url is None
+
+
+class TestRequiredLink:
+    def test_parse(self) -> None:
+        rl = RequiredLink.model_validate({"label": "AMI", "url": "https://ami.cern.ch"})
+        assert rl.url == "https://ami.cern.ch"
+        assert isinstance(rl, Link)
+
+    def test_url_required(self) -> None:
+        with pytest.raises(ResponseParseError):
+            RequiredLink.model_validate({"label": "No url"})
+
+    def test_url_non_nullable(self) -> None:
+        with pytest.raises(ResponseParseError):
+            RequiredLink.model_validate({"url": None})
+
+    def test_ami_glance_link_is_required_link(self) -> None:
         a = AmiGlanceLink.model_validate({"label": "AMI", "url": "https://ami.cern.ch"})
+        assert isinstance(a, RequiredLink)
         assert isinstance(a, Link)
         assert a.label == "AMI"
 
@@ -835,8 +891,26 @@ class TestListRootModelWrappers:
         )
         assert len(team) == 1
         assert team[0].cern_ccid == "u1"
+        assert isinstance(team[0], AnalysisTeamMember)
         assert bool(team) is True
         assert bool(AnalysisTeam()) is False
+
+    def test_team_protocol(self) -> None:
+        team = Team.model_validate(
+            [
+                {
+                    "cernCcid": "u2",
+                    "firstName": "Leia",
+                    "lastName": "Organa",
+                    "isContactEditor": False,
+                }
+            ]
+        )
+        assert len(team) == 1
+        assert team[0].cern_ccid == "u2"
+        assert isinstance(team[0], TeamMember)
+        assert bool(team) is True
+        assert bool(Team()) is False
 
     def test_collisions_protocol(self) -> None:
         colls = Collisions.model_validate(
