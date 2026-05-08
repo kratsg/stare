@@ -427,9 +427,9 @@ class TestPublicationType:
         M = _model(LenientPublicationType)
         assert M.model_validate({"value": "Paper"}).value == PublicationType.PAPER
         assert (
-            M.model_validate({"value": "ConfNote"}).value == PublicationType.CONF_NOTE
+            M.model_validate({"value": "CONF note"}).value == PublicationType.CONF_NOTE
         )
-        assert M.model_validate({"value": "PubNote"}).value == PublicationType.PUB_NOTE
+        assert M.model_validate({"value": "PUB note"}).value == PublicationType.PUB_NOTE
         assert M.model_validate({"value": "Analysis"}).value == PublicationType.ANALYSIS
 
     def test_unknown_falls_back(self, caplog) -> None:
