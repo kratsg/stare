@@ -1175,6 +1175,10 @@ class TestPubNote:
         assert note.temp_reference_code == "PUB-EXOT-2026-03"
         assert note.final_reference_code is None
 
+    def test_missing_temp_reference_code_raises(self) -> None:
+        with pytest.raises(ResponseParseError):
+            PubNote.model_validate({"finalReferenceCode": "ATL-PHYS-PUB-2024-01"})
+
 
 class TestPubNotePhase1:
     def test_phase1_state_uses_confnote_enum(self) -> None:
