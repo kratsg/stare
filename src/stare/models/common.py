@@ -166,6 +166,7 @@ class _Base(BaseModel):
     model_config = ConfigDict(
         alias_generator=to_camel,
         populate_by_name=True,
+        extra="forbid",
     )
 
     @classmethod
@@ -276,8 +277,8 @@ class Trigger(_NamedItem):
 class AnalysisFramework(_Base):
     """Ntupling and histogramming framework names for an analysis."""
 
-    ntupling: list[str] = Field(default_factory=list)
-    histogramming: list[str] = Field(default_factory=list)
+    ntupling: str | None = None
+    histogramming: str | None = None
 
 
 class AnalysisContactAssignment(_Base):

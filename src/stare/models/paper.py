@@ -81,9 +81,13 @@ class PublicationPhase(_Base):
     arxiv_urls: list[Link] = Field(default_factory=list, alias="arXivUrls")
     final_title_tex: str | None = None
     final_submission_journal: str | None = None
-    arxiv_submission_date: AwareDatetime | None = None
+    arxiv_submission_date: AwareDatetime | None = Field(
+        default=None, alias="arXivSubmissionDate"
+    )
     physics_briefing: list[Link] = Field(default_factory=list)
-    first_referee_report_date: date | None = None
+    first_referee_report_date: AwareDatetime | None = Field(
+        default=None, alias="1stRefereeReportDate"
+    )
     journal_acceptance_date: date | None = None
     first_proof_date: AwareDatetime | None = Field(default=None, alias="1stProofDate")
     final_journal_publication: list[Link] = Field(default_factory=list)
@@ -157,7 +161,7 @@ class Paper(_Base):
     analysis_team: AnalysisTeam = Field(default_factory=AnalysisTeam)
     metadata: Metadata | None = None
     rivet_routines_url: str | None = None
-    associated_analysis: RelatedPublication | None = None
+    related_analysis: RelatedPublication | None = None
     phase1: PaperPhase1 | None = None
     phase2: PaperPhase2 | None = None
     publication_phase: PublicationPhase | None = None

@@ -1,0 +1,763 @@
+{
+  "numberOfResults": 1,
+  "results": [
+    {
+      "referenceCode": "IDTR-2021-01",
+      "status": "Publication Phase Active",
+      "shortTitle": "ID Track and Vertex Reconstruction",
+      "publicShortTitle": "ID Track and Vertex Reconstruction",
+      "fullTitle": "Track and Vertex Reconstruction for the ATLAS Inner Detector",
+      "groups": {
+        "leadingGroup": {
+          "name": "IDTR"
+        },
+        "subgroups": [
+          {
+            "name": "IDTRACKING-Alignment"
+          },
+          {
+            "name": "IDTRACKING-TPERF"
+          },
+          {
+            "name": "IDTRACKING-VDT"
+          }
+        ],
+        "otherGroups": []
+      },
+      "documentation": {
+        "repositories": [],
+        "supportingInternalDocuments": [
+          {
+            "label": "Fake tracks in jet core",
+            "url": "https://cds.cern.ch/record/0000003"
+          },
+          {
+            "label": "Fake tracks in jet core (updated)",
+            "url": "https://cds.cern.ch/record/0000004"
+          },
+          {
+            "label": "Paper Draft",
+            "url": "https://cds.cern.ch/record/0000005"
+          }
+        ]
+      },
+      "analysisTeam": [
+        {
+          "cernCcid": "100039",
+          "firstName": "Biggs",
+          "lastName": "Darklighter",
+          "email": "biggs.darklighter@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100040",
+          "firstName": "Mon",
+          "lastName": "Mothma",
+          "email": "mon.mothma@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100041",
+          "firstName": "Amilyn",
+          "lastName": "Holdo",
+          "email": "amilyn.holdo@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100042",
+          "firstName": "Wilhuff",
+          "lastName": "Tarkin",
+          "email": "wilhuff.tarkin@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100043",
+          "firstName": "Orson",
+          "lastName": "Krennic",
+          "email": "orson.krennic@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100044",
+          "firstName": "Bodhi",
+          "lastName": "Rook2",
+          "email": "bodhi.rook2@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100045",
+          "firstName": "Antoc",
+          "lastName": "Merrick",
+          "email": "antoc.merrick@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100036",
+          "firstName": "Lando",
+          "lastName": "Calrissian",
+          "email": "lando.calrissian@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100046",
+          "firstName": "Davits",
+          "lastName": "Draven",
+          "email": "davits.draven@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100047",
+          "firstName": "Edrio",
+          "lastName": "Pilot",
+          "email": "edrio.pilot@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100048",
+          "firstName": "Pao",
+          "lastName": "Partisan",
+          "email": "pao.partisan@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100049",
+          "firstName": "Moroff",
+          "lastName": "Freelancer",
+          "email": "moroff.freelancer@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100050",
+          "firstName": "Melshi",
+          "lastName": "Rebel",
+          "email": "melshi.rebel@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100051",
+          "firstName": "Tivik",
+          "lastName": "Spy",
+          "email": "tivik.spy@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100052",
+          "firstName": "Benthic",
+          "lastName": "Rebel",
+          "email": "benthic.rebel@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100053",
+          "firstName": "Bistan",
+          "lastName": "Gunner",
+          "email": "bistan.gunner@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100054",
+          "firstName": "Weeteef",
+          "lastName": "Gunner",
+          "email": "weeteef.gunner@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100055",
+          "firstName": "Caitken",
+          "lastName": "Crewman",
+          "email": "caitken.crewman@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100056",
+          "firstName": "Shollan",
+          "lastName": "Crewman",
+          "email": "shollan.crewman@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100057",
+          "firstName": "Brachia",
+          "lastName": "Rebel",
+          "email": "brachia.rebel@star.wars",
+          "isContactEditor": true,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100058",
+          "firstName": "Paodok",
+          "lastName": "Rebel",
+          "email": "paodok.rebel@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100059",
+          "firstName": "Tenzigo",
+          "lastName": "Rebel",
+          "email": "tenzigo.rebel@star.wars",
+          "isContactEditor": true,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100060",
+          "firstName": "Vober",
+          "lastName": "Rebel",
+          "email": "vober.rebel@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100061",
+          "firstName": "Ikrit",
+          "lastName": "Maru",
+          "email": "ikrit.maru@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100062",
+          "firstName": "Varish",
+          "lastName": "Vodran",
+          "email": "varish.vodran@star.wars",
+          "isContactEditor": true,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100063",
+          "firstName": "Tace",
+          "lastName": "Rebel",
+          "email": "tace.rebel@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100064",
+          "firstName": "Jom",
+          "lastName": "Barell",
+          "email": "jom.barell@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100065",
+          "firstName": "Niv",
+          "lastName": "Lek",
+          "email": "niv.lek@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100066",
+          "firstName": "Ello",
+          "lastName": "Asty",
+          "email": "ello.asty@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100067",
+          "firstName": "Snap",
+          "lastName": "Wexley",
+          "email": "snap.wexley@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100068",
+          "firstName": "Jess",
+          "lastName": "Pava",
+          "email": "jess.pava@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100069",
+          "firstName": "Temmin",
+          "lastName": "Wexley",
+          "email": "temmin.wexley@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100070",
+          "firstName": "Kaydel",
+          "lastName": "Connix",
+          "email": "kaydel.connix@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100071",
+          "firstName": "Larma",
+          "lastName": "Duvat",
+          "email": "larma.duvat@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100072",
+          "firstName": "Greer",
+          "lastName": "Sonnel",
+          "email": "greer.sonnel@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100073",
+          "firstName": "Pilot73",
+          "lastName": "Squadron",
+          "email": "pilot73.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100074",
+          "firstName": "Pilot74",
+          "lastName": "Squadron",
+          "email": "pilot74.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100075",
+          "firstName": "Pilot75",
+          "lastName": "Squadron",
+          "email": "pilot75.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100076",
+          "firstName": "Pilot76",
+          "lastName": "Squadron",
+          "email": "pilot76.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100077",
+          "firstName": "Pilot77",
+          "lastName": "Squadron",
+          "email": "pilot77.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100078",
+          "firstName": "Pilot78",
+          "lastName": "Squadron",
+          "email": "pilot78.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100079",
+          "firstName": "Pilot79",
+          "lastName": "Squadron",
+          "email": "pilot79.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100080",
+          "firstName": "Pilot80",
+          "lastName": "Squadron",
+          "email": "pilot80.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100081",
+          "firstName": "Pilot81",
+          "lastName": "Squadron",
+          "email": "pilot81.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100082",
+          "firstName": "Pilot82",
+          "lastName": "Squadron",
+          "email": "pilot82.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100083",
+          "firstName": "Pilot83",
+          "lastName": "Squadron",
+          "email": "pilot83.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100084",
+          "firstName": "Pilot84",
+          "lastName": "Squadron",
+          "email": "pilot84.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100085",
+          "firstName": "Pilot85",
+          "lastName": "Squadron",
+          "email": "pilot85.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100086",
+          "firstName": "Pilot86",
+          "lastName": "Squadron",
+          "email": "pilot86.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100087",
+          "firstName": "Pilot87",
+          "lastName": "Squadron",
+          "email": "pilot87.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100088",
+          "firstName": "Pilot88",
+          "lastName": "Squadron",
+          "email": "pilot88.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100089",
+          "firstName": "Pilot89",
+          "lastName": "Squadron",
+          "email": "pilot89.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100090",
+          "firstName": "Pilot90",
+          "lastName": "Squadron",
+          "email": "pilot90.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100091",
+          "firstName": "Pilot91",
+          "lastName": "Squadron",
+          "email": "pilot91.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100092",
+          "firstName": "Pilot92",
+          "lastName": "Squadron",
+          "email": "pilot92.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100093",
+          "firstName": "Pilot93",
+          "lastName": "Squadron",
+          "email": "pilot93.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100094",
+          "firstName": "Pilot94",
+          "lastName": "Squadron",
+          "email": "pilot94.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100095",
+          "firstName": "Pilot95",
+          "lastName": "Squadron",
+          "email": "pilot95.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100096",
+          "firstName": "Pilot96",
+          "lastName": "Squadron",
+          "email": "pilot96.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100097",
+          "firstName": "Pilot97",
+          "lastName": "Squadron",
+          "email": "pilot97.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100098",
+          "firstName": "Pilot98",
+          "lastName": "Squadron",
+          "email": "pilot98.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100099",
+          "firstName": "Pilot99",
+          "lastName": "Squadron",
+          "email": "pilot99.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100100",
+          "firstName": "Pilot100",
+          "lastName": "Squadron",
+          "email": "pilot100.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100101",
+          "firstName": "Pilot101",
+          "lastName": "Squadron",
+          "email": "pilot101.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        }
+      ],
+      "metadata": {
+        "collisions": [
+          {
+            "type": "p-p",
+            "year": "2015+2016+2017+2018",
+            "run": "Run 2",
+            "ecmValue": "13",
+            "ecmUnit": "TeV",
+            "luminosityValue": "33",
+            "luminosityUnit": "femtobarn-1"
+          },
+          {
+            "type": "p-p",
+            "year": "2022+2023",
+            "run": "Run 3",
+            "ecmValue": "13.6",
+            "ecmUnit": "TeV",
+            "luminosityValue": "139",
+            "luminosityUnit": "femtobarn-1"
+          }
+        ],
+        "keywords": [
+          {
+            "name": "13 TeV"
+          },
+          {
+            "name": "Charged tracks"
+          },
+          {
+            "name": "Displaced track reconstruction"
+          },
+          {
+            "name": "Hadronic interactions"
+          },
+          {
+            "name": "Neural network pixel clustering"
+          },
+          {
+            "name": "Primary vertexing performance"
+          },
+          {
+            "name": "R22"
+          },
+          {
+            "name": "Track-based alignment"
+          },
+          {
+            "name": "Tracking in dense environments"
+          }
+        ],
+        "statTools": [
+          {
+            "name": "Other"
+          }
+        ],
+        "mvaMlTools": []
+      },
+      "rivetRoutinesUrl": null,
+      "relatedAnalysis": {
+        "referenceCode": "ANA-IDTR-2021-01",
+        "type": "Analysis"
+      },
+      "phase1": {
+        "state": "Phase 1 Finished",
+        "startDate": "2025-11-21",
+        "editorialBoard": [
+          {
+            "cernCcid": "100102",
+            "firstName": "Pilot102",
+            "lastName": "Squadron",
+            "email": "pilot102.squadron@star.wars",
+            "isChair": true,
+            "isExOfficio": false
+          },
+          {
+            "cernCcid": "100103",
+            "firstName": "Pilot103",
+            "lastName": "Squadron",
+            "email": "pilot103.squadron@star.wars",
+            "isChair": false,
+            "isExOfficio": false
+          }
+        ],
+        "editorialBoardFormedDate": "2023-12-01",
+        "languageEditorsSignOffDate": null,
+        "presentationDate": null,
+        "pgcApprovalDate": "2025-09-29",
+        "editorialBoardDraftSignOffDate": "2026-01-06",
+        "draftReleasedDate": "2026-01-06",
+        "pubcommChairOrDeputyOrDelegated": {
+          "cernCcid": "100104",
+          "firstName": "Pilot104",
+          "lastName": "Squadron",
+          "email": "pilot104.squadron@star.wars"
+        },
+        "spokespersonOrDeputyOrDelegated": {
+          "cernCcid": "100105",
+          "firstName": "Pilot105",
+          "lastName": "Squadron",
+          "email": "pilot105.squadron@star.wars"
+        },
+        "atlasMeetingDate": null,
+        "pubcommSignOffDate": "2026-01-26"
+      },
+      "phase2": {
+        "state": "Phase 2 Finished",
+        "startDate": "2026-01-26",
+        "editorialBoardDraft2SignOffDate": "2026-03-12",
+        "draft2ReleasedDate": "2026-03-21",
+        "draft2SentToCernDate": "2026-03-21",
+        "draft2CernSignOffDate": "2026-03-25",
+        "paperClosureMeeting": [],
+        "preliminaryPlotsAndResultsReleased": false,
+        "paperClosureDate": null,
+        "editorialBoardRevisedSignOffDate": null,
+        "pubcommChairOrDeputyOrDelegated": {
+          "cernCcid": "100106",
+          "firstName": "Pilot106",
+          "lastName": "Squadron",
+          "email": "pilot106.squadron@star.wars"
+        },
+        "pubcommChairOrDeputySignOffDate": "2026-05-01",
+        "spokespersonDelegatedSignOffDate": null,
+        "spokespersonOrDeputySignOffDate": "2026-05-06"
+      },
+      "publicationPhase": {
+        "state": "CERN and ATLAS Collection",
+        "startDate": "2026-05-08",
+        "arXivUrls": [],
+        "finalTitleTex": "Track and Vertex Reconstruction with the ATLAS Inner Detector",
+        "finalSubmissionJournal": null,
+        "arXivSubmissionDate": "2026-05-08T13:00:00+02:00",
+        "physicsBriefing": [],
+        "1stRefereeReportDate": null,
+        "journalAcceptanceDate": null,
+        "1stProofDate": null,
+        "finalJournalPublication": [],
+        "publishedOnlineDate": null
+      }
+    }
+  ]
+}

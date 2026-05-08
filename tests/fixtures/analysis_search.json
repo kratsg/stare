@@ -1,0 +1,588 @@
+{
+  "numberOfResults": 1,
+  "results": [
+    {
+      "referenceCode": "ANA-HDBS-2023-22",
+      "creationDate": "2023-09-01",
+      "status": "Phase 0 Finished",
+      "shortTitle": "DiHiggs HH -> bbll  full Run2",
+      "publicShortTitle": "HH -> bbll full Run2",
+      "groups": {
+        "leadingGroup": {
+          "name": "HDBS"
+        },
+        "subgroups": [
+          {
+            "name": "HDBS-DiHiggs"
+          }
+        ],
+        "otherGroups": []
+      },
+      "amiGlance": [],
+      "documentation": {
+        "repositories": [
+          {
+            "label": null,
+            "url": "https://gitlab.cern.ch/atlas-physics-office/HDBS/ANA-HDBS-2023-22/ANA-HDBS-2023-22-CONF",
+            "gitlabId": "169165",
+            "type": "CONF"
+          },
+          {
+            "label": null,
+            "url": "https://gitlab.cern.ch/atlas-physics-office/HDBS/ANA-HDBS-2023-22/ANA-HDBS-2023-22-INT1",
+            "gitlabId": "169353",
+            "type": "INT"
+          }
+        ],
+        "supportingInternalDocuments": [
+          {
+            "label": "Paper draft",
+            "url": "https://cds.cern.ch/record/0000001"
+          },
+          {
+            "label": "bbll internal note",
+            "url": "https://cds.cern.ch/record/0000002"
+          }
+        ]
+      },
+      "analysisTeam": [
+        {
+          "cernCcid": "100001",
+          "firstName": "Han",
+          "lastName": "Solo",
+          "email": "han.solo@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100002",
+          "firstName": "Leia",
+          "lastName": "Organa",
+          "email": "leia.organa@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100003",
+          "firstName": "Luke",
+          "lastName": "Skywalker",
+          "email": "luke.skywalker@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100004",
+          "firstName": "Obi-Wan",
+          "lastName": "Kenobi",
+          "email": "obiwan.kenobi@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100005",
+          "firstName": "Yoda",
+          "lastName": "Jedi",
+          "email": "yoda.jedi@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100006",
+          "firstName": "Chewbacca",
+          "lastName": "Wookiee",
+          "email": "chewbacca.wookiee@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100007",
+          "firstName": "Rey",
+          "lastName": "Palpatine",
+          "email": "rey.palpatine@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100008",
+          "firstName": "Finn",
+          "lastName": "Trooper",
+          "email": "finn.trooper@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100009",
+          "firstName": "Poe",
+          "lastName": "Dameron",
+          "email": "poe.dameron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100010",
+          "firstName": "Mace",
+          "lastName": "Windu",
+          "email": "mace.windu@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100011",
+          "firstName": "Padme",
+          "lastName": "Amidala",
+          "email": "padme.amidala@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100012",
+          "firstName": "Quigon",
+          "lastName": "Jinn",
+          "email": "quigon.jinn@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100013",
+          "firstName": "Anakin",
+          "lastName": "Skywalker",
+          "email": "anakin.skywalker@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100014",
+          "firstName": "Ahsoka",
+          "lastName": "Tano",
+          "email": "ahsoka.tano@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100015",
+          "firstName": "Rex",
+          "lastName": "Captain",
+          "email": "rex.captain@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100016",
+          "firstName": "Cody",
+          "lastName": "Commander",
+          "email": "cody.commander@star.wars",
+          "isContactEditor": true,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100017",
+          "firstName": "Kit",
+          "lastName": "Fisto",
+          "email": "kit.fisto@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100018",
+          "firstName": "Aayla",
+          "lastName": "Secura",
+          "email": "aayla.secura@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100019",
+          "firstName": "Plo",
+          "lastName": "Koon",
+          "email": "plo.koon@star.wars",
+          "isContactEditor": true,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100020",
+          "firstName": "Kiadi",
+          "lastName": "Mundi",
+          "email": "kiadi.mundi@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100021",
+          "firstName": "Shaak",
+          "lastName": "Ti",
+          "email": "shaak.ti@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100022",
+          "firstName": "Depa",
+          "lastName": "Billaba",
+          "email": "depa.billaba@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100023",
+          "firstName": "Luminara",
+          "lastName": "Unduli",
+          "email": "luminara.unduli@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100024",
+          "firstName": "Barriss",
+          "lastName": "Offee",
+          "email": "barriss.offee@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100025",
+          "firstName": "Hera",
+          "lastName": "Syndulla",
+          "email": "hera.syndulla@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100026",
+          "firstName": "Kanan",
+          "lastName": "Jarrus",
+          "email": "kanan.jarrus@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100027",
+          "firstName": "Ezra",
+          "lastName": "Bridger",
+          "email": "ezra.bridger@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100028",
+          "firstName": "Sabine",
+          "lastName": "Wren",
+          "email": "sabine.wren@star.wars",
+          "isContactEditor": true,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100029",
+          "firstName": "Cassian",
+          "lastName": "Andor",
+          "email": "cassian.andor@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100030",
+          "firstName": "Jyn",
+          "lastName": "Erso",
+          "email": "jyn.erso@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100031",
+          "firstName": "Bodhi",
+          "lastName": "Rook",
+          "email": "bodhi.rook@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100032",
+          "firstName": "Chirrut",
+          "lastName": "Imwe",
+          "email": "chirrut.imwe@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100033",
+          "firstName": "Baze",
+          "lastName": "Malbus",
+          "email": "baze.malbus@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100034",
+          "firstName": "Saw",
+          "lastName": "Gerrera",
+          "email": "saw.gerrera@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        },
+        {
+          "cernCcid": "100035",
+          "firstName": "Galen",
+          "lastName": "Erso",
+          "email": "galen.erso@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": false,
+          "analysisContactAssignments": {
+            "startDate": null,
+            "endDate": null
+          }
+        }
+      ],
+      "metadata": {
+        "collisions": [
+          {
+            "type": "p-p",
+            "year": "2015+2016+2017+2018",
+            "run": "Run 2",
+            "ecmValue": "13",
+            "ecmUnit": "TeV",
+            "luminosityValue": "140",
+            "luminosityUnit": "femtobarn-1"
+          }
+        ],
+        "keywords": [
+          {
+            "name": "13 TeV"
+          },
+          {
+            "name": "2 leptons"
+          },
+          {
+            "name": "Di-Higgs"
+          },
+          {
+            "name": "Di-Higgs production"
+          },
+          {
+            "name": "Gluon fusion"
+          },
+          {
+            "name": "MET"
+          },
+          {
+            "name": "R21"
+          },
+          {
+            "name": "VBF"
+          },
+          {
+            "name": "b-jets"
+          }
+        ],
+        "statTools": [
+          {
+            "name": "HistFitter"
+          },
+          {
+            "name": "TRExFitter"
+          }
+        ],
+        "mvaMlTools": [
+          {
+            "name": "Keras"
+          },
+          {
+            "name": "Iwtnn"
+          },
+          {
+            "name": "TensorFlow"
+          },
+          {
+            "name": "PyTorch"
+          }
+        ],
+        "triggers": [],
+        "analysisFramework": {
+          "ntupling": null,
+          "histogramming": null
+        }
+      },
+      "relatedPublications": [
+        {
+          "referenceCode": "CONF-HDBS-2023-22",
+          "type": "ConfNote"
+        }
+      ],
+      "phase0": {
+        "state": "Skipped to CONF Note",
+        "startDate": "2023-09-01",
+        "mainPhysicsAim": null,
+        "datasetUsed": null,
+        "modelTested": null,
+        "methods": null,
+        "editorialBoardFormedDate": null,
+        "pgcOrSgcSignOffDate": null,
+        "editorialBoard": [
+          {
+            "cernCcid": "100036",
+            "firstName": "Lando",
+            "lastName": "Calrissian",
+            "email": "lando.calrissian@star.wars",
+            "isChair": true,
+            "isExOfficio": false
+          },
+          {
+            "cernCcid": "100037",
+            "firstName": "Nien",
+            "lastName": "Nunb",
+            "email": "nien.nunb@star.wars",
+            "isChair": false,
+            "isExOfficio": true
+          },
+          {
+            "cernCcid": "100038",
+            "firstName": "Wedge",
+            "lastName": "Antilles",
+            "email": "wedge.antilles@star.wars",
+            "isChair": true,
+            "isExOfficio": false
+          }
+        ],
+        "eoiMeeting": [],
+        "editorialBoardRequestMeeting": [],
+        "preApprovalMeeting": [],
+        "approvalMeeting": []
+      },
+      "extraMetadata": {}
+    }
+  ]
+}

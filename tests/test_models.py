@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 from datetime import date
+from pathlib import Path
 
 import pytest
 from rich.console import Console
@@ -14,6 +15,7 @@ from stare.exceptions import ResponseParseError
 from stare.models.analysis import Analysis, AnalysisPhase0
 from stare.models.common import (
     AmiGlanceLink,
+    AnalysisFramework,
     AnalysisTeam,
     Collision,
     Collisions,
@@ -37,6 +39,7 @@ from stare.models.pubnote import PubNote, PubNotePhase1, Readers
 from stare.models.search import (
     AnalysisSearchResult,
     ConfNoteSearchResult,
+    PaperSearchResult,
     PublicationRef,
     PubNoteSearchResult,
     Trigger,
@@ -1194,3 +1197,245 @@ class TestPubNotePhase1:
     def test_all_optional(self) -> None:
         p = PubNotePhase1.model_validate({})
         assert p.state is None
+
+    def test_public_web_page_url_alias(self) -> None:
+        p = PubNotePhase1.model_validate(
+            {"publicWebPageURLForFiguresAndTables": "https://atlas.cern/pub/x"}
+        )
+        assert (
+            p.public_web_page_url_for_figures_and_tables == "https://atlas.cern/pub/x"
+        )
+        dumped = p.model_dump(by_alias=True, exclude_none=True)
+        assert (
+            dumped["publicWebPageURLForFiguresAndTables"] == "https://atlas.cern/pub/x"
+        )
+
+
+# ---------------------------------------------------------------------------
+# api.yml alias alignment tests (TDD: these must fail before model fixes)
+# ---------------------------------------------------------------------------
+
+
+class TestPaperAliases:
+    def test_arxiv_submission_date_alias(self) -> None:
+        s = PublicationPhase.model_validate(
+            {"arXivSubmissionDate": "2024-01-15T00:00:00+00:00"}
+        )
+        assert s.arxiv_submission_date is not None
+        dumped = s.model_dump(by_alias=True, exclude_none=True)
+        assert "arXivSubmissionDate" in dumped
+
+    def test_first_referee_report_date_alias(self) -> None:
+        s = PublicationPhase.model_validate(
+            {"1stRefereeReportDate": "2024-02-01T00:00:00+00:00"}
+        )
+        assert s.first_referee_report_date is not None
+        dumped = s.model_dump(by_alias=True, exclude_none=True)
+        assert "1stRefereeReportDate" in dumped
+
+    def test_related_analysis_alias(self) -> None:
+        p = Paper.model_validate(
+            {
+                "referenceCode": "HDBS-2024-01",
+                "status": "Phase 1 Active",
+                "relatedAnalysis": {
+                    "referenceCode": "ANA-HDBS-2024-01",
+                    "type": "Analysis",
+                },
+            }
+        )
+        assert p.related_analysis is not None
+        assert p.related_analysis.reference_code == "ANA-HDBS-2024-01"
+        dumped = p.model_dump(by_alias=True, exclude_none=True)
+        assert "relatedAnalysis" in dumped
+
+
+class TestConfNotePhase1Alias:
+    def test_public_web_page_url_alias(self) -> None:
+        p = ConfNotePhase1.model_validate(
+            {"publicWebPageURLForFiguresAndTables": "https://atlas.cern/conf/x"}
+        )
+        assert (
+            p.public_web_page_url_for_figures_and_tables == "https://atlas.cern/conf/x"
+        )
+        dumped = p.model_dump(by_alias=True, exclude_none=True)
+        assert (
+            dumped["publicWebPageURLForFiguresAndTables"] == "https://atlas.cern/conf/x"
+        )
+
+
+class TestAnalysisFramework:
+    def test_string_shape(self) -> None:
+        af = AnalysisFramework.model_validate(
+            {"ntupling": "TopCPToolkit", "histogramming": "FastFrames"}
+        )
+        assert af.ntupling == "TopCPToolkit"
+        assert af.histogramming == "FastFrames"
+
+    def test_none_defaults(self) -> None:
+        af = AnalysisFramework.model_validate({})
+        assert af.ntupling is None
+        assert af.histogramming is None
+
+
+# ---------------------------------------------------------------------------
+# Real-world fixture smoke tests — one result per document type from the API
+# ---------------------------------------------------------------------------
+
+_FIXTURES = Path(__file__).parent / "fixtures"
+
+
+class TestRealWorldAnalysis:
+    def test_parses_without_error(self) -> None:
+        data = json.loads((_FIXTURES / "analysis_search.json").read_text())
+        result = AnalysisSearchResult.model_validate(data)
+        assert result.number_of_results == 1
+        assert len(result.results) == 1
+
+    def test_reference_code(self) -> None:
+        data = json.loads((_FIXTURES / "analysis_search.json").read_text())
+        r = AnalysisSearchResult.model_validate(data).results[0]
+        assert r.reference_code == "ANA-HDBS-2023-22"
+
+    def test_analysis_team_anonymized(self) -> None:
+        data = json.loads((_FIXTURES / "analysis_search.json").read_text())
+        r = AnalysisSearchResult.model_validate(data).results[0]
+        assert len(r.analysis_team) > 0
+        member = r.analysis_team[0]
+        assert member.email is not None
+        assert member.email.endswith("@star.wars")
+
+    def test_related_publications(self) -> None:
+        data = json.loads((_FIXTURES / "analysis_search.json").read_text())
+        r = AnalysisSearchResult.model_validate(data).results[0]
+        assert r.related_publications is not None
+        assert len(r.related_publications) == 1
+        assert r.related_publications[0].reference_code == "CONF-HDBS-2023-22"
+
+    def test_analysis_framework_string_fields(self) -> None:
+        data = json.loads((_FIXTURES / "analysis_search.json").read_text())
+        r = AnalysisSearchResult.model_validate(data).results[0]
+        assert r.metadata is not None
+        af = r.metadata.analysis_framework
+        assert af is not None
+        # ntupling/histogramming are str|None per api.yml
+        assert af.ntupling is None or isinstance(af.ntupling, str)
+        assert af.histogramming is None or isinstance(af.histogramming, str)
+
+    def test_phase0_editorial_board(self) -> None:
+        data = json.loads((_FIXTURES / "analysis_search.json").read_text())
+        r = AnalysisSearchResult.model_validate(data).results[0]
+        assert r.phase0 is not None
+        assert len(r.phase0.editorial_board) == 3
+
+
+class TestRealWorldPaper:
+    def test_parses_without_error(self) -> None:
+        data = json.loads((_FIXTURES / "paper_search.json").read_text())
+        result = PaperSearchResult.model_validate(data)
+        assert result.number_of_results == 1
+        assert len(result.results) == 1
+
+    def test_reference_code(self) -> None:
+        data = json.loads((_FIXTURES / "paper_search.json").read_text())
+        r = PaperSearchResult.model_validate(data).results[0]
+        assert r.reference_code == "IDTR-2021-01"
+
+    def test_related_analysis_alias(self) -> None:
+        # verifies the relatedAnalysis key (not associatedAnalysis) is parsed
+        data = json.loads((_FIXTURES / "paper_search.json").read_text())
+        r = PaperSearchResult.model_validate(data).results[0]
+        assert r.related_analysis is not None
+        assert r.related_analysis.reference_code == "ANA-IDTR-2021-01"
+
+    def test_arxiv_submission_date_alias(self) -> None:
+        # verifies arXivSubmissionDate (capital X) is parsed correctly
+        data = json.loads((_FIXTURES / "paper_search.json").read_text())
+        r = PaperSearchResult.model_validate(data).results[0]
+        assert r.publication_phase is not None
+        assert r.publication_phase.arxiv_submission_date is not None
+
+    def test_analysis_team_anonymized(self) -> None:
+        data = json.loads((_FIXTURES / "paper_search.json").read_text())
+        r = PaperSearchResult.model_validate(data).results[0]
+        assert len(r.analysis_team) > 0
+        assert r.analysis_team[0].email is not None
+        assert r.analysis_team[0].email.endswith("@star.wars")
+
+
+class TestRealWorldConfNote:
+    def test_parses_without_error(self) -> None:
+        data = json.loads((_FIXTURES / "confnote_search.json").read_text())
+        result = ConfNoteSearchResult.model_validate(data)
+        assert result.number_of_results == 1
+        assert len(result.results) == 1
+
+    def test_reference_codes(self) -> None:
+        data = json.loads((_FIXTURES / "confnote_search.json").read_text())
+        r = ConfNoteSearchResult.model_validate(data).results[0]
+        assert r.temp_reference_code == "CONF-SUSY-2023-04"
+        assert r.final_reference_code == "ATLAS-CONF-2023-009"
+
+    def test_public_web_page_url_alias(self) -> None:
+        # verifies publicWebPageURLForFiguresAndTables (all-caps URL) is parsed
+        data = json.loads((_FIXTURES / "confnote_search.json").read_text())
+        r = ConfNoteSearchResult.model_validate(data).results[0]
+        assert r.phase1 is not None
+        assert r.phase1.public_web_page_url_for_figures_and_tables is not None
+        assert (
+            "ATLAS-CONF-2023-009" in r.phase1.public_web_page_url_for_figures_and_tables
+        )
+
+    def test_editorial_board_anonymized(self) -> None:
+        data = json.loads((_FIXTURES / "confnote_search.json").read_text())
+        r = ConfNoteSearchResult.model_validate(data).results[0]
+        assert r.phase1 is not None
+        assert len(r.phase1.editorial_board) == 3
+        assert r.phase1.editorial_board[0].email is not None
+        assert r.phase1.editorial_board[0].email.endswith("@star.wars")
+
+    def test_draft_cds_url_anonymized(self) -> None:
+        data = json.loads((_FIXTURES / "confnote_search.json").read_text())
+        r = ConfNoteSearchResult.model_validate(data).results[0]
+        assert r.phase1 is not None
+        assert r.phase1.draft_cds_url is not None
+        assert "cds.cern.ch/record/" in r.phase1.draft_cds_url
+
+
+class TestRealWorldPubNote:
+    def test_parses_without_error(self) -> None:
+        data = json.loads((_FIXTURES / "pubnote_search.json").read_text())
+        result = PubNoteSearchResult.model_validate(data)
+        assert result.number_of_results == 1
+        assert len(result.results) == 1
+
+    def test_reference_code(self) -> None:
+        data = json.loads((_FIXTURES / "pubnote_search.json").read_text())
+        r = PubNoteSearchResult.model_validate(data).results[0]
+        assert r.temp_reference_code == "PUB-SUSY-2019-05"
+
+    def test_public_web_page_url_alias(self) -> None:
+        # verifies publicWebPageURLForFiguresAndTables (all-caps URL) is parsed
+        data = json.loads((_FIXTURES / "pubnote_search.json").read_text())
+        r = PubNoteSearchResult.model_validate(data).results[0]
+        assert r.phase1 is not None
+        assert r.phase1.public_web_page_url_for_figures_and_tables is not None
+        assert (
+            "ATL-PHYS-PUB-2019-029"
+            in r.phase1.public_web_page_url_for_figures_and_tables
+        )
+
+    def test_readers_anonymized(self) -> None:
+        data = json.loads((_FIXTURES / "pubnote_search.json").read_text())
+        r = PubNoteSearchResult.model_validate(data).results[0]
+        assert r.phase1 is not None
+        assert len(r.phase1.readers) == 2
+        assert r.phase1.readers[0].email is not None
+        assert r.phase1.readers[0].email.endswith("@star.wars")
+
+    def test_analysis_team_anonymized(self) -> None:
+        data = json.loads((_FIXTURES / "pubnote_search.json").read_text())
+        r = PubNoteSearchResult.model_validate(data).results[0]
+        assert len(r.analysis_team) > 0
+        assert r.analysis_team[0].email is not None
+        assert r.analysis_team[0].email.endswith("@star.wars")

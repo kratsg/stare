@@ -1,0 +1,122 @@
+{
+  "numberOfResults": 1,
+  "results": [
+    {
+      "temporaryReferenceCode": "PUB-SUSY-2019-05",
+      "finalReferenceCode": null,
+      "status": "Phase 1 Finished",
+      "shortTitle": "SUSY Likelihoods for Reinterpretation",
+      "publicShortTitle": "SUSY Likelihoods for Reinterpretation",
+      "fullTitle": "Likelihood preservation and statistical reproduction of searches for new physics",
+      "groups": {
+        "leadingGroup": {
+          "name": "SUSY"
+        },
+        "subgroups": [
+          {
+            "name": "SUSY-DirectStopSbottom"
+          }
+        ],
+        "otherGroups": []
+      },
+      "documentation": {
+        "repositories": [],
+        "supportingInternalDocuments": [
+          {
+            "label": "INT/Draft",
+            "url": "https://cds.cern.ch/record/0000008"
+          }
+        ]
+      },
+      "analysisTeam": [
+        {
+          "cernCcid": "100115",
+          "firstName": "Pilot115",
+          "lastName": "Squadron",
+          "email": "pilot115.squadron@star.wars",
+          "isContactEditor": true,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100116",
+          "firstName": "Pilot116",
+          "lastName": "Squadron",
+          "email": "pilot116.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100117",
+          "firstName": "Pilot117",
+          "lastName": "Squadron",
+          "email": "pilot117.squadron@star.wars",
+          "isContactEditor": true,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        }
+      ],
+      "metadata": {
+        "collisions": [
+          {
+            "type": "p-p",
+            "year": "2015+2016+2017+2018",
+            "run": "Run 2",
+            "ecmValue": "13",
+            "ecmUnit": "TeV",
+            "luminosityValue": "139",
+            "luminosityUnit": "femtobarn-1"
+          }
+        ],
+        "keywords": [
+          {
+            "name": "13 TeV"
+          },
+          {
+            "name": "BSM reinterpretation"
+          }
+        ],
+        "statTools": [],
+        "mvaMlTools": []
+      },
+      "relatedAnalysis": {
+        "referenceCode": "ANA-SUSY-2019-05",
+        "type": "Analysis"
+      },
+      "supersededBy": [],
+      "phase1": {
+        "state": "Phase 1 Finished",
+        "startDate": "2019-04-29",
+        "draftCdsUrl": "https://cds.cern.ch/record/0000008",
+        "readers": [
+          {
+            "cernCcid": "100118",
+            "firstName": "Pilot118",
+            "lastName": "Squadron",
+            "email": "pilot118.squadron@star.wars",
+            "isFirstReader": false,
+            "isSecondReader": true
+          },
+          {
+            "cernCcid": "100119",
+            "firstName": "Pilot119",
+            "lastName": "Squadron",
+            "email": "pilot119.squadron@star.wars",
+            "isFirstReader": true,
+            "isSecondReader": false
+          }
+        ],
+        "presentationDate": "2019-07-12",
+        "groupApprovalDate": "2019-07-14",
+        "firstReaderDraftSignOffDate": "2019-07-17",
+        "atlasCirculationDate": "2019-07-17",
+        "proceedToSignOffDate": "2019-07-29",
+        "firstReaderSignOffDate": "2019-08-03",
+        "secondReaderSignOffDate": "2019-08-02",
+        "publicWebPageURLForFiguresAndTables": "https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/PUBNOTES/ATL-PHYS-PUB-2019-029",
+        "releaseDate": "2019-08-02"
+      }
+    }
+  ]
+}
