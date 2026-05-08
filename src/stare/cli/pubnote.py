@@ -128,12 +128,8 @@ def pubnote_search(
     table.add_column("Status")
     table.add_column("Short Title")
     for item in result.results:
-        ref = item.final_reference_code or ""
-        ref_cell = (
-            f"[link={pubnote_url(ref, web_base=settings.web_base_url)}]{ref}[/link]"
-            if ref
-            else ""
-        )
+        ref = item.temp_reference_code
+        ref_cell = f"[link={pubnote_url(ref, web_base=settings.web_base_url)}]{ref}[/link]"
         table.add_row(ref_cell, item.status or "", item.short_title or "")
     utils.console.print(table)
 

@@ -77,8 +77,8 @@ class PubNotePhase1(_Base):
 class PubNote(_Base):
     """An ATLAS PUB note."""
 
-    temp_reference_code: str | None = Field(
-        default=None, alias="temporaryReferenceCode"
+    temp_reference_code: str = Field(
+        alias="temporaryReferenceCode", pattern=r"^PUB-[A-Z]{4}-\d{4}-\d{2}$"
     )
     final_reference_code: str | None = None
     status: PubnoteStatus | None = None
@@ -180,12 +180,13 @@ class PubNote(_Base):
 
         # --- Header ---
         settings = StareSettings()
-        ref = self.temp_reference_code or self.final_reference_code or ""
-        url = pubnote_url(ref, web_base=settings.web_base_url)
+        url = pubnote_url(self.temp_reference_code, web_base=settings.web_base_url)
 
-        header = Text.from_markup(f"[bold cyan][link={url}]{ref}[/link][/bold cyan]")
+        header = Text.from_markup(
+            f"[bold cyan][link={url}]{self.temp_reference_code}[/link][/bold cyan]"
+        )
 
-        if self.final_reference_code and self.final_reference_code != ref:
+        if self.final_reference_code:
             header.append(f" ({self.final_reference_code})", style="bold")
 
         if self.status:
