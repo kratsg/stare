@@ -206,7 +206,7 @@ g = Glance(token=os.environ["GLANCE_TOKEN"])
 | `GET /searchAnalysis`      | **Live** | `analyses.search()`, `analyses.get()`   |
 | `GET /searchPaper`         | **Live** | `papers.search()`, `papers.get()`       |
 | `GET /searchConfnote`      | **Live** | `confnotes.search()`, `confnotes.get()` |
-| `GET /searchPubnote`       | Planned  | `pubnotes.search()`, `pubnotes.get()`   |
+| `GET /searchPubnote`       | **Live** | `pubnotes.search()`, `pubnotes.get()`   |
 | `GET /publications/search` | Planned  | `publications.search()`                 |
 | `GET /groups`              | Planned  | `groups.list()`                         |
 | `GET /subgroups`           | Planned  | `subgroups.list()`                      |
