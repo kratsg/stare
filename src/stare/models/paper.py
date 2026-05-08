@@ -85,7 +85,7 @@ class PublicationPhase(_Base):
         default=None, alias="arXivSubmissionDate"
     )
     physics_briefing: list[Link] = Field(default_factory=list)
-    first_referee_report_date: date | None = Field(
+    first_referee_report_date: AwareDatetime | None = Field(
         default=None, alias="1stRefereeReportDate"
     )
     journal_acceptance_date: date | None = None
