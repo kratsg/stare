@@ -41,7 +41,9 @@ class ConfNotePhase1(_Base):
     second_sign_off_responsible: Person | None = None
     first_sign_off_date: date | None = None
     second_sign_off_date: date | None = None
-    public_web_page_url_for_figures_and_tables: str | None = None
+    public_web_page_url_for_figures_and_tables: str | None = Field(
+        default=None, alias="publicWebPageURLForFiguresAndTables"
+    )
     release_date: date | None = None
 
 

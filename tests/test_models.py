@@ -14,6 +14,7 @@ from stare.exceptions import ResponseParseError
 from stare.models.analysis import Analysis, AnalysisPhase0
 from stare.models.common import (
     AmiGlanceLink,
+    AnalysisFramework,
     AnalysisTeam,
     Collision,
     Collisions,
@@ -1194,3 +1195,80 @@ class TestPubNotePhase1:
     def test_all_optional(self) -> None:
         p = PubNotePhase1.model_validate({})
         assert p.state is None
+
+    def test_public_web_page_url_alias(self) -> None:
+        p = PubNotePhase1.model_validate(
+            {"publicWebPageURLForFiguresAndTables": "https://atlas.cern/pub/x"}
+        )
+        assert (
+            p.public_web_page_url_for_figures_and_tables == "https://atlas.cern/pub/x"
+        )
+        dumped = p.model_dump(by_alias=True, exclude_none=True)
+        assert (
+            dumped["publicWebPageURLForFiguresAndTables"] == "https://atlas.cern/pub/x"
+        )
+
+
+# ---------------------------------------------------------------------------
+# api.yml alias alignment tests (TDD: these must fail before model fixes)
+# ---------------------------------------------------------------------------
+
+
+class TestPaperAliases:
+    def test_arxiv_submission_date_alias(self) -> None:
+        s = PublicationPhase.model_validate(
+            {"arXivSubmissionDate": "2024-01-15T00:00:00+00:00"}
+        )
+        assert s.arxiv_submission_date is not None
+        dumped = s.model_dump(by_alias=True, exclude_none=True)
+        assert "arXivSubmissionDate" in dumped
+
+    def test_first_referee_report_date_alias(self) -> None:
+        s = PublicationPhase.model_validate({"1stRefereeReportDate": "2024-02-01"})
+        assert s.first_referee_report_date == date(2024, 2, 1)
+        dumped = s.model_dump(by_alias=True, exclude_none=True)
+        assert "1stRefereeReportDate" in dumped
+
+    def test_related_analysis_alias(self) -> None:
+        p = Paper.model_validate(
+            {
+                "referenceCode": "HDBS-2024-01",
+                "status": "Phase 1 Active",
+                "relatedAnalysis": {
+                    "referenceCode": "ANA-HDBS-2024-01",
+                    "type": "Analysis",
+                },
+            }
+        )
+        assert p.related_analysis is not None
+        assert p.related_analysis.reference_code == "ANA-HDBS-2024-01"
+        dumped = p.model_dump(by_alias=True, exclude_none=True)
+        assert "relatedAnalysis" in dumped
+
+
+class TestConfNotePhase1Alias:
+    def test_public_web_page_url_alias(self) -> None:
+        p = ConfNotePhase1.model_validate(
+            {"publicWebPageURLForFiguresAndTables": "https://atlas.cern/conf/x"}
+        )
+        assert (
+            p.public_web_page_url_for_figures_and_tables == "https://atlas.cern/conf/x"
+        )
+        dumped = p.model_dump(by_alias=True, exclude_none=True)
+        assert (
+            dumped["publicWebPageURLForFiguresAndTables"] == "https://atlas.cern/conf/x"
+        )
+
+
+class TestAnalysisFramework:
+    def test_string_shape(self) -> None:
+        af = AnalysisFramework.model_validate(
+            {"ntupling": "TopCPToolkit", "histogramming": "FastFrames"}
+        )
+        assert af.ntupling == "TopCPToolkit"
+        assert af.histogramming == "FastFrames"
+
+    def test_none_defaults(self) -> None:
+        af = AnalysisFramework.model_validate({})
+        assert af.ntupling is None
+        assert af.histogramming is None
