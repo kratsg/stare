@@ -62,7 +62,7 @@ SAMPLE_CONF_NOTE = ConfNote.model_validate(
 
 SAMPLE_PUB_NOTE = PubNote.model_validate(
     {
-        "temporaryReferenceCode": "ATL-COM-PHYS-2024-001",
+        "temporaryReferenceCode": "PUB-EXOT-2026-03",
         "finalReferenceCode": "ATL-PHYS-PUB-2024-01",
         "status": "Phase 1 Finished",
         "shortTitle": "Test pub note",
@@ -114,7 +114,7 @@ SAMPLE_PUB_NOTE_SEARCH = PubNoteSearchResult.model_validate(
         "numberOfResults": 1,
         "results": [
             {
-                "temporaryReferenceCode": "ATL-COM-PHYS-2024-001",
+                "temporaryReferenceCode": "PUB-EXOT-2026-03",
                 "finalReferenceCode": "ATL-PHYS-PUB-2024-01",
                 "status": "Phase 1 Finished",
                 "shortTitle": "Test pub note",
