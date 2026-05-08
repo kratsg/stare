@@ -291,7 +291,7 @@ class TestLink:
         assert "Indico" in output
 
     def test_url_required(self) -> None:
-        with pytest.raises((ResponseParseError, Exception)):
+        with pytest.raises(ResponseParseError):
             Link.model_validate({"label": "No link"})
 
     def test_ami_glance_link_is_link(self) -> None:
