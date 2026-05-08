@@ -233,8 +233,8 @@ class PublicationType(StrEnum):
     """Observed publication type values (cross-references between record types)."""
 
     PAPER = "Paper"
-    CONF_NOTE = "ConfNote"
-    PUB_NOTE = "PubNote"
+    CONF_NOTE = "CONF note"
+    PUB_NOTE = "PUB note"
     ANALYSIS = "Analysis"
 
 

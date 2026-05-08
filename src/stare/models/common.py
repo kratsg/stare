@@ -276,8 +276,8 @@ class Trigger(_NamedItem):
 class AnalysisFramework(_Base):
     """Ntupling and histogramming framework names for an analysis."""
 
-    ntupling: str | None = None
-    histogramming: str | None = None
+    ntupling: list[str] = Field(default_factory=list)
+    histogramming: list[str] = Field(default_factory=list)
 
 
 class AnalysisContactAssignment(_Base):
@@ -447,10 +447,6 @@ class Metadata(_Base):
     keywords: list[Keyword] = Field(default_factory=list)
     statistical_tools: list[StatTool] = Field(default_factory=list, alias="statTools")
     mva_ml_tools: list[MvaMlTool] = Field(default_factory=list, alias="mvaMlTools")
-    # Analysis endpoint only; empty for paper/confnote/pubnote.
-    triggers: list[Trigger] = Field(default_factory=list)
-    # Analysis endpoint only.
-    analysis_framework: AnalysisFramework | None = None
 
 
 class Repository(Link):

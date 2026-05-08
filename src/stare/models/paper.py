@@ -85,9 +85,9 @@ class PublicationPhase(_Base):
     physics_briefing: list[Link] = Field(default_factory=list)
     first_referee_report_date: date | None = None
     journal_acceptance_date: date | None = None
-    first_proof_date: date | None = Field(default=None, alias="1stProofDate")
+    first_proof_date: AwareDatetime | None = Field(default=None, alias="1stProofDate")
     final_journal_publication: list[Link] = Field(default_factory=list)
-    published_online_date: date | None = None
+    published_online_date: AwareDatetime | None = None
 
     @field_validator("arxiv_submission_date", mode="before")
     @classmethod

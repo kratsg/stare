@@ -189,8 +189,6 @@ class TestMetadata:
         assert m.keywords == []
         assert m.statistical_tools == []
         assert m.mva_ml_tools == []
-        assert m.triggers == []
-        assert m.analysis_framework is None
 
 
 class TestDocumentation:
@@ -729,7 +727,7 @@ def test_pub_note_search_result_round_trip() -> None:
         "numberOfResults": 1,
         "results": [
             {
-                "temporaryReferenceCode": "ATL-COM-PHYS-2024-001",
+                "temporaryReferenceCode": "PUB-EXOT-2026-03",
                 "finalReferenceCode": "ATL-PHYS-PUB-2024-01",
                 "status": "Phase 1 Active",
                 "shortTitle": "x",
@@ -961,7 +959,7 @@ class TestRichRendering:
     def test_pubnote_rich(self) -> None:
         pn = PubNote.model_validate(
             {
-                "temporaryReferenceCode": "ATL-PHYS-PUB-2024-99",
+                "temporaryReferenceCode": "PUB-EXOT-2026-03",
                 "status": "Phase 1 Active",
                 "shortTitle": "PubNote test",
                 "phase1": {
@@ -1045,7 +1043,7 @@ class TestRichRendering:
         )
         pn = PubNote.model_validate(
             {
-                "temporaryReferenceCode": "ATL-PHYS-PUB-2024-99",
+                "temporaryReferenceCode": "PUB-EXOT-2026-03",
                 "status": "Phase 1 Active",
             }
         )
@@ -1085,7 +1083,7 @@ class TestConfNote:
                 }
             )
 
-    def test_all_optional(self) -> None:
+    def test_final_reference_code_optional(self) -> None:
         note = ConfNote.model_validate(
             {
                 "temporaryReferenceCode": "CONF-EXOT-2024-01",
@@ -1145,37 +1143,41 @@ class TestConfNoteSearchResult:
 class TestPubNote:
     def test_round_trip(self) -> None:
         payload = {
-            "temporaryReferenceCode": "ATL-COM-PHYS-2024-001",
+            "temporaryReferenceCode": "PUB-EXOT-2026-03",
             "finalReferenceCode": "ATL-PHYS-PUB-2024-01",
             "status": "Phase 1 Active",
             "shortTitle": "Test pub note",
         }
         note = PubNote.model_validate(payload)
-        assert note.temp_reference_code == "ATL-COM-PHYS-2024-001"
+        assert note.temp_reference_code == "PUB-EXOT-2026-03"
         assert note.final_reference_code == "ATL-PHYS-PUB-2024-01"
         assert note.short_title == "Test pub note"
         dumped = note.model_dump(by_alias=True, exclude_none=True)
-        assert dumped["temporaryReferenceCode"] == "ATL-COM-PHYS-2024-001"
+        assert dumped["temporaryReferenceCode"] == "PUB-EXOT-2026-03"
         assert dumped["finalReferenceCode"] == "ATL-PHYS-PUB-2024-01"
 
     def test_strict_status_rejects_unknown(self) -> None:
         with pytest.raises(ResponseParseError):
             PubNote.model_validate(
                 {
-                    "temporaryReferenceCode": "ATL-COM-PHYS-2024-001",
+                    "temporaryReferenceCode": "PUB-EXOT-2026-03",
                     "status": "SomeUnknownStatus",
                 }
             )
 
-    def test_all_optional(self) -> None:
+    def test_final_reference_code_optional(self) -> None:
         note = PubNote.model_validate(
             {
-                "temporaryReferenceCode": "ATL-COM-PHYS-2024-001",
+                "temporaryReferenceCode": "PUB-EXOT-2026-03",
                 "status": "Phase 1 Active",
             }
         )
-        assert note.temp_reference_code == "ATL-COM-PHYS-2024-001"
+        assert note.temp_reference_code == "PUB-EXOT-2026-03"
         assert note.final_reference_code is None
+
+    def test_missing_temp_reference_code_raises(self) -> None:
+        with pytest.raises(ResponseParseError):
+            PubNote.model_validate({"finalReferenceCode": "ATL-PHYS-PUB-2024-01"})
 
 
 class TestPubNotePhase1:
