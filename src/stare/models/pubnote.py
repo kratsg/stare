@@ -32,8 +32,8 @@ class PubNoteReader(_Base):
     first_name: str | None = None
     last_name: str | None = None
     email: str | None = None
-    is_first_reader: bool | None = None
-    is_second_reader: bool | None = None
+    is_first_reader: bool
+    is_second_reader: bool
 
 
 class Readers(_ListRootModel[PubNoteReader]):

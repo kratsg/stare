@@ -22,6 +22,7 @@ from stare.models.common import (
     Documentation,
     EditorialBoard,
     EditorialBoardMember,
+    Group,
     Groups,
     Link,
     Meeting,
@@ -91,14 +92,19 @@ class TestTeamMember:
                 "lastName": "Y",
                 "email": "x@y.com",
                 "isContactEditor": True,
+                "isAnalysisContact": False,
             }
         )
         assert m.cern_ccid == "x"
         assert m.is_contact_editor is True
 
-    def test_is_contact_editor_optional(self) -> None:
-        m = TeamMember.model_validate({})
-        assert m.is_contact_editor is None
+    def test_is_contact_editor_required(self) -> None:
+        with pytest.raises(ResponseParseError):
+            TeamMember.model_validate({})
+
+    def test_is_analysis_contact_required(self) -> None:
+        with pytest.raises(ResponseParseError):
+            TeamMember.model_validate({"isContactEditor": True})
 
 
 class TestEditorialBoardMember:
@@ -116,10 +122,9 @@ class TestEditorialBoardMember:
         assert m.is_chair is True
         assert m.is_ex_officio is False
 
-    def test_defaults(self) -> None:
-        m = EditorialBoardMember.model_validate({})
-        assert m.is_chair is None
-        assert m.is_ex_officio is None
+    def test_required_flags(self) -> None:
+        with pytest.raises(ResponseParseError):
+            EditorialBoardMember.model_validate({})
 
 
 class TestGroups:
@@ -140,6 +145,10 @@ class TestGroups:
         g = Groups.model_validate({})
         assert g.leading_group is None
 
+    def test_group_name_required(self) -> None:
+        with pytest.raises(ResponseParseError):
+            Group.model_validate({})
+
 
 class TestCollision:
     def test_parse(self) -> None:
@@ -157,6 +166,33 @@ class TestCollision:
         assert c.type == "p-p"
         assert c.ecm_value == "13"
         assert c.luminosity_unit == "fb-1"
+
+    def test_luminosity_value_optional(self) -> None:
+        c = Collision.model_validate(
+            {
+                "type": "p-p",
+                "year": "2018",
+                "run": "2",
+                "ecmValue": "13",
+                "ecmUnit": "TeV",
+                "luminosityUnit": "fb-1",
+            }
+        )
+        assert c.luminosity_value is None
+
+    def test_required_fields(self) -> None:
+        for missing in ("type", "year", "run", "ecmValue", "ecmUnit", "luminosityUnit"):
+            full = {
+                "type": "p-p",
+                "year": "2018",
+                "run": "2",
+                "ecmValue": "13",
+                "ecmUnit": "TeV",
+                "luminosityUnit": "fb-1",
+            }
+            del full[missing]
+            with pytest.raises(ResponseParseError):
+                Collision.model_validate(full)
 
 
 class TestMetadata:
@@ -235,6 +271,11 @@ class TestMeeting:
         assert m.title is None
         assert m.link is None
 
+    def test_label_only_drops_link(self) -> None:
+        m = Meeting.model_validate({"title": "EOI", "label": "Indico"})
+        assert m.title == "EOI"
+        assert m.link is None
+
 
 class TestLink:
     def test_parse(self) -> None:
@@ -249,10 +290,9 @@ class TestLink:
         output = console.export_text(styles=True)
         assert "Indico" in output
 
-    def test_rich_no_url(self) -> None:
-        link = Link(label="No link", url=None)
-        rendered = link.__rich__()
-        assert str(rendered) == "No link"
+    def test_url_required(self) -> None:
+        with pytest.raises((ResponseParseError, Exception)):
+            Link.model_validate({"label": "No link"})
 
     def test_ami_glance_link_is_link(self) -> None:
         a = AmiGlanceLink.model_validate({"label": "AMI", "url": "https://ami.cern.ch"})
@@ -267,6 +307,14 @@ class TestRelatedPublication:
         )
         assert r.reference_code == "HDBS-2018-33"
         assert r.type == "Paper"
+
+    def test_reference_code_optional(self) -> None:
+        r = RelatedPublication.model_validate({"type": "Paper"})
+        assert r.reference_code is None
+
+    def test_type_required(self) -> None:
+        with pytest.raises(ResponseParseError):
+            RelatedPublication.model_validate({"referenceCode": "HDBS-2018-33"})
 
 
 # ---------------------------------------------------------------------------
@@ -394,6 +442,7 @@ class TestAnalysis:
                         "lastName": "B",
                         "email": "a@b.com",
                         "isContactEditor": True,
+                        "isAnalysisContact": False,
                     }
                 ],
             }
@@ -756,7 +805,15 @@ def test_pub_note_search_result_empty() -> None:
 class TestListRootModelWrappers:
     def test_editorial_board_protocol(self) -> None:
         eb = EditorialBoard.model_validate(
-            [{"cernCcid": "x", "firstName": "A", "lastName": "B", "isChair": True}]
+            [
+                {
+                    "cernCcid": "x",
+                    "firstName": "A",
+                    "lastName": "B",
+                    "isChair": True,
+                    "isExOfficio": False,
+                }
+            ]
         )
         assert len(eb) == 1
         assert eb[0].is_chair is True
@@ -772,6 +829,7 @@ class TestListRootModelWrappers:
                     "firstName": "Han",
                     "lastName": "Solo",
                     "isContactEditor": True,
+                    "isAnalysisContact": False,
                 }
             ]
         )
@@ -784,10 +842,13 @@ class TestListRootModelWrappers:
         colls = Collisions.model_validate(
             [
                 {
+                    "type": "p-p",
                     "run": "Run 2",
                     "year": "2015-2018",
                     "ecmValue": "13",
+                    "ecmUnit": "TeV",
                     "luminosityValue": "140",
+                    "luminosityUnit": "fb-1",
                 }
             ]
         )
@@ -804,6 +865,7 @@ class TestListRootModelWrappers:
                     "firstName": "Obi-Wan",
                     "lastName": "Kenobi",
                     "isFirstReader": True,
+                    "isSecondReader": False,
                 }
             ]
         )
@@ -813,13 +875,30 @@ class TestListRootModelWrappers:
         assert bool(Readers()) is False
 
     def test_wrapper_validates_from_flat_list(self) -> None:
-        eb = EditorialBoard.model_validate([{"firstName": "A", "lastName": "B"}])
+        eb = EditorialBoard.model_validate(
+            [
+                {
+                    "firstName": "A",
+                    "lastName": "B",
+                    "isChair": False,
+                    "isExOfficio": False,
+                }
+            ]
+        )
         assert isinstance(eb, EditorialBoard)
         assert isinstance(eb[0], EditorialBoardMember)
 
     def test_wrapper_dumps_as_flat_list(self) -> None:
         team = AnalysisTeam.model_validate(
-            [{"cernCcid": "u1", "firstName": "A", "lastName": "B"}]
+            [
+                {
+                    "cernCcid": "u1",
+                    "firstName": "A",
+                    "lastName": "B",
+                    "isContactEditor": False,
+                    "isAnalysisContact": False,
+                }
+            ]
         )
         raw = json.loads(team.model_dump_json(by_alias=True))
         assert isinstance(raw, list), (
@@ -832,10 +911,13 @@ class TestListRootModelWrappers:
             {
                 "collisions": [
                     {
+                        "type": "p-p",
                         "run": "Run 2",
                         "year": "2018",
                         "ecmValue": "13",
+                        "ecmUnit": "TeV",
                         "luminosityValue": "140",
+                        "luminosityUnit": "fb-1",
                     }
                 ]
             }
@@ -868,10 +950,13 @@ class TestRichRendering:
                 "metadata": {
                     "collisions": [
                         {
+                            "type": "p-p",
                             "run": "Run 2",
                             "year": "2018",
                             "ecmValue": "13",
+                            "ecmUnit": "TeV",
                             "luminosityValue": "140",
+                            "luminosityUnit": "fb-1",
                         }
                     ],
                     "keywords": [{"name": "13 TeV"}],
@@ -883,6 +968,7 @@ class TestRichRendering:
                         "firstName": "Han",
                         "lastName": "Solo",
                         "isContactEditor": True,
+                        "isAnalysisContact": False,
                     }
                 ],
             }
@@ -904,10 +990,13 @@ class TestRichRendering:
                 "metadata": {
                     "collisions": [
                         {
+                            "type": "p-p",
                             "run": "Run 3",
                             "year": "2022",
                             "ecmValue": "13.6",
+                            "ecmUnit": "TeV",
                             "luminosityValue": "35",
+                            "luminosityUnit": "fb-1",
                         }
                     ],
                     "keywords": [{"name": "13.6 TeV"}],
@@ -918,6 +1007,7 @@ class TestRichRendering:
                         "firstName": "Leia",
                         "lastName": "Organa",
                         "isContactEditor": False,
+                        "isAnalysisContact": False,
                     }
                 ],
             }
@@ -935,10 +1025,13 @@ class TestRichRendering:
                 "metadata": {
                     "collisions": [
                         {
+                            "type": "p-p",
                             "run": "Run 2",
                             "year": "2018",
                             "ecmValue": "13",
+                            "ecmUnit": "TeV",
                             "luminosityValue": "140",
+                            "luminosityUnit": "fb-1",
                         }
                     ]
                 },
@@ -948,11 +1041,19 @@ class TestRichRendering:
                         "firstName": "Luke",
                         "lastName": "Skywalker",
                         "isContactEditor": True,
+                        "isAnalysisContact": False,
                     }
                 ],
                 "phase1": {
                     "startDate": "2024-01-01",
-                    "editorialBoard": [{"firstName": "Yoda", "lastName": "Master"}],
+                    "editorialBoard": [
+                        {
+                            "firstName": "Yoda",
+                            "lastName": "Master",
+                            "isChair": False,
+                            "isExOfficio": False,
+                        }
+                    ],
                 },
             }
         )
@@ -972,6 +1073,7 @@ class TestRichRendering:
                             "firstName": "Rey",
                             "lastName": "Skywalker",
                             "isFirstReader": True,
+                            "isSecondReader": False,
                         }
                     ],
                 },
@@ -1003,10 +1105,13 @@ class TestRichRendering:
         colls = Collisions.model_validate(
             [
                 {
+                    "type": "p-p",
                     "run": "Run 2",
                     "year": "2018",
                     "ecmValue": "13",
+                    "ecmUnit": "TeV",
                     "luminosityValue": "140",
+                    "luminosityUnit": "fb-1",
                 }
             ]
         )
@@ -1017,16 +1122,22 @@ class TestRichRendering:
         colls = Collisions.model_validate(
             [
                 {
+                    "type": "p-p",
                     "run": "Run 2",
                     "year": "2015-2018",
                     "ecmValue": "13",
+                    "ecmUnit": "TeV",
                     "luminosityValue": "140",
+                    "luminosityUnit": "fb-1",
                 },
                 {
+                    "type": "p-p",
                     "run": "Run 3",
                     "year": "2022-2024",
                     "ecmValue": "13.6",
+                    "ecmUnit": "TeV",
                     "luminosityValue": "35",
+                    "luminosityUnit": "fb-1",
                 },
             ]
         )
@@ -1265,17 +1376,25 @@ class TestConfNotePhase1Alias:
 
 
 class TestAnalysisFramework:
-    def test_string_shape(self) -> None:
+    def test_list_shape(self) -> None:
         af = AnalysisFramework.model_validate(
-            {"ntupling": "TopCPToolkit", "histogramming": "FastFrames"}
+            {
+                "ntupling": ["TopCPToolkit", "FastFrames"],
+                "histogramming": ["FastFrames"],
+            }
         )
-        assert af.ntupling == "TopCPToolkit"
-        assert af.histogramming == "FastFrames"
+        assert af.ntupling == ["TopCPToolkit", "FastFrames"]
+        assert af.histogramming == ["FastFrames"]
 
-    def test_none_defaults(self) -> None:
+    def test_defaults_to_empty_lists(self) -> None:
         af = AnalysisFramework.model_validate({})
-        assert af.ntupling is None
-        assert af.histogramming is None
+        assert af.ntupling == []
+        assert af.histogramming == []
+
+    def test_null_coerced_to_empty_list(self) -> None:
+        af = AnalysisFramework.model_validate({"ntupling": None, "histogramming": None})
+        assert af.ntupling == []
+        assert af.histogramming == []
 
 
 # ---------------------------------------------------------------------------
@@ -1312,15 +1431,14 @@ class TestRealWorldAnalysis:
         assert len(r.related_publications) == 1
         assert r.related_publications[0].reference_code == "CONF-HDBS-2023-22"
 
-    def test_analysis_framework_string_fields(self) -> None:
+    def test_analysis_framework_list_fields(self) -> None:
         data = json.loads((_FIXTURES / "analysis_search.json").read_text())
         r = AnalysisSearchResult.model_validate(data).results[0]
         assert r.metadata is not None
         af = r.metadata.analysis_framework
         assert af is not None
-        # ntupling/histogramming are str|None per api.yml
-        assert af.ntupling is None or isinstance(af.ntupling, str)
-        assert af.histogramming is None or isinstance(af.histogramming, str)
+        assert isinstance(af.ntupling, list)
+        assert isinstance(af.histogramming, list)
 
     def test_phase0_editorial_board(self) -> None:
         data = json.loads((_FIXTURES / "analysis_search.json").read_text())

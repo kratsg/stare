@@ -11,6 +11,7 @@ from pydantic import (
     Field,
     RootModel,
     ValidationError,
+    field_validator,
     model_validator,
 )
 from pydantic.alias_generators import to_camel
@@ -233,7 +234,7 @@ class Link(_Base):
     """A labelled URL, optionally rendered as a Rich clickable hyperlink."""
 
     label: str | None = None
-    url: str | None = None
+    url: str
 
     def __rich__(self) -> Text:
         """Render as a Rich clickable hyperlink when a URL is present."""
@@ -251,7 +252,7 @@ InternalDocument = Link
 class _NamedItem(_Base):
     """A single-field wrapper for API objects of the form ``{name: str}``."""
 
-    name: str | None = None
+    name: str
 
 
 class Group(_NamedItem):
@@ -277,8 +278,15 @@ class Trigger(_NamedItem):
 class AnalysisFramework(_Base):
     """Ntupling and histogramming framework names for an analysis."""
 
-    ntupling: str | None = None
-    histogramming: str | None = None
+    ntupling: list[str] = Field(default_factory=list)
+    histogramming: list[str] = Field(default_factory=list)
+
+    @field_validator("ntupling", "histogramming", mode="before")
+    @classmethod
+    def _coerce_none_to_list(cls, v: object) -> object:
+        if v is None:
+            return []
+        return v
 
 
 class AnalysisContactAssignment(_Base):
@@ -300,17 +308,17 @@ class Person(_Base):
 class TeamMember(Person):
     """A member of an analysis team."""
 
-    is_contact_editor: bool | None = None
-    # Analysis endpoint only; omitted by paper/confnote/pubnote responses.
-    is_analysis_contact: bool | None = None
+    is_contact_editor: bool
+    # Required key per api.yml; null when the analysis-contact concept does not apply.
+    is_analysis_contact: bool | None
     analysis_contact_assignments: AnalysisContactAssignment | None = None
 
 
 class EditorialBoardMember(Person):
     """A member of a publication editorial board."""
 
-    is_chair: bool | None = None
-    is_ex_officio: bool | None = None
+    is_chair: bool
+    is_ex_officio: bool
 
 
 class EditorialBoard(_ListRootModel[EditorialBoardMember]):
@@ -377,13 +385,13 @@ class Groups(_Base):
 class Collision(_Base):
     """A collision dataset descriptor (centre-of-mass energy, luminosity, etc.)."""
 
-    type: LenientCollisionType | None = None
-    year: str | None = None
-    run: str | None = None
-    ecm_value: str | None = None
-    ecm_unit: str | None = None
+    type: LenientCollisionType
+    year: str
+    run: str
+    ecm_value: str
+    ecm_unit: str
     luminosity_value: str | None = None
-    luminosity_unit: str | None = None
+    luminosity_unit: str
 
     def __rich__(self) -> Panel:
         """Return a Rich Panel showing run, centre-of-mass energy, and luminosity."""
@@ -482,10 +490,11 @@ class Meeting(_Base):
         if not isinstance(data, dict):
             return data
         # API sends flat label/url fields; fold them into a nested Link object.
+        # Only construct a Link when url is present — Link.url is required.
         if "link" not in data and ("label" in data or "url" in data):
             label = data.pop("label", None)
             url = data.pop("url", None)
-            if label is not None or url is not None:
+            if url is not None:
                 data["link"] = {"label": label, "url": url}
         return data
 
@@ -500,4 +509,4 @@ class RelatedPublication(_Base):
     """A reference to a related publication (analysis, paper, CONF/PUB note)."""
 
     reference_code: str | None = None
-    type: LenientPublicationType | None = None
+    type: LenientPublicationType

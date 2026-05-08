@@ -27,6 +27,10 @@ paths:
         Searches analyses with support for filtering, sorting, and pagination.
         Filters are passed as a DSL query string via the `queryString`
         parameter.
+
+        The same DSL is used across the `/search...` endpoints in this API. What
+        changes between resources is the set of searchable field names
+        documented on each endpoint.
       operationId: searchAnalysis
       security:
         - oauth2: []
@@ -60,11 +64,111 @@ paths:
             default: false
         - name: queryString
           in: query
-          description: >
-            URL-encoded DSL filter string. Supports operators such as `contain`,
-            `not-contain`, `=`, and `!=` over the available searchable
-            properties (e.g. creationDate, referenceCode, keywords). Example:
-            `referenceCode = <referenceCode>`.
+          description: |
+            URL-encoded DSL filter string.
+
+            <details>
+            <summary>See DSL syntax</summary>
+
+            <ul>
+              <li>Statements are written as <code>"fieldName" operator "value"</code>.</li>
+              <li>Supported conjunctions are uppercase <code>AND</code> and <code>OR</code>.</li>
+              <li>Parentheses <code>(</code> and <code>)</code> are supported for grouping.</li>
+              <li>Field names are case-sensitive and must match the names below exactly.</li>
+              <li>Operators are case-sensitive. This endpoint supports <code>contain</code>, <code>not-contain</code>, <code>=</code>, and <code>!=</code>.</li>
+              <li>String matching is not case-sensitive for <code>contain</code>, <code>not-contain</code>, <code>=</code>, and <code>!=</code>.</li>
+              <li>Fields and values that contain spaces or special characters must stay inside double quotes, and the whole <code>queryString</code> parameter must be URL-encoded when sent over HTTP.</li>
+              <li>The parser does not define an escape syntax for embedded double quotes. Values containing <code>"</code> are therefore not supported.</li>
+              <li>To compare against <code>NULL</code>, use the special token <code>__EMPTY__</code>, for example <code>"publicShortTitle" = "__EMPTY__"</code>.</li>
+            </ul>
+
+            </details>
+
+            <details>
+            <summary>See searchable fields for <code>/searchAnalysis</code></summary>
+
+            <ul>
+              <li><code>creationDate</code></li>
+              <li><code>status</code></li>
+              <li><code>shortTitle</code></li>
+              <li><code>publicShortTitle</code></li>
+              <li><code>referenceCode</code></li>
+              <li><code>groups.leadingGroup.name</code></li>
+              <li><code>groups.subgroups.name</code></li>
+              <li><code>groups.otherGroups.name</code></li>
+              <li><code>amiGlance.label</code></li>
+              <li><code>amiGlance.url</code></li>
+              <li><code>documentation.repositories.gitlabId</code></li>
+              <li><code>documentation.repositories.type</code></li>
+              <li><code>documentation.repositories.url</code></li>
+              <li><code>documentation.supportingInternalDocuments.label</code></li>
+              <li><code>documentation.supportingInternalDocuments.url</code></li>
+              <li><code>analysisTeam.cernCcid</code></li>
+              <li><code>analysisTeam.firstName</code></li>
+              <li><code>analysisTeam.lastName</code></li>
+              <li><code>analysisTeam.email</code></li>
+              <li><code>analysisTeam.isContactEditor</code> (<code>=</code> and <code>!=</code> only)</li>
+              <li><code>analysisTeam.isAnalysisContact</code> (<code>=</code> and <code>!=</code> only)</li>
+              <li><code>analysisTeam.analysisContactAssignments.startDate</code></li>
+              <li><code>analysisTeam.analysisContactAssignments.endDate</code></li>
+              <li><code>metadata.collisions.type</code></li>
+              <li><code>metadata.collisions.year</code></li>
+              <li><code>metadata.collisions.run</code></li>
+              <li><code>metadata.collisions.ecmValue</code></li>
+              <li><code>metadata.collisions.ecmUnit</code></li>
+              <li><code>metadata.collisions.luminosityValue</code></li>
+              <li><code>metadata.collisions.luminosityUnit</code></li>
+              <li><code>metadata.keywords.name</code></li>
+              <li><code>metadata.statTools.name</code></li>
+              <li><code>metadata.mvaMlTools.name</code></li>
+              <li><code>metadata.triggers.name</code></li>
+              <li><code>metadata.analysisFramework.ntupling</code></li>
+              <li><code>metadata.analysisFramework.histogramming</code></li>
+              <li><code>extraMetadata</code></li>
+              <li><code>relatedPublications.type</code></li>
+              <li><code>relatedPublications.referenceCode</code></li>
+              <li><code>phase0.startDate</code></li>
+              <li><code>phase0.state</code></li>
+              <li><code>phase0.eoiMeeting.title</code></li>
+              <li><code>phase0.eoiMeeting.date</code></li>
+              <li><code>phase0.eoiMeeting.comments</code></li>
+              <li><code>phase0.eoiMeeting.label</code></li>
+              <li><code>phase0.eoiMeeting.url</code></li>
+              <li><code>phase0.mainPhysicsAim</code></li>
+              <li><code>phase0.datasetUsed</code></li>
+              <li><code>phase0.modelTested</code></li>
+              <li><code>phase0.methods</code></li>
+              <li><code>phase0.editorialBoardRequestMeeting.title</code></li>
+              <li><code>phase0.editorialBoardRequestMeeting.date</code></li>
+              <li><code>phase0.editorialBoardRequestMeeting.comments</code></li>
+              <li><code>phase0.editorialBoardRequestMeeting.label</code></li>
+              <li><code>phase0.editorialBoardRequestMeeting.url</code></li>
+              <li><code>phase0.editorialBoard.cernCcid</code></li>
+              <li><code>phase0.editorialBoard.firstName</code></li>
+              <li><code>phase0.editorialBoard.lastName</code></li>
+              <li><code>phase0.editorialBoard.email</code></li>
+              <li><code>phase0.editorialBoard.isChair</code> (<code>=</code> and <code>!=</code> only)</li>
+              <li><code>phase0.editorialBoard.isExOfficio</code> (<code>=</code> and <code>!=</code> only)</li>
+              <li><code>phase0.editorialBoardFormedDate</code></li>
+              <li><code>phase0.preApprovalMeeting.title</code></li>
+              <li><code>phase0.preApprovalMeeting.date</code></li>
+              <li><code>phase0.preApprovalMeeting.comments</code></li>
+              <li><code>phase0.preApprovalMeeting.label</code></li>
+              <li><code>phase0.preApprovalMeeting.url</code></li>
+              <li><code>phase0.approvalMeeting.title</code></li>
+              <li><code>phase0.approvalMeeting.date</code></li>
+              <li><code>phase0.approvalMeeting.comments</code></li>
+              <li><code>phase0.approvalMeeting.label</code></li>
+              <li><code>phase0.approvalMeeting.url</code></li>
+              <li><code>phase0.pgcOrSgcSignOffDate</code></li>
+            </ul>
+
+            </details>
+
+            Examples:
+            - `"referenceCode" = "ANA-TEST-INT-1"`
+            - `"status" = "Phase 0 Active" AND "metadata.keywords.name" contain "Higgs"`
+            - `("groups.leadingGroup.name" = "SUSY" OR "groups.leadingGroup.name" = "EXOT") AND "phase0.state" != "closed"`
           required: false
           schema:
             type: string
@@ -98,6 +202,10 @@ paths:
         Searches papers with support for filtering, sorting, and pagination.
         Filters are passed as a DSL query string via the `queryString`
         parameter.
+
+        The same DSL is used across the `/search...` endpoints in this API. What
+        changes between resources is the set of searchable field names
+        documented on each endpoint.
       operationId: searchPaper
       security:
         - oauth2: []
@@ -131,11 +239,123 @@ paths:
             default: false
         - name: queryString
           in: query
-          description: >
-            URL-encoded DSL filter string. Supports operators such as `contain`,
-            `not-contain`, `=`, and `!=` over the available searchable
-            properties (e.g. creationDate, referenceCode, keywords). Example:
-            `referenceCode = <referenceCode>`.
+          description: |
+            URL-encoded DSL filter string.
+
+            <details>
+            <summary>See DSL syntax</summary>
+
+            <ul>
+              <li>Statements are written as <code>"fieldName" operator "value"</code>.</li>
+              <li>Supported conjunctions are uppercase <code>AND</code> and <code>OR</code>.</li>
+              <li>Parentheses <code>(</code> and <code>)</code> are supported for grouping.</li>
+              <li>Field names are case-sensitive and must match the names below exactly.</li>
+              <li>Operators are case-sensitive. This endpoint supports <code>contain</code>, <code>not-contain</code>, <code>=</code>, and <code>!=</code>.</li>
+              <li>String matching is not case-sensitive for <code>contain</code>, <code>not-contain</code>, <code>=</code>, and <code>!=</code>.</li>
+              <li>Fields and values that contain spaces or special characters must stay inside double quotes, and the whole <code>queryString</code> parameter must be URL-encoded when sent over HTTP.</li>
+              <li>The parser does not define an escape syntax for embedded double quotes. Values containing <code>"</code> are therefore not supported.</li>
+              <li>To compare against <code>NULL</code>, use the special token <code>__EMPTY__</code>, for example <code>"publicShortTitle" = "__EMPTY__"</code>.</li>
+            </ul>
+
+            </details>
+
+            <details>
+            <summary>See searchable fields for <code>/searchPaper</code></summary>
+
+            <ul>
+              <li><code>status</code></li>
+              <li><code>shortTitle</code></li>
+              <li><code>publicShortTitle</code></li>
+              <li><code>fullTitle</code></li>
+              <li><code>referenceCode</code></li>
+              <li><code>groups.leadingGroup.name</code></li>
+              <li><code>groups.subgroups.name</code></li>
+              <li><code>groups.otherGroups.name</code></li>
+              <li><code>documentation.supportingInternalDocuments.label</code></li>
+              <li><code>documentation.supportingInternalDocuments.url</code></li>
+              <li><code>analysisTeam.cernCcid</code></li>
+              <li><code>analysisTeam.firstName</code></li>
+              <li><code>analysisTeam.lastName</code></li>
+              <li><code>analysisTeam.email</code></li>
+              <li><code>analysisTeam.isContactEditor</code> (<code>=</code> and <code>!=</code> only)</li>
+              <li><code>metadata.collisions.type</code></li>
+              <li><code>metadata.collisions.year</code></li>
+              <li><code>metadata.collisions.run</code></li>
+              <li><code>metadata.collisions.ecmValue</code></li>
+              <li><code>metadata.collisions.ecmUnit</code></li>
+              <li><code>metadata.collisions.luminosityValue</code></li>
+              <li><code>metadata.collisions.luminosityUnit</code></li>
+              <li><code>metadata.keywords.name</code></li>
+              <li><code>metadata.statTools.name</code></li>
+              <li><code>metadata.mvaMlTools.name</code></li>
+              <li><code>rivetRoutinesUrl</code></li>
+              <li><code>relatedAnalysis.referenceCode</code></li>
+              <li><code>relatedAnalysis.type</code></li>
+              <li><code>phase1.startDate</code></li>
+              <li><code>phase1.state</code></li>
+              <li><code>phase1.editorialBoard.cernCcid</code></li>
+              <li><code>phase1.editorialBoard.firstName</code></li>
+              <li><code>phase1.editorialBoard.lastName</code></li>
+              <li><code>phase1.editorialBoard.email</code></li>
+              <li><code>phase1.editorialBoard.isChair</code> (<code>=</code> and <code>!=</code> only)</li>
+              <li><code>phase1.editorialBoard.isExOfficio</code> (<code>=</code> and <code>!=</code> only)</li>
+              <li><code>phase1.editorialBoardFormedDate</code></li>
+              <li><code>phase1.languageEditorsSignOffDate</code></li>
+              <li><code>phase1.presentationDate</code></li>
+              <li><code>phase1.pgcApprovalDate</code></li>
+              <li><code>phase1.editorialBoardDraftSignOffDate</code></li>
+              <li><code>phase1.draftReleasedDate</code></li>
+              <li><code>phase1.pubcommChairOrDeputyOrDelegated.cernCcid</code></li>
+              <li><code>phase1.pubcommChairOrDeputyOrDelegated.firstName</code></li>
+              <li><code>phase1.pubcommChairOrDeputyOrDelegated.lastName</code></li>
+              <li><code>phase1.pubcommChairOrDeputyOrDelegated.email</code></li>
+              <li><code>phase1.spokespersonOrDeputyOrDelegated.cernCcid</code></li>
+              <li><code>phase1.spokespersonOrDeputyOrDelegated.firstName</code></li>
+              <li><code>phase1.spokespersonOrDeputyOrDelegated.lastName</code></li>
+              <li><code>phase1.spokespersonOrDeputyOrDelegated.email</code></li>
+              <li><code>phase1.atlasMeetingDate</code></li>
+              <li><code>phase1.pubcommSignOffDate</code></li>
+              <li><code>phase2.startDate</code></li>
+              <li><code>phase2.state</code></li>
+              <li><code>phase2.editorialBoardDraft2SignOffDate</code></li>
+              <li><code>phase2.draft2ReleasedDate</code></li>
+              <li><code>phase2.draft2SentToCernDate</code></li>
+              <li><code>phase2.draft2CernSignOffDate</code></li>
+              <li><code>phase2.paperClosureMeeting.label</code></li>
+              <li><code>phase2.paperClosureMeeting.url</code></li>
+              <li><code>phase2.preliminaryPlotsAndResultsReleased</code> (<code>=</code> and <code>!=</code> only)</li>
+              <li><code>phase2.paperClosureDate</code></li>
+              <li><code>phase2.editorialBoardRevisedSignOffDate</code></li>
+              <li><code>phase2.pubcommChairOrDeputyOrDelegated.cernCcid</code></li>
+              <li><code>phase2.pubcommChairOrDeputyOrDelegated.firstName</code></li>
+              <li><code>phase2.pubcommChairOrDeputyOrDelegated.lastName</code></li>
+              <li><code>phase2.pubcommChairOrDeputyOrDelegated.email</code></li>
+              <li><code>phase2.pubcommChairOrDeputySignOffDate</code></li>
+              <li><code>phase2.spokespersonDelegatedSignOffDate</code></li>
+              <li><code>phase2.spokespersonOrDeputySignOffDate</code></li>
+              <li><code>publicationPhase.startDate</code></li>
+              <li><code>publicationPhase.state</code></li>
+              <li><code>publicationPhase.arXivUrls.label</code></li>
+              <li><code>publicationPhase.arXivUrls.url</code></li>
+              <li><code>publicationPhase.finalTitleTex</code></li>
+              <li><code>publicationPhase.finalSubmissionJournal</code></li>
+              <li><code>publicationPhase.arXivSubmissionDate</code></li>
+              <li><code>publicationPhase.physicsBriefing.label</code></li>
+              <li><code>publicationPhase.physicsBriefing.url</code></li>
+              <li><code>publicationPhase.1stRefereeReportDate</code></li>
+              <li><code>publicationPhase.journalAcceptanceDate</code></li>
+              <li><code>publicationPhase.1stProofDate</code></li>
+              <li><code>publicationPhase.finalJournalPublication.label</code></li>
+              <li><code>publicationPhase.finalJournalPublication.url</code></li>
+              <li><code>publicationPhase.publishedOnlineDate</code></li>
+            </ul>
+
+            </details>
+
+            Examples:
+            - `"referenceCode" = "IDET-2010-01"`
+            - `"status" = "Phase 1 Active" AND "metadata.keywords.name" contain "jets"`
+            - `("groups.leadingGroup.name" = "TOPQ" OR "groups.leadingGroup.name" = "HDBS") AND "phase1.state" != "Phase Closed"`
           required: false
           schema:
             type: string
@@ -169,6 +389,10 @@ paths:
         Searches confnotes with support for filtering, sorting, and pagination.
         Filters are passed as a DSL query string via the `queryString`
         parameter.
+
+        The same DSL is used across the `/search...` endpoints in this API. What
+        changes between resources is the set of searchable field names
+        documented on each endpoint.
       operationId: searchConfnote
       security:
         - oauth2: []
@@ -202,12 +426,93 @@ paths:
             default: false
         - name: queryString
           in: query
-          description: >
-            URL-encoded DSL filter string. Supports operators such as `contain`,
-            `not-contain`, `=`, and `!=` over the available searchable
-            properties (e.g. status, temporaryReferenceCode, metadata.keywords,
-            phase1.state). Example: `temporaryReferenceCode =
-            <temporaryReferenceCode>`.
+          description: |
+            URL-encoded DSL filter string.
+
+            <details>
+            <summary>See DSL syntax</summary>
+
+            <ul>
+              <li>Statements are written as <code>"fieldName" operator "value"</code>.</li>
+              <li>Supported conjunctions are uppercase <code>AND</code> and <code>OR</code>.</li>
+              <li>Parentheses <code>(</code> and <code>)</code> are supported for grouping.</li>
+              <li>Field names are case-sensitive and must match the names below exactly.</li>
+              <li>Operators are case-sensitive. This endpoint supports <code>contain</code>, <code>not-contain</code>, <code>=</code>, and <code>!=</code>.</li>
+              <li>String matching is not case-sensitive for <code>contain</code>, <code>not-contain</code>, <code>=</code>, and <code>!=</code>.</li>
+              <li>Fields and values that contain spaces or special characters must stay inside double quotes, and the whole <code>queryString</code> parameter must be URL-encoded when sent over HTTP.</li>
+              <li>The parser does not define an escape syntax for embedded double quotes. Values containing <code>"</code> are therefore not supported.</li>
+              <li>To compare against <code>NULL</code>, use the special token <code>__EMPTY__</code>, for example <code>"publicShortTitle" = "__EMPTY__"</code>.</li>
+            </ul>
+
+            </details>
+
+            <details>
+            <summary>See searchable fields for <code>/searchConfnote</code></summary>
+
+            <ul>
+              <li><code>status</code></li>
+              <li><code>shortTitle</code></li>
+              <li><code>publicShortTitle</code></li>
+              <li><code>fullTitle</code></li>
+              <li><code>temporaryReferenceCode</code></li>
+              <li><code>finalReferenceCode</code></li>
+              <li><code>groups.leadingGroup.name</code></li>
+              <li><code>groups.subgroups.name</code></li>
+              <li><code>groups.otherGroups.name</code></li>
+              <li><code>documentation.supportingInternalDocuments.label</code></li>
+              <li><code>documentation.supportingInternalDocuments.url</code></li>
+              <li><code>analysisTeam.cernCcid</code></li>
+              <li><code>analysisTeam.firstName</code></li>
+              <li><code>analysisTeam.lastName</code></li>
+              <li><code>analysisTeam.email</code></li>
+              <li><code>analysisTeam.isContactEditor</code> (<code>=</code> and <code>!=</code> only)</li>
+              <li><code>metadata.collisions.type</code></li>
+              <li><code>metadata.collisions.year</code></li>
+              <li><code>metadata.collisions.run</code></li>
+              <li><code>metadata.collisions.ecmValue</code></li>
+              <li><code>metadata.collisions.ecmUnit</code></li>
+              <li><code>metadata.collisions.luminosityValue</code></li>
+              <li><code>metadata.collisions.luminosityUnit</code></li>
+              <li><code>metadata.keywords.name</code></li>
+              <li><code>metadata.statTools.name</code></li>
+              <li><code>metadata.mvaMlTools.name</code></li>
+              <li><code>relatedAnalysis.referenceCode</code></li>
+              <li><code>relatedAnalysis.type</code></li>
+              <li><code>supersededBy.referenceCode</code></li>
+              <li><code>supersededBy.type</code></li>
+              <li><code>phase1.startDate</code></li>
+              <li><code>phase1.state</code></li>
+              <li><code>phase1.draftCdsUrl</code></li>
+              <li><code>phase1.editorialBoard.cernCcid</code></li>
+              <li><code>phase1.editorialBoard.firstName</code></li>
+              <li><code>phase1.editorialBoard.lastName</code></li>
+              <li><code>phase1.editorialBoard.email</code></li>
+              <li><code>phase1.editorialBoard.isChair</code> (<code>=</code> and <code>!=</code> only)</li>
+              <li><code>phase1.editorialBoard.isExOfficio</code> (<code>=</code> and <code>!=</code> only)</li>
+              <li><code>phase1.editorialBoardFormedDate</code></li>
+              <li><code>phase1.presentationDate</code></li>
+              <li><code>phase1.pgcApprovalDate</code></li>
+              <li><code>phase1.editorialBoardDraftSignOffDate</code></li>
+              <li><code>phase1.firstSignOffResponsible.cernCcid</code></li>
+              <li><code>phase1.firstSignOffResponsible.firstName</code></li>
+              <li><code>phase1.firstSignOffResponsible.lastName</code></li>
+              <li><code>phase1.firstSignOffResponsible.email</code></li>
+              <li><code>phase1.secondSignOffResponsible.cernCcid</code></li>
+              <li><code>phase1.secondSignOffResponsible.firstName</code></li>
+              <li><code>phase1.secondSignOffResponsible.lastName</code></li>
+              <li><code>phase1.secondSignOffResponsible.email</code></li>
+              <li><code>phase1.firstSignOffDate</code></li>
+              <li><code>phase1.secondSignOffDate</code></li>
+              <li><code>phase1.publicWebPageURLForFiguresAndTables</code></li>
+              <li><code>phase1.releaseDate</code></li>
+            </ul>
+
+            </details>
+
+            Examples:
+            - `"temporaryReferenceCode" = "CONF-2024-001"`
+            - `"status" = "Phase 1 Active" AND "metadata.keywords.name" contain "tracking"`
+            - `("groups.leadingGroup.name" = "BPHY" OR "groups.leadingGroup.name" = "SMP") AND "phase1.state" != "closed"`
           required: false
           schema:
             type: string
@@ -241,6 +546,10 @@ paths:
         Searches pubnotes with support for filtering, sorting, and pagination.
         Filters are passed as a DSL query string via the `queryString`
         parameter.
+
+        The same DSL is used across the `/search...` endpoints in this API. What
+        changes between resources is the set of searchable field names
+        documented on each endpoint.
       operationId: searchPubnote
       security:
         - oauth2: []
@@ -274,12 +583,88 @@ paths:
             default: false
         - name: queryString
           in: query
-          description: >
-            URL-encoded DSL filter string. Supports operators such as `contain`,
-            `not-contain`, `=`, and `!=` over the available searchable
-            properties (e.g. status, temporaryReferenceCode, metadata.keywords,
-            phase1.state). Example: `temporaryReferenceCode =
-            <temporaryReferenceCode>`.
+          description: |
+            URL-encoded DSL filter string. Supports operators such as
+            `contain`, `not-contain`, `=`, and `!=` over the available
+            searchable properties.
+
+            <details>
+            <summary>See DSL syntax</summary>
+
+            <ul>
+              <li>Statements are written as <code>"fieldName" operator "value"</code>.</li>
+              <li>Supported conjunctions are uppercase <code>AND</code> and <code>OR</code>.</li>
+              <li>Parentheses <code>(</code> and <code>)</code> are supported for grouping.</li>
+              <li>Field names are case-sensitive and must match the names below exactly.</li>
+              <li>Operators are case-sensitive. This endpoint supports <code>contain</code>, <code>not-contain</code>, <code>=</code>, and <code>!=</code>.</li>
+              <li>String matching is not case-sensitive for <code>contain</code>, <code>not-contain</code>, <code>=</code>, and <code>!=</code>.</li>
+              <li>Fields and values that contain spaces or special characters must stay inside double quotes, and the whole <code>queryString</code> parameter must be URL-encoded when sent over HTTP.</li>
+              <li>The parser does not define an escape syntax for embedded double quotes. Values containing <code>"</code> are therefore not supported.</li>
+              <li>To compare against <code>NULL</code>, use the special token <code>__EMPTY__</code>, for example <code>"publicShortTitle" = "__EMPTY__"</code>.</li>
+            </ul>
+
+            </details>
+
+            <details>
+            <summary>See searchable fields for <code>/searchPubnote</code></summary>
+
+            <ul>
+              <li><code>status</code></li>
+              <li><code>shortTitle</code></li>
+              <li><code>publicShortTitle</code></li>
+              <li><code>fullTitle</code></li>
+              <li><code>temporaryReferenceCode</code></li>
+              <li><code>finalReferenceCode</code></li>
+              <li><code>groups.leadingGroup.name</code></li>
+              <li><code>groups.subgroups.name</code></li>
+              <li><code>groups.otherGroups.name</code></li>
+              <li><code>documentation.supportingInternalDocuments.label</code></li>
+              <li><code>documentation.supportingInternalDocuments.url</code></li>
+              <li><code>analysisTeam.cernCcid</code></li>
+              <li><code>analysisTeam.firstName</code></li>
+              <li><code>analysisTeam.lastName</code></li>
+              <li><code>analysisTeam.email</code></li>
+              <li><code>analysisTeam.isContactEditor</code> (<code>=</code> and <code>!=</code> only)</li>
+              <li><code>metadata.collisions.type</code></li>
+              <li><code>metadata.collisions.year</code></li>
+              <li><code>metadata.collisions.run</code></li>
+              <li><code>metadata.collisions.ecmValue</code></li>
+              <li><code>metadata.collisions.ecmUnit</code></li>
+              <li><code>metadata.collisions.luminosityValue</code></li>
+              <li><code>metadata.collisions.luminosityUnit</code></li>
+              <li><code>metadata.keywords.name</code></li>
+              <li><code>metadata.statTools.name</code></li>
+              <li><code>metadata.mvaMlTools.name</code></li>
+              <li><code>relatedAnalysis.referenceCode</code></li>
+              <li><code>relatedAnalysis.type</code></li>
+              <li><code>supersededBy.referenceCode</code></li>
+              <li><code>supersededBy.type</code></li>
+              <li><code>phase1.startDate</code></li>
+              <li><code>phase1.state</code></li>
+              <li><code>phase1.draftCdsUrl</code></li>
+              <li><code>phase1.readers.cernCcid</code></li>
+              <li><code>phase1.readers.firstName</code></li>
+              <li><code>phase1.readers.lastName</code></li>
+              <li><code>phase1.readers.email</code></li>
+              <li><code>phase1.readers.isFirstReader</code> (<code>=</code> and <code>!=</code> only)</li>
+              <li><code>phase1.readers.isSecondReader</code> (<code>=</code> and <code>!=</code> only)</li>
+              <li><code>phase1.presentationDate</code></li>
+              <li><code>phase1.groupApprovalDate</code></li>
+              <li><code>phase1.firstReaderDraftSignOffDate</code></li>
+              <li><code>phase1.atlasCirculationDate</code></li>
+              <li><code>phase1.proceedToSignOffDate</code></li>
+              <li><code>phase1.firstReaderSignOffDate</code></li>
+              <li><code>phase1.secondReaderSignOffDate</code></li>
+              <li><code>phase1.publicWebPageURLForFiguresAndTables</code></li>
+              <li><code>phase1.releaseDate</code></li>
+            </ul>
+
+            </details>
+
+            Examples:
+            - `"temporaryReferenceCode" = "PUBNOTE-2024-001"`
+            - `"status" = "Phase 1 Active" AND "metadata.keywords.name" contain "calorimeter"`
+            - `("groups.leadingGroup.name" = "EGAM" OR "groups.leadingGroup.name" = "JETM") AND "phase1.state" != "closed"`
           required: false
           schema:
             type: string
@@ -343,6 +728,8 @@ components:
                 properties:
                   leadingGroup:
                     type: object
+                    required:
+                      - name
                     properties:
                       name:
                         type: string
@@ -350,6 +737,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - name
                       properties:
                         name:
                           type: string
@@ -357,6 +746,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - name
                       properties:
                         name:
                           type: string
@@ -378,6 +769,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - url
                       properties:
                         label:
                           type: string
@@ -387,6 +780,9 @@ components:
                 type: array
                 items:
                   type: object
+                  required:
+                    - isContactEditor
+                    - isAnalysisContact
                   properties:
                     cernCcid:
                       type: string
@@ -416,6 +812,13 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - type
+                        - year
+                        - run
+                        - ecmValue
+                        - ecmUnit
+                        - luminosityUnit
                       properties:
                         type:
                           type: string
@@ -435,6 +838,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - name
                       properties:
                         name:
                           type: string
@@ -442,6 +847,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - name
                       properties:
                         name:
                           type: string
@@ -449,6 +856,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - name
                       properties:
                         name:
                           type: string
@@ -456,6 +865,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - name
                       properties:
                         name:
                           type: string
@@ -463,13 +874,19 @@ components:
                     type: object
                     properties:
                       ntupling:
-                        type: string
+                        type: array
+                        items:
+                          type: string
                       histogramming:
-                        type: string
+                        type: array
+                        items:
+                          type: string
               amiGlance:
                 type: array
                 items:
                   type: object
+                  required:
+                    - url
                   properties:
                     label:
                       type: string
@@ -479,6 +896,8 @@ components:
                 type: array
                 items:
                   type: object
+                  required:
+                    - type
                   properties:
                     referenceCode:
                       type: string
@@ -503,6 +922,9 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - isChair
+                        - isExOfficio
                       properties:
                         cernCcid:
                           type: string
@@ -606,6 +1028,8 @@ components:
                 properties:
                   leadingGroup:
                     type: object
+                    required:
+                      - name
                     properties:
                       name:
                         type: string
@@ -613,6 +1037,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - name
                       properties:
                         name:
                           type: string
@@ -620,6 +1046,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - name
                       properties:
                         name:
                           type: string
@@ -630,6 +1058,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - url
                       properties:
                         label:
                           type: string
@@ -639,6 +1069,8 @@ components:
                 type: array
                 items:
                   type: object
+                  required:
+                    - isContactEditor
                   properties:
                     cernCcid:
                       type: string
@@ -657,6 +1089,13 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - type
+                        - year
+                        - run
+                        - ecmValue
+                        - ecmUnit
+                        - luminosityUnit
                       properties:
                         type:
                           type: string
@@ -676,6 +1115,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - name
                       properties:
                         name:
                           type: string
@@ -683,6 +1124,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - name
                       properties:
                         name:
                           type: string
@@ -690,6 +1133,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - name
                       properties:
                         name:
                           type: string
@@ -697,6 +1142,8 @@ components:
                 type: string
               relatedAnalysis:
                 type: object
+                required:
+                  - type
                 properties:
                   referenceCode:
                     type: string
@@ -713,6 +1160,9 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - isChair
+                        - isExOfficio
                       properties:
                         cernCcid:
                           type: string
@@ -783,6 +1233,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - url
                       properties:
                         label:
                           type: string
@@ -813,6 +1265,11 @@ components:
                     type: string
               publicationPhase:
                 type: object
+                required:
+                  - arXivSubmissionDate
+                  - 1stRefereeReportDate
+                  - 1stProofDate
+                  - publishedOnlineDate
                 properties:
                   startDate:
                     type: string
@@ -822,6 +1279,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - url
                       properties:
                         label:
                           type: string
@@ -837,6 +1296,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - url
                       properties:
                         label:
                           type: string
@@ -852,6 +1313,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - url
                       properties:
                         label:
                           type: string
@@ -887,6 +1350,8 @@ components:
                 properties:
                   leadingGroup:
                     type: object
+                    required:
+                      - name
                     properties:
                       name:
                         type: string
@@ -894,6 +1359,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - name
                       properties:
                         name:
                           type: string
@@ -901,6 +1368,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - name
                       properties:
                         name:
                           type: string
@@ -911,6 +1380,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - url
                       properties:
                         label:
                           type: string
@@ -920,6 +1391,8 @@ components:
                 type: array
                 items:
                   type: object
+                  required:
+                    - isContactEditor
                   properties:
                     cernCcid:
                       type: string
@@ -938,6 +1411,13 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - type
+                        - year
+                        - run
+                        - ecmValue
+                        - ecmUnit
+                        - luminosityUnit
                       properties:
                         type:
                           type: string
@@ -957,6 +1437,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - name
                       properties:
                         name:
                           type: string
@@ -964,6 +1446,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - name
                       properties:
                         name:
                           type: string
@@ -971,11 +1455,15 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - name
                       properties:
                         name:
                           type: string
               relatedAnalysis:
                 type: object
+                required:
+                  - type
                 properties:
                   referenceCode:
                     type: string
@@ -985,6 +1473,8 @@ components:
                 type: array
                 items:
                   type: object
+                  required:
+                    - type
                   properties:
                     referenceCode:
                       type: string
@@ -1003,6 +1493,9 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - isChair
+                        - isExOfficio
                       properties:
                         cernCcid:
                           type: string
@@ -1082,6 +1575,8 @@ components:
                 properties:
                   leadingGroup:
                     type: object
+                    required:
+                      - name
                     properties:
                       name:
                         type: string
@@ -1089,6 +1584,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - name
                       properties:
                         name:
                           type: string
@@ -1096,6 +1593,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - name
                       properties:
                         name:
                           type: string
@@ -1106,6 +1605,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - url
                       properties:
                         label:
                           type: string
@@ -1115,6 +1616,8 @@ components:
                 type: array
                 items:
                   type: object
+                  required:
+                    - isContactEditor
                   properties:
                     cernCcid:
                       type: string
@@ -1133,6 +1636,13 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - type
+                        - year
+                        - run
+                        - ecmValue
+                        - ecmUnit
+                        - luminosityUnit
                       properties:
                         type:
                           type: string
@@ -1152,6 +1662,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - name
                       properties:
                         name:
                           type: string
@@ -1159,6 +1671,8 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - name
                       properties:
                         name:
                           type: string
@@ -1166,11 +1680,15 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - name
                       properties:
                         name:
                           type: string
               relatedAnalysis:
                 type: object
+                required:
+                  - type
                 properties:
                   referenceCode:
                     type: string
@@ -1180,6 +1698,8 @@ components:
                 type: array
                 items:
                   type: object
+                  required:
+                    - type
                   properties:
                     referenceCode:
                       type: string
@@ -1198,6 +1718,9 @@ components:
                     type: array
                     items:
                       type: object
+                      required:
+                        - isFirstReader
+                        - isSecondReader
                       properties:
                         cernCcid:
                           type: string
