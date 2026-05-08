@@ -1,0 +1,177 @@
+{
+  "numberOfResults": 1,
+  "results": [
+    {
+      "temporaryReferenceCode": "CONF-SUSY-2023-04",
+      "finalReferenceCode": "ATLAS-CONF-2023-009",
+      "status": "Phase 1 Finished",
+      "shortTitle": "SUSY EWK di-photon di-b",
+      "publicShortTitle": "Search for GGM higgsinos decaying to two photons and two b-jets",
+      "fullTitle": "Search for pair-produced Higgsinos decaying via Higgs or Z bosons to final states containing a pair of photons and a pair of b-jets with the ATLAS detector",
+      "groups": {
+        "leadingGroup": {
+          "name": "SUSY"
+        },
+        "subgroups": [
+          {
+            "name": "SUSY-EW"
+          }
+        ],
+        "otherGroups": []
+      },
+      "documentation": {
+        "repositories": [],
+        "supportingInternalDocuments": [
+          {
+            "label": "INT note",
+            "url": "https://cds.cern.ch/record/0000006"
+          }
+        ]
+      },
+      "analysisTeam": [
+        {
+          "cernCcid": "100107",
+          "firstName": "Pilot107",
+          "lastName": "Squadron",
+          "email": "pilot107.squadron@star.wars",
+          "isContactEditor": false,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100108",
+          "firstName": "Pilot108",
+          "lastName": "Squadron",
+          "email": "pilot108.squadron@star.wars",
+          "isContactEditor": true,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        },
+        {
+          "cernCcid": "100109",
+          "firstName": "Pilot109",
+          "lastName": "Squadron",
+          "email": "pilot109.squadron@star.wars",
+          "isContactEditor": true,
+          "isAnalysisContact": null,
+          "analysisContactAssignments": null
+        }
+      ],
+      "metadata": {
+        "collisions": [
+          {
+            "type": "p-p",
+            "year": "2015+2016+2017+2018",
+            "run": "Run 2",
+            "ecmValue": "13",
+            "ecmUnit": "TeV",
+            "luminosityValue": "139",
+            "luminosityUnit": "femtobarn-1"
+          }
+        ],
+        "keywords": [
+          {
+            "name": "13 TeV"
+          },
+          {
+            "name": "BSM search"
+          },
+          {
+            "name": "Di-photon"
+          },
+          {
+            "name": "GGM/GMSB"
+          },
+          {
+            "name": "Higgs"
+          },
+          {
+            "name": "Higgsino production"
+          },
+          {
+            "name": "MET"
+          },
+          {
+            "name": "Photons"
+          },
+          {
+            "name": "b-hadron"
+          },
+          {
+            "name": "b-jets"
+          }
+        ],
+        "statTools": [
+          {
+            "name": "HistFitter"
+          },
+          {
+            "name": "Standalone RooStats"
+          }
+        ],
+        "mvaMlTools": []
+      },
+      "relatedAnalysis": {
+        "referenceCode": "ANA-SUSY-2023-04",
+        "type": "Analysis"
+      },
+      "supersededBy": [
+        {
+          "referenceCode": "SUSY-2020-17",
+          "type": "Paper"
+        }
+      ],
+      "phase1": {
+        "state": "Phase 1 Finished",
+        "startDate": "2023-02-07",
+        "draftCdsUrl": "https://cds.cern.ch/record/0000007",
+        "editorialBoard": [
+          {
+            "cernCcid": "100110",
+            "firstName": "Pilot110",
+            "lastName": "Squadron",
+            "email": "pilot110.squadron@star.wars",
+            "isChair": false,
+            "isExOfficio": false
+          },
+          {
+            "cernCcid": "100111",
+            "firstName": "Pilot111",
+            "lastName": "Squadron",
+            "email": "pilot111.squadron@star.wars",
+            "isChair": true,
+            "isExOfficio": false
+          },
+          {
+            "cernCcid": "100112",
+            "firstName": "Pilot112",
+            "lastName": "Squadron",
+            "email": "pilot112.squadron@star.wars",
+            "isChair": false,
+            "isExOfficio": false
+          }
+        ],
+        "editorialBoardFormedDate": "2021-11-24",
+        "presentationDate": null,
+        "pgcApprovalDate": "2023-01-11",
+        "editorialBoardDraftSignOffDate": "2023-02-24",
+        "firstSignOffResponsible": {
+          "cernCcid": "100113",
+          "firstName": "Pilot113",
+          "lastName": "Squadron",
+          "email": "pilot113.squadron@star.wars"
+        },
+        "secondSignOffResponsible": {
+          "cernCcid": "100114",
+          "firstName": "Pilot114",
+          "lastName": "Squadron",
+          "email": "pilot114.squadron@star.wars"
+        },
+        "firstSignOffDate": "2023-03-12",
+        "secondSignOffDate": "2023-03-12",
+        "publicWebPageURLForFiguresAndTables": "https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/CONFNOTES/ATLAS-CONF-2023-009",
+        "releaseDate": "2023-03-13"
+      }
+    }
+  ]
+}
