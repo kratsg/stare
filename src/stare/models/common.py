@@ -276,8 +276,8 @@ class Trigger(_NamedItem):
 class AnalysisFramework(_Base):
     """Ntupling and histogramming framework names for an analysis."""
 
-    ntupling: str | None = None
-    histogramming: str | None = None
+    ntupling: list[str] = Field(default_factory=list)
+    histogramming: list[str] = Field(default_factory=list)
 
 
 class AnalysisContactAssignment(_Base):
