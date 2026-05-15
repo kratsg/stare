@@ -15,7 +15,11 @@ from pathlib import Path
 import tomli_w
 import yaml  # type: ignore[import-untyped]
 
-from stare.dsl._extractor import extract_string_fields, render_fields_table
+from stare.dsl._extractor import (
+    extract_boolean_fields,
+    extract_string_fields,
+    render_fields_table,
+)
 
 
 def _schema_for(spec: dict, schema_name: str) -> dict:
@@ -61,12 +65,17 @@ def main() -> None:
         ("pubnote", "SearchPubnoteResponse"),
         ("publication", "SearchPublicationResponse"),
     ]:
-        fields = extract_string_fields(_schema_for(spec, schema_name))
-        catalogue[mode] = {"fields": fields}
-        print(f"{schema_name}: {len(fields)} fields")
+        item_schema = _schema_for(spec, schema_name)
+        string_fields = extract_string_fields(item_schema)
+        boolean_fields = extract_boolean_fields(item_schema)
+        all_fields = sorted(set(string_fields) | set(boolean_fields))
+        catalogue[mode] = {"fields": all_fields, "boolean_fields": boolean_fields}
+        print(
+            f"{schema_name}: {len(all_fields)} fields ({len(boolean_fields)} boolean)"
+        )
 
         snippet_path = snippets_dir / f"fields-{mode}.md"
-        snippet_path.write_text(render_fields_table(fields))
+        snippet_path.write_text(render_fields_table(all_fields))
         print(f"→ {snippet_path.relative_to(repo_root)}")
 
     out_path = out_dir / "query-fields.toml"

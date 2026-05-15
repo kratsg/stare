@@ -36,6 +36,31 @@ def extract_string_fields(schema: dict[str, Any], _prefix: str = "") -> list[str
     return sorted(results)
 
 
+def extract_boolean_fields(schema: dict[str, Any], _prefix: str = "") -> list[str]:
+    """Recursively collect boolean field paths from an OpenAPI object schema.
+
+    Returns a sorted list of dot-separated paths for fields with ``type: boolean``.
+    These are the fields that only support ``=`` and ``!=`` operators.
+    """
+    results: list[str] = []
+    properties: dict[str, Any] = schema.get("properties") or {}
+
+    for name, prop in properties.items():
+        path = f"{_prefix}.{name}" if _prefix else name
+        kind = prop.get("type")
+
+        if kind == "boolean":
+            results.append(path)
+        elif kind == "array":
+            items = prop.get("items", {})
+            if items.get("type") == "object" and "properties" in items:
+                results.extend(extract_boolean_fields(items, path))
+        elif kind == "object" and "properties" in prop:
+            results.extend(extract_boolean_fields(prop, path))
+
+    return sorted(results)
+
+
 def _group_fields(fields: list[str]) -> list[tuple[str, list[str]]]:
     groups: dict[str, list[str]] = {}
     for f in fields:
