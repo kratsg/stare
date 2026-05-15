@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-Mode = Literal["analysis", "confnote", "paper", "pubnote"]
+Mode = Literal["analysis", "confnote", "paper", "publication", "pubnote"]
 """Valid query-DSL / resource modes."""
 
 __all__ = ["Mode"]

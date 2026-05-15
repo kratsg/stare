@@ -7,7 +7,7 @@ from typing import Generic, TypeVar
 from pydantic import Field
 
 from stare.models.analysis import Analysis
-from stare.models.common import _Base
+from stare.models.common import Groups, _Base
 from stare.models.confnote import ConfNote
 from stare.models.enums import LenientPublicationType
 from stare.models.paper import Paper
@@ -39,11 +39,22 @@ class PubNoteSearchResult(_SearchResultsBase[PubNote]):
     """Top-level response from GET /searchPubnote."""
 
 
-class PublicationRef(_Base):
-    """A minimal publication reference returned by /publications/search."""
+class PublicationSummary(_Base):
+    """A summary record returned by GET /searchPublication."""
 
-    reference_code: str | None = None
+    reference_code: str | None = Field(default=None, alias="referenceCode")
+    temporary_reference_code: str | None = Field(
+        default=None, alias="temporaryReferenceCode"
+    )
+    final_reference_code: str | None = Field(default=None, alias="finalReferenceCode")
     type: LenientPublicationType | None = None
+    status: str | None = None
+    short_title: str | None = Field(default=None, alias="shortTitle")
+    groups: Groups | None = None
+
+
+class PublicationSearchResult(_SearchResultsBase[PublicationSummary]):
+    """Top-level response from GET /searchPublication."""
 
 
 class TriggerCategory(_Base):

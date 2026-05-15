@@ -23,12 +23,12 @@ from stare.models import (
     ConfNoteSearchResult,
     Paper,
     PaperSearchResult,
-    PublicationRef,
     PubNote,
     PubNoteSearchResult,
     Trigger,
 )
 from stare.models.auth import JwtClaims, TokenInfo
+from stare.models.search import PublicationSearchResult, PublicationSummary
 
 runner = CliRunner()
 
@@ -123,9 +123,21 @@ SAMPLE_PUB_NOTE_SEARCH = PubNoteSearchResult.model_validate(
     }
 )
 
-SAMPLE_PUBLICATIONS = [
-    PublicationRef.model_validate({"referenceCode": "HDBS-2024-01", "type": "Paper"}),
-]
+SAMPLE_PUBLICATIONS = PublicationSearchResult.model_validate(
+    {
+        "numberOfResults": 1,
+        "results": [
+            {
+                "referenceCode": "HDBS-2024-01",
+                "type": "Paper",
+                "shortTitle": "Test paper",
+            }
+        ],
+    }
+)
+SAMPLE_PUBLICATION = PublicationSummary.model_validate(
+    {"referenceCode": "HDBS-2024-01", "type": "Paper", "shortTitle": "Test paper"}
+)
 
 SAMPLE_TRIGGERS = [
     Trigger.model_validate(
@@ -146,6 +158,7 @@ def _mock_glance(**overrides: object) -> MagicMock:
     g.pubnotes.search.return_value = SAMPLE_PUB_NOTE_SEARCH
     g.pubnotes.get.return_value = SAMPLE_PUB_NOTE
     g.publications.search.return_value = SAMPLE_PUBLICATIONS
+    g.publications.get.return_value = SAMPLE_PUBLICATION
     g.groups.list.return_value = ["HDBS", "SUSY"]
     g.subgroups.list.return_value = ["Higgs", "Dibosons"]
     g.triggers.search.return_value = SAMPLE_TRIGGERS
@@ -670,7 +683,7 @@ def test_pubnote_search_with_query() -> None:
 
 
 # ---------------------------------------------------------------------------
-# publications search
+# publications search / get
 # ---------------------------------------------------------------------------
 
 
@@ -686,15 +699,33 @@ def test_publications_search_json() -> None:
         result = runner.invoke(app, ["publications", "search", "--json"])
     assert result.exit_code == 0
     data = json.loads(result.output)
-    assert isinstance(data, list)
+    assert "results" in data
 
 
-def test_publications_search_with_type_filter() -> None:
+def test_publications_search_with_query() -> None:
     g = _mock_glance()
     with patch("stare.cli.utils.make_glance", return_value=g):
-        runner.invoke(app, ["publications", "search", "--type", "Paper"])
+        result = runner.invoke(
+            app, ["publications", "search", "--query", "type = Paper"]
+        )
+    assert result.exit_code == 0
     call_kwargs = g.publications.search.call_args.kwargs
-    assert "Paper" in call_kwargs.get("types", [])
+    assert call_kwargs.get("query") == "type = Paper"
+
+
+def test_publications_get_command() -> None:
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
+        result = runner.invoke(app, ["publications", "get", "HDBS-2024-01"])
+    assert result.exit_code == 0
+    assert "HDBS-2024-01" in result.output
+
+
+def test_publications_get_json() -> None:
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
+        result = runner.invoke(app, ["publications", "get", "HDBS-2024-01", "--json"])
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    assert data["referenceCode"] == "HDBS-2024-01"
 
 
 # ---------------------------------------------------------------------------

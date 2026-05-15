@@ -59,6 +59,7 @@ def main() -> None:
         ("confnote", "SearchConfnoteResponse"),
         ("paper", "SearchPaperResponse"),
         ("pubnote", "SearchPubnoteResponse"),
+        ("publication", "SearchPublicationResponse"),
     ]:
         fields = extract_string_fields(_schema_for(spec, schema_name))
         catalogue[mode] = {"fields": fields}

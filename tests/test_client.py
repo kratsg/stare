@@ -33,12 +33,12 @@ from stare.models import (
     ConfNoteSearchResult,
     Paper,
     PaperSearchResult,
-    PublicationRef,
     PubNote,
     PubNoteSearchResult,
     Trigger,
 )
 from stare.models.common import _format_parse_error
+from stare.models.search import PublicationSearchResult, PublicationSummary
 
 if TYPE_CHECKING:
     from stare.settings import StareSettings
@@ -84,10 +84,18 @@ SAMPLE_PUB_NOTE_SEARCH = {"numberOfResults": 1, "results": [SAMPLE_PUB_NOTE]}
 
 SAMPLE_ERROR = {"status": 404, "title": "Not Found", "detail": "Resource not found"}
 
-SAMPLE_PUBLICATIONS = [
-    {"referenceCode": "HDBS-2024-01", "type": "Paper"},
-    {"referenceCode": "ATLAS-CONF-2024-01", "type": "ConfNote"},
-]
+SAMPLE_PUBLICATION_SEARCH = {
+    "numberOfResults": 2,
+    "results": [
+        {"referenceCode": "HDBS-2024-01", "type": "Paper", "shortTitle": "A paper"},
+        {
+            "temporaryReferenceCode": "CONF-HION-2024-01",
+            "finalReferenceCode": "ATLAS-CONF-2024-01",
+            "type": "CONF note",
+            "shortTitle": "A conf note",
+        },
+    ],
+}
 
 SAMPLE_TRIGGERS = [
     {"name": "HLT_e60_lhmedium", "category": {"name": "electron", "year": "2024"}},
@@ -478,26 +486,62 @@ def test_confnotes_search_returns_search_result(glance: Glance) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_publications_search_returns_list(glance: Glance) -> None:
+def test_publications_search_returns_result(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/publications/search").mock(
-            return_value=httpx.Response(200, json=SAMPLE_PUBLICATIONS)
+        rx.get("/searchPublication").mock(
+            return_value=httpx.Response(200, json=SAMPLE_PUBLICATION_SEARCH)
         )
         result = glance.publications.search()
 
-    assert isinstance(result, list)
-    assert len(result) == 2
-    assert isinstance(result[0], PublicationRef)
-    assert result[0].reference_code == "HDBS-2024-01"
+    assert isinstance(result, PublicationSearchResult)
+    assert result.number_of_results == 2
+    assert isinstance(result.results[0], PublicationSummary)
+    assert result.results[0].reference_code == "HDBS-2024-01"
+    assert result.results[1].temporary_reference_code == "CONF-HION-2024-01"
 
 
-def test_publications_search_passes_filter_params(glance: Glance) -> None:
+def test_publications_search_passes_query_string(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/publications/search").mock(return_value=httpx.Response(200, json=[]))
-        glance.publications.search(types=["Paper"], leading_groups=["HDBS"])
-        params = rx.calls[0].request.url.params
-    assert "Paper" in params.get_list("types")
-    assert "HDBS" in params.get_list("leadingGroups")
+        rx.get("/searchPublication").mock(
+            return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
+        )
+        glance.publications.search(query="type = Paper")
+        params = dict(rx.calls[0].request.url.params)
+    assert params["queryString"] == "type = Paper"
+
+
+def test_publications_search_rejects_unknown_field(glance: Glance) -> None:
+    with pytest.raises(DSLValidationError, match="unknown field"):
+        glance.publications.search(query="badField = X")
+
+
+def test_publications_get_returns_single(glance: Glance) -> None:
+    payload = {
+        "numberOfResults": 1,
+        "results": [
+            {"referenceCode": "HDBS-2024-01", "type": "Paper", "shortTitle": "A paper"}
+        ],
+    }
+    with respx.mock(base_url=_BASE) as rx:
+        route = rx.get("/searchPublication").mock(
+            return_value=httpx.Response(200, json=payload)
+        )
+        result = glance.publications.get("HDBS-2024-01")
+
+    assert isinstance(result, PublicationSummary)
+    assert result.reference_code == "HDBS-2024-01"
+    params = dict(route.calls[0].request.url.params)
+    assert params["queryString"] == "referenceCode = HDBS-2024-01"
+    assert params["limit"] == "1"
+
+
+def test_publications_get_zero_results_raises_not_found(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchPublication").mock(
+            return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
+        )
+        with pytest.raises(NotFoundError):
+            glance.publications.get("MISSING")
 
 
 # ---------------------------------------------------------------------------

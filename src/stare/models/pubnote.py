@@ -12,11 +12,11 @@ from rich.table import Table
 from rich.text import Text
 
 from stare.models.common import (
-    AnalysisTeam,
     Documentation,
     Groups,
     Metadata,
     RelatedPublication,
+    Team,
     _Base,
     _ListRootModel,
 )
@@ -32,8 +32,8 @@ class PubNoteReader(_Base):
     first_name: str | None = None
     last_name: str | None = None
     email: str | None = None
-    is_first_reader: bool | None = None
-    is_second_reader: bool | None = None
+    is_first_reader: bool
+    is_second_reader: bool
 
 
 class Readers(_ListRootModel[PubNoteReader]):
@@ -89,7 +89,7 @@ class PubNote(_Base):
     full_title: str | None = None
     groups: Groups | None = None
     documentation: Documentation | None = None
-    analysis_team: AnalysisTeam = Field(default_factory=AnalysisTeam)
+    analysis_team: Team = Field(default_factory=Team)
     metadata: Metadata | None = None
     related_analysis: RelatedPublication | None = None
     superseded_by: list[RelatedPublication] = Field(default_factory=list)

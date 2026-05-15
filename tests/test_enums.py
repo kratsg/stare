@@ -310,7 +310,6 @@ class TestPaperPublicationphaseState:
 
 class TestPubnotePhase1State:
     def test_human_readable_states(self) -> None:
-
         M = _model(PubnotePhase1State)
         assert (
             M.model_validate({"value": "Phase 1 Data"}).value
@@ -322,7 +321,6 @@ class TestPubnotePhase1State:
         )
 
     def test_internal_workflow_states(self) -> None:
-
         M = _model(PubnotePhase1State)
         assert (
             M.model_validate({"value": "Readers Data"}).value
@@ -334,7 +332,6 @@ class TestPubnotePhase1State:
         )
 
     def test_unknown_falls_back(self, caplog) -> None:
-
         M = _model(LenientPubnotePhase1State)
         with caplog.at_level(logging.WARNING, logger="stare"):
             result = M.model_validate({"value": "Some Future State"})

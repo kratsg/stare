@@ -532,8 +532,8 @@
         ],
         "triggers": [],
         "analysisFramework": {
-          "ntupling": null,
-          "histogramming": null
+          "ntupling": "TopCPToolkit",
+          "histogramming": "hist"
         }
       },
       "relatedPublications": [
