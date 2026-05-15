@@ -11,7 +11,6 @@ from pydantic import (
     Field,
     RootModel,
     ValidationError,
-    field_validator,
     model_validator,
 )
 from pydantic.alias_generators import to_camel
@@ -284,15 +283,8 @@ class Trigger(_NamedItem):
 class AnalysisFramework(_Base):
     """Ntupling and histogramming framework names for an analysis."""
 
-    ntupling: list[str] = Field(default_factory=list)
-    histogramming: list[str] = Field(default_factory=list)
-
-    @field_validator("ntupling", "histogramming", mode="before")
-    @classmethod
-    def _coerce_none_to_list(cls, v: object) -> object:
-        if v is None:
-            return []
-        return v
+    ntupling: str | None = None
+    histogramming: str | None = None
 
 
 class AnalysisContactAssignment(_Base):

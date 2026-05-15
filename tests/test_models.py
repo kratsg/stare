@@ -1453,22 +1453,17 @@ class TestAnalysisFramework:
     def test_list_shape(self) -> None:
         af = AnalysisFramework.model_validate(
             {
-                "ntupling": ["TopCPToolkit", "FastFrames"],
-                "histogramming": ["FastFrames"],
+                "ntupling": "TopCPToolkit",
+                "histogramming": "FastFrames",
             }
         )
-        assert af.ntupling == ["TopCPToolkit", "FastFrames"]
-        assert af.histogramming == ["FastFrames"]
+        assert af.ntupling == "TopCPToolkit"
+        assert af.histogramming == "FastFrames"
 
-    def test_defaults_to_empty_lists(self) -> None:
+    def test_defaults_to_none(self) -> None:
         af = AnalysisFramework.model_validate({})
-        assert af.ntupling == []
-        assert af.histogramming == []
-
-    def test_null_coerced_to_empty_list(self) -> None:
-        af = AnalysisFramework.model_validate({"ntupling": None, "histogramming": None})
-        assert af.ntupling == []
-        assert af.histogramming == []
+        assert af.ntupling is None
+        assert af.histogramming is None
 
 
 # ---------------------------------------------------------------------------
@@ -1511,8 +1506,8 @@ class TestRealWorldAnalysis:
         assert r.metadata is not None
         af = r.metadata.analysis_framework
         assert af is not None
-        assert isinstance(af.ntupling, list)
-        assert isinstance(af.histogramming, list)
+        assert isinstance(af.ntupling, str)
+        assert isinstance(af.histogramming, str)
 
     def test_phase0_editorial_board(self) -> None:
         data = json.loads((_FIXTURES / "analysis_search.json").read_text())
