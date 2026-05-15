@@ -35,6 +35,10 @@ def parser() -> Lark:
         '"phase2.state" = "Phase Closed"',
         '"shortTitle" contain "Higgs"',
         'status = "Phase Closed" AND referenceCode = HION',
+        # __EMPTY__ NULL sentinel — bare and quoted forms
+        "publicShortTitle = __EMPTY__",
+        'publicShortTitle = "__EMPTY__"',
+        'publicShortTitle != "__EMPTY__"',
     ],
 )
 def test_parses_valid(parser: Lark, src: str) -> None:

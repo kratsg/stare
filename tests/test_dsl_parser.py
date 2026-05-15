@@ -188,6 +188,30 @@ def test_boolean_field_with_not_contain_raises() -> None:
         parse_dsl('"analysisTeam.isContactEditor" not-contain "true"', mode="analysis")
 
 
+# --- __EMPTY__ NULL sentinel ---
+
+
+def test_empty_sentinel_quoted() -> None:
+    expr = parse_dsl('publicShortTitle = "__EMPTY__"', mode="analysis")
+    assert isinstance(expr, Condition)
+    assert expr.field == "publicShortTitle"
+    assert expr.operator == "="
+    assert expr.value == "__EMPTY__"
+
+
+def test_empty_sentinel_bare() -> None:
+    expr = parse_dsl("publicShortTitle = __EMPTY__", mode="analysis")
+    assert isinstance(expr, Condition)
+    assert expr.value == "__EMPTY__"
+
+
+def test_empty_sentinel_ne_operator() -> None:
+    expr = parse_dsl('shortTitle != "__EMPTY__"', mode="analysis")
+    assert isinstance(expr, Condition)
+    assert expr.operator == "!="
+    assert expr.value == "__EMPTY__"
+
+
 def test_paper_boolean_field_operator_restriction() -> None:
     with pytest.raises(DSLValidationError):
         parse_dsl(

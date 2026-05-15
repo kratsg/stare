@@ -35,6 +35,23 @@ for which commands currently accept `--query`.
     Using `contain` or `not-contain` on these fields raises a `DSLValidationError` at parse time.
     Their values are typically `"true"` or `"false"`.
 
+!!! note "Comparing against NULL"
+
+    Use the special token `__EMPTY__` as the value to test whether a field is
+    `NULL`.  Both the bare and quoted forms are accepted; the API documentation
+    consistently uses the quoted form:
+
+    ```bash
+    # Find analyses with no public short title set
+    stare analysis search -q 'publicShortTitle = "__EMPTY__"'
+
+    # Find papers where shortTitle is not NULL
+    stare paper search -q 'shortTitle != "__EMPTY__"'
+    ```
+
+    `__EMPTY__` is treated as an ordinary string token by the parser — it
+    receives no special validation.
+
 ## Field names
 
 Fields accept either `camelCase` or `snake_case` — both are normalized to
