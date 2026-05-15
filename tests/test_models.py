@@ -44,7 +44,8 @@ from stare.models.search import (
     AnalysisSearchResult,
     ConfNoteSearchResult,
     PaperSearchResult,
-    PublicationRef,
+    PublicationSearchResult,
+    PublicationSummary,
     PubNoteSearchResult,
     Trigger,
 )
@@ -672,13 +673,77 @@ class TestAnalysisSearchResult:
         assert r.results == []
 
 
-class TestPublicationRef:
-    def test_parse(self) -> None:
-        p = PublicationRef.model_validate(
-            {"referenceCode": "HDBS-2018-33", "type": "Paper"}
+class TestPublicationSummary:
+    def test_parse_analysis(self) -> None:
+        p = PublicationSummary.model_validate(
+            {
+                "referenceCode": "HDBS-2018-33",
+                "type": "Paper",
+                "status": "Active",
+                "shortTitle": "Test paper",
+                "groups": {
+                    "leadingGroup": {"name": "HDBS"},
+                    "subgroups": [{"name": "Dibosons"}],
+                },
+            }
         )
         assert p.reference_code == "HDBS-2018-33"
+        assert p.temporary_reference_code is None
+        assert p.final_reference_code is None
         assert p.type == "Paper"
+        assert p.status == "Active"
+        assert p.short_title == "Test paper"
+        assert p.groups is not None
+        assert p.groups.leading_group is not None
+        assert p.groups.leading_group.name == "HDBS"
+
+    def test_parse_conf_note(self) -> None:
+        p = PublicationSummary.model_validate(
+            {
+                "temporaryReferenceCode": "CONF-HION-2024-01",
+                "finalReferenceCode": "ATLAS-CONF-2024-999",
+                "type": "CONF note",
+                "shortTitle": "Ion analysis",
+            }
+        )
+        assert p.reference_code is None
+        assert p.temporary_reference_code == "CONF-HION-2024-01"
+        assert p.final_reference_code == "ATLAS-CONF-2024-999"
+        assert p.type == "CONF note"
+
+    def test_optional_fields_default_none(self) -> None:
+        p = PublicationSummary.model_validate({})
+        assert p.reference_code is None
+        assert p.temporary_reference_code is None
+        assert p.final_reference_code is None
+        assert p.type is None
+        assert p.status is None
+        assert p.short_title is None
+        assert p.groups is None
+
+
+class TestPublicationSearchResult:
+    def test_parse(self) -> None:
+        payload = {
+            "numberOfResults": 2,
+            "results": [
+                {"referenceCode": "HDBS-2018-33", "type": "Paper"},
+                {"temporaryReferenceCode": "CONF-HION-2024-01", "type": "CONF note"},
+            ],
+        }
+        r = PublicationSearchResult.model_validate(payload)
+        assert r.number_of_results == 2
+        assert len(r.results) == 2
+        assert isinstance(r.results[0], PublicationSummary)
+        assert r.results[0].reference_code == "HDBS-2018-33"
+        assert r.results[1].temporary_reference_code == "CONF-HION-2024-01"
+
+    def test_empty_result(self) -> None:
+        r = PublicationSearchResult.model_validate(
+            {"numberOfResults": 0, "results": []}
+        )
+        assert r.number_of_results == 0
+        assert r.results == []
 
 
 class TestTrigger:

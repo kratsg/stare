@@ -155,6 +155,8 @@ hyperlinks in CLI output; also available for library callers.
 
 ### Publications and triggers
 
-::: stare.models.PublicationRef
+::: stare.models.PublicationSummary
+
+::: stare.models.PublicationSearchResult
 
 ::: stare.models.Trigger

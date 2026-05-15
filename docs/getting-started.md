@@ -109,10 +109,13 @@ Add `--json` to any command for JSON output, or pipe to another command or file.
 ### Publications, groups, and triggers
 
 ```bash
-# Search across all publication types (filter flags: --ref --type --group --subgroup --status)
+# Search across all publication types using DSL query (live)
 stare publications search
-stare publications search --type Paper --group HDBS
-stare publications search --subgroup Boosted --status Active
+stare publications search -q 'type = Paper AND groups.leadingGroup.name = HDBS'
+stare publications search -q 'referenceCode = ATLAS-CONF-2021-010'
+
+# Fetch a single publication by reference code
+stare publications get HDBS-2018-33
 
 # List all leading groups / subgroups
 stare groups
@@ -122,8 +125,8 @@ stare subgroups
 stare triggers search --category electron --year 2024
 ```
 
-These commands return `NotFoundError` until the server rolls out the
-corresponding endpoints. See
+`groups`, `subgroups`, and `triggers` commands return `NotFoundError` until the
+server rolls out the corresponding endpoints. See
 [endpoint status](#current-api-endpoint-availability) for current availability.
 
 ### Utility commands
@@ -166,8 +169,9 @@ paper = g.papers.get("HDBS-2018-33")
 conf_note = g.confnotes.get("ATLAS-CONF-2024-001")
 pub_note = g.pubnotes.get("ATL-PHYS-PUB-2024-001")
 
-# Publications search (planned)
-pubs = g.publications.search(types=["Paper"], leading_groups=["HDBS"])
+# Publications search (live)
+pubs = g.publications.search(query="type = Paper AND groups.leadingGroup.name = HDBS")
+pub = g.publications.get("HDBS-2018-33")
 
 # Metadata (planned)
 groups = g.groups.list()
@@ -201,16 +205,16 @@ g = Glance(token=os.environ["GLANCE_TOKEN"])
 
 ## Current API endpoint availability
 
-| Endpoint                   | Status   | Used by                                 |
-| -------------------------- | -------- | --------------------------------------- |
-| `GET /searchAnalysis`      | **Live** | `analyses.search()`, `analyses.get()`   |
-| `GET /searchPaper`         | **Live** | `papers.search()`, `papers.get()`       |
-| `GET /searchConfnote`      | **Live** | `confnotes.search()`, `confnotes.get()` |
-| `GET /searchPubnote`       | **Live** | `pubnotes.search()`, `pubnotes.get()`   |
-| `GET /publications/search` | Planned  | `publications.search()`                 |
-| `GET /groups`              | Planned  | `groups.list()`                         |
-| `GET /subgroups`           | Planned  | `subgroups.list()`                      |
-| `GET /triggers/search`     | Planned  | `triggers.search()`                     |
+| Endpoint                 | Status   | Used by                                       |
+| ------------------------ | -------- | --------------------------------------------- |
+| `GET /searchAnalysis`    | **Live** | `analyses.search()`, `analyses.get()`         |
+| `GET /searchPaper`       | **Live** | `papers.search()`, `papers.get()`             |
+| `GET /searchConfnote`    | **Live** | `confnotes.search()`, `confnotes.get()`       |
+| `GET /searchPubnote`     | **Live** | `pubnotes.search()`, `pubnotes.get()`         |
+| `GET /searchPublication` | **Live** | `publications.search()`, `publications.get()` |
+| `GET /groups`            | Planned  | `groups.list()`                               |
+| `GET /subgroups`         | Planned  | `subgroups.list()`                            |
+| `GET /triggers/search`   | Planned  | `triggers.search()`                           |
 
 `.get()` on every resource uses the corresponding search endpoint with a
 single-result query — no per-record endpoints are required.

@@ -29,14 +29,17 @@ from stare.models import (
     ConfNoteSearchResult,
     Paper,
     PaperSearchResult,
-    PublicationRef,
+    PublicationSearchResult,
+    PublicationSummary,
     PubNote,
     PubNoteSearchResult,
     Trigger,
 )
 from stare.settings import StareSettings
 
-_ResourceT = TypeVar("_ResourceT", Analysis, Paper, ConfNote, PubNote)
+_ResourceT = TypeVar(
+    "_ResourceT", Analysis, Paper, ConfNote, PubNote, PublicationSummary
+)
 
 if TYPE_CHECKING:
     import types
@@ -276,37 +279,41 @@ class PubNoteResource:
 
 
 class PublicationResource:
-    """Accessor for /publications/search endpoint."""
+    """Accessor for the /searchPublication endpoint."""
 
     def __init__(self, client: httpx.Client) -> None:
         """Store the shared httpx client."""
         self._client = client
 
+    def get(self, ref_code: str, *, verbose: bool = False) -> PublicationSummary:
+        """Fetch a single publication by reference code via /searchPublication."""
+        return _get_by_ref(
+            self.search, field="referenceCode", ref_code=ref_code, verbose=verbose
+        )
+
     def search(
         self,
         *,
-        reference_codes: list[str] | None = None,
-        types: list[str] | None = None,
-        short_titles: list[str] | None = None,
-        leading_groups: list[str] | None = None,
-        subgroups: list[str] | None = None,
-        statuses: list[str] | None = None,
+        query: str | Expression | None = None,
+        offset: int = 0,
+        limit: int = 50,
+        sort_by: str | None = None,
+        sort_desc: bool = False,
+        validate_query: bool = True,
         verbose: bool = False,
-    ) -> list[PublicationRef]:
-        """Search across all publication types."""
-        params: list[tuple[str, str | int | float | bool | None]] = []
-        params += [("referenceCodes", val) for val in reference_codes or []]
-        params += [("types", val) for val in types or []]
-        params += [("shortTitles", val) for val in short_titles or []]
-        params += [("leadingGroups", val) for val in leading_groups or []]
-        params += [("subgroups", val) for val in subgroups or []]
-        params += [("statuses", val) for val in statuses or []]
-        response = self._client.get("/publications/search", params=params)
+    ) -> PublicationSearchResult:
+        """Search across all publication types via GET /searchPublication."""
+        params: dict[str, Any] = {"offset": offset, "limit": limit}
+        if query is not None:
+            params["queryString"] = _resolve_query(
+                query, mode="publication", validate=validate_query
+            )
+        if sort_by is not None:
+            params["sortBy"] = sort_by
+            params["sortDesc"] = str(sort_desc).lower()
+        response = self._client.get("/searchPublication", params=params)
         _raise_for_status(response)
-        return [
-            PublicationRef.model_validate(item, verbose=verbose)
-            for item in response.json()
-        ]
+        return PublicationSearchResult.model_validate(response.json(), verbose=verbose)
 
 
 class GroupResource:

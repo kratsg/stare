@@ -145,3 +145,7 @@ stare analysis search -q 'someNewField = value' --no-validate
 ## Paper fields
 
 --8<-- "snippets/fields-paper.md"
+
+## Publication fields
+
+--8<-- "snippets/fields-publication.md"
