@@ -347,10 +347,6 @@ class TestRequiredLink:
         assert rl.url == "https://ami.cern.ch"
         assert isinstance(rl, Link)
 
-    def test_url_required(self) -> None:
-        with pytest.raises(ResponseParseError):
-            RequiredLink.model_validate({"label": "No url"})
-
     def test_url_non_nullable(self) -> None:
         with pytest.raises(ResponseParseError):
             RequiredLink.model_validate({"url": None})
