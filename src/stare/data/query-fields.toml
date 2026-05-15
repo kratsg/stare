@@ -259,3 +259,15 @@ fields = [
     "supersededBy.type",
     "temporaryReferenceCode",
 ]
+
+[publication]
+fields = [
+    "finalReferenceCode",
+    "groups.leadingGroup.name",
+    "groups.subgroups.name",
+    "referenceCode",
+    "shortTitle",
+    "status",
+    "temporaryReferenceCode",
+    "type",
+]
