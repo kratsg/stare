@@ -287,9 +287,12 @@ class PublicationResource:
 
     def get(self, ref_code: str, *, verbose: bool = False) -> PublicationSummary:
         """Fetch a single publication by reference code via /searchPublication."""
-        return _get_by_ref(
-            self.search, field="referenceCode", ref_code=ref_code, verbose=verbose
-        )
+        for field in ("referenceCode", "temporaryReferenceCode", "finalReferenceCode"):
+            condition = Condition(field=field, operator=Operator.EQ, value=ref_code)
+            result = self.search(query=condition, limit=1, verbose=verbose)
+            if result.results:
+                return result.results[0]
+        raise NotFoundError(404, "Not Found", f"{ref_code!r} not found")
 
     def search(
         self,

@@ -328,7 +328,7 @@ class TestLink:
 
     def test_url_required(self) -> None:
         with pytest.raises(ResponseParseError):
-            Link.model_validate({"label": "No link"})
+            RequiredLink.model_validate({"label": "No link"})
 
     def test_label_only_link(self) -> None:
         link = Link.model_validate({"label": "No url"})

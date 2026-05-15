@@ -705,7 +705,10 @@ def test_publications_search_json() -> None:
 def test_publications_search_with_query() -> None:
     g = _mock_glance()
     with patch("stare.cli.utils.make_glance", return_value=g):
-        runner.invoke(app, ["publications", "search", "--query", "type = Paper"])
+        result = runner.invoke(
+            app, ["publications", "search", "--query", "type = Paper"]
+        )
+    assert result.exit_code == 0
     call_kwargs = g.publications.search.call_args.kwargs
     assert call_kwargs.get("query") == "type = Paper"
 

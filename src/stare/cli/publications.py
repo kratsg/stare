@@ -33,7 +33,7 @@ def publications_search(
         typer.Option(
             "--query",
             "-q",
-            help="Filter query (e.g. 'type = Paper'; fields: referenceCode, type, status, shortTitle, groups.leadingGroup.name, groups.subgroups.name).",
+            help="Filter query (e.g. 'type = Paper'; fields: referenceCode, type, status, shortTitle, groups.leadingGroup, groups.subgroups).",
         ),
     ] = None,
     limit: Annotated[
@@ -123,7 +123,12 @@ def publications_search(
     table.add_column("Status")
     table.add_column("Short Title")
     for item in result.results:
-        ref = item.reference_code or item.temporary_reference_code or ""
+        ref = (
+            item.final_reference_code
+            or item.reference_code
+            or item.temporary_reference_code
+            or ""
+        )
         url_fn = _TYPE_URL_MAP.get(item.type or "")
         ref_cell = (
             f"[link={url_fn(ref, web_base=settings.web_base_url)}]{ref}[/link]"
