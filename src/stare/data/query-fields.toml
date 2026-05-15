@@ -7,6 +7,8 @@ fields = [
     "analysisTeam.cernCcid",
     "analysisTeam.email",
     "analysisTeam.firstName",
+    "analysisTeam.isAnalysisContact",
+    "analysisTeam.isContactEditor",
     "analysisTeam.lastName",
     "creationDate",
     "documentation.repositories.gitlabId",
@@ -39,6 +41,8 @@ fields = [
     "phase0.editorialBoard.cernCcid",
     "phase0.editorialBoard.email",
     "phase0.editorialBoard.firstName",
+    "phase0.editorialBoard.isChair",
+    "phase0.editorialBoard.isExOfficio",
     "phase0.editorialBoard.lastName",
     "phase0.editorialBoardFormedDate",
     "phase0.editorialBoardRequestMeeting.comments",
@@ -69,12 +73,19 @@ fields = [
     "shortTitle",
     "status",
 ]
+boolean_fields = [
+    "analysisTeam.isAnalysisContact",
+    "analysisTeam.isContactEditor",
+    "phase0.editorialBoard.isChair",
+    "phase0.editorialBoard.isExOfficio",
+]
 
 [confnote]
 fields = [
     "analysisTeam.cernCcid",
     "analysisTeam.email",
     "analysisTeam.firstName",
+    "analysisTeam.isContactEditor",
     "analysisTeam.lastName",
     "documentation.supportingInternalDocuments.label",
     "documentation.supportingInternalDocuments.url",
@@ -97,6 +108,8 @@ fields = [
     "phase1.editorialBoard.cernCcid",
     "phase1.editorialBoard.email",
     "phase1.editorialBoard.firstName",
+    "phase1.editorialBoard.isChair",
+    "phase1.editorialBoard.isExOfficio",
     "phase1.editorialBoard.lastName",
     "phase1.editorialBoardDraftSignOffDate",
     "phase1.editorialBoardFormedDate",
@@ -125,12 +138,18 @@ fields = [
     "supersededBy.type",
     "temporaryReferenceCode",
 ]
+boolean_fields = [
+    "analysisTeam.isContactEditor",
+    "phase1.editorialBoard.isChair",
+    "phase1.editorialBoard.isExOfficio",
+]
 
 [paper]
 fields = [
     "analysisTeam.cernCcid",
     "analysisTeam.email",
     "analysisTeam.firstName",
+    "analysisTeam.isContactEditor",
     "analysisTeam.lastName",
     "documentation.supportingInternalDocuments.label",
     "documentation.supportingInternalDocuments.url",
@@ -153,6 +172,8 @@ fields = [
     "phase1.editorialBoard.cernCcid",
     "phase1.editorialBoard.email",
     "phase1.editorialBoard.firstName",
+    "phase1.editorialBoard.isChair",
+    "phase1.editorialBoard.isExOfficio",
     "phase1.editorialBoard.lastName",
     "phase1.editorialBoardDraftSignOffDate",
     "phase1.editorialBoardFormedDate",
@@ -178,6 +199,7 @@ fields = [
     "phase2.paperClosureDate",
     "phase2.paperClosureMeeting.label",
     "phase2.paperClosureMeeting.url",
+    "phase2.preliminaryPlotsAndResultsReleased",
     "phase2.pubcommChairOrDeputyOrDelegated.cernCcid",
     "phase2.pubcommChairOrDeputyOrDelegated.email",
     "phase2.pubcommChairOrDeputyOrDelegated.firstName",
@@ -210,12 +232,19 @@ fields = [
     "shortTitle",
     "status",
 ]
+boolean_fields = [
+    "analysisTeam.isContactEditor",
+    "phase1.editorialBoard.isChair",
+    "phase1.editorialBoard.isExOfficio",
+    "phase2.preliminaryPlotsAndResultsReleased",
+]
 
 [pubnote]
 fields = [
     "analysisTeam.cernCcid",
     "analysisTeam.email",
     "analysisTeam.firstName",
+    "analysisTeam.isContactEditor",
     "analysisTeam.lastName",
     "documentation.supportingInternalDocuments.label",
     "documentation.supportingInternalDocuments.url",
@@ -245,6 +274,8 @@ fields = [
     "phase1.readers.cernCcid",
     "phase1.readers.email",
     "phase1.readers.firstName",
+    "phase1.readers.isFirstReader",
+    "phase1.readers.isSecondReader",
     "phase1.readers.lastName",
     "phase1.releaseDate",
     "phase1.secondReaderSignOffDate",
@@ -259,6 +290,11 @@ fields = [
     "supersededBy.type",
     "temporaryReferenceCode",
 ]
+boolean_fields = [
+    "analysisTeam.isContactEditor",
+    "phase1.readers.isFirstReader",
+    "phase1.readers.isSecondReader",
+]
 
 [publication]
 fields = [
@@ -271,3 +307,4 @@ fields = [
     "temporaryReferenceCode",
     "type",
 ]
+boolean_fields = []

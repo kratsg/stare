@@ -29,6 +29,12 @@ for which commands currently accept `--query`.
 | `contain`     | Field contains the value (array membership or substring) |
 | `not-contain` | Field does not contain the value                         |
 
+!!! note "Boolean fields only support `=` and `!=`"
+
+    Some fields are boolean (e.g. `analysisTeam.isContactEditor`, `phase0.editorialBoard.isChair`).
+    Using `contain` or `not-contain` on these fields raises a `DSLValidationError` at parse time.
+    Their values are typically `"true"` or `"false"`.
+
 ## Field names
 
 Fields accept either `camelCase` or `snake_case` — both are normalized to

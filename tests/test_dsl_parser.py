@@ -161,3 +161,40 @@ def test_quoted_snake_case_field_normalizes() -> None:
     expr = parse_dsl('"reference_code" = HION', mode="analysis")
     assert isinstance(expr, Condition)
     assert expr.field == "referenceCode"
+
+
+# --- boolean field operator restriction ---
+
+
+def test_boolean_field_with_eq_accepted() -> None:
+    expr = parse_dsl('"analysisTeam.isContactEditor" = "true"', mode="analysis")
+    assert isinstance(expr, Condition)
+    assert expr.field == "analysisTeam.isContactEditor"
+
+
+def test_boolean_field_with_ne_accepted() -> None:
+    expr = parse_dsl('"analysisTeam.isContactEditor" != "false"', mode="analysis")
+    assert isinstance(expr, Condition)
+    assert expr.field == "analysisTeam.isContactEditor"
+
+
+def test_boolean_field_with_contain_raises() -> None:
+    with pytest.raises(DSLValidationError, match="isContactEditor"):
+        parse_dsl('"analysisTeam.isContactEditor" contain "true"', mode="analysis")
+
+
+def test_boolean_field_with_not_contain_raises() -> None:
+    with pytest.raises(DSLValidationError, match="isContactEditor"):
+        parse_dsl('"analysisTeam.isContactEditor" not-contain "true"', mode="analysis")
+
+
+def test_paper_boolean_field_operator_restriction() -> None:
+    with pytest.raises(DSLValidationError):
+        parse_dsl(
+            '"phase2.preliminaryPlotsAndResultsReleased" contain "true"', mode="paper"
+        )
+
+
+def test_pubnote_boolean_field_operator_restriction() -> None:
+    with pytest.raises(DSLValidationError):
+        parse_dsl('"phase1.readers.isFirstReader" contain "true"', mode="pubnote")

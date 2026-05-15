@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from stare.dsl._extractor import extract_string_fields, render_fields_table
+from stare.dsl._extractor import (
+    extract_boolean_fields,
+    extract_string_fields,
+    render_fields_table,
+)
 
 _MINI_SCHEMA: dict[str, Any] = {
     "type": "object",
@@ -12,6 +16,7 @@ _MINI_SCHEMA: dict[str, Any] = {
         "referenceCode": {"type": "string"},
         "status": {"type": "string"},
         "creationDate": {"type": "string"},
+        "isActive": {"type": "boolean"},
         "groups": {
             "type": "object",
             "properties": {
@@ -47,9 +52,17 @@ _MINI_SCHEMA: dict[str, Any] = {
                         "properties": {
                             "cernCcid": {"type": "string"},
                             "firstName": {"type": "string"},
+                            "isChair": {"type": "boolean"},
                         },
                     },
                 },
+            },
+        },
+        "team": {
+            "type": "object",
+            "properties": {
+                "isContactEditor": {"type": "boolean"},
+                "name": {"type": "string"},
             },
         },
         "extraMetadata": {"type": "object"},
@@ -148,3 +161,43 @@ def test_render_fields_table_no_top_level() -> None:
     assert "Top-level" not in table
     assert "| `groups` |" in table
     assert "| `phase0` |" in table
+
+
+# --- extract_boolean_fields ---
+
+
+def test_boolean_top_level_included() -> None:
+    fields = extract_boolean_fields(_MINI_SCHEMA)
+    assert "isActive" in fields
+
+
+def test_boolean_in_nested_object_included() -> None:
+    fields = extract_boolean_fields(_MINI_SCHEMA)
+    assert "team.isContactEditor" in fields
+
+
+def test_boolean_in_array_of_objects_included() -> None:
+    fields = extract_boolean_fields(_MINI_SCHEMA)
+    assert "phase0.analysisContacts.isChair" in fields
+
+
+def test_string_field_not_in_boolean_results() -> None:
+    fields = extract_boolean_fields(_MINI_SCHEMA)
+    assert "referenceCode" not in fields
+    assert "status" not in fields
+    assert "phase0.state" not in fields
+
+
+def test_integer_not_in_boolean_results() -> None:
+    fields = extract_boolean_fields(_MINI_SCHEMA)
+    assert "count" not in fields
+
+
+def test_boolean_output_is_sorted() -> None:
+    fields = extract_boolean_fields(_MINI_SCHEMA)
+    assert fields == sorted(fields)
+
+
+def test_boolean_empty_schema_returns_empty() -> None:
+    fields = extract_boolean_fields({"type": "object", "properties": {}})
+    assert fields == []

@@ -54,10 +54,12 @@ class _DSLTransformer(Transformer[Any, Expression]):
 
         normalized = self._registry.normalize(raw_field)
         self._registry.validate_normalized(normalized)
+        op = Operator(str(op_token).lower())
+        self._registry.validate_operator(normalized, op)
 
         return Condition(
             field=normalized,
-            operator=Operator(str(op_token).lower()),
+            operator=op,
             value=value,
         )
 

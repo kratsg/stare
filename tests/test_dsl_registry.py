@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from stare.dsl.errors import DSLValidationError
+from stare.dsl.models import Operator
 from stare.dsl.registry import FieldRegistry
 
 
@@ -75,3 +76,65 @@ def test_registry_loads_pubnote_mode() -> None:
     assert "finalReferenceCode" in reg.fields()
     assert "shortTitle" in reg.fields()
     assert "phase1.state" in reg.fields()
+
+
+# --- validate_operator ---
+
+
+@pytest.fixture
+def bool_reg() -> FieldRegistry:
+    """Registry with one boolean and one string field."""
+    return FieldRegistry(
+        frozenset(["isChair", "referenceCode"]),
+        frozenset(["isChair"]),
+    )
+
+
+def test_eq_allowed_on_boolean_field(bool_reg: FieldRegistry) -> None:
+    bool_reg.validate_operator("isChair", Operator.EQ)
+
+
+def test_ne_allowed_on_boolean_field(bool_reg: FieldRegistry) -> None:
+    bool_reg.validate_operator("isChair", Operator.NE)
+
+
+def test_contain_rejected_on_boolean_field(bool_reg: FieldRegistry) -> None:
+    with pytest.raises(DSLValidationError, match="isChair"):
+        bool_reg.validate_operator("isChair", Operator.CONTAIN)
+
+
+def test_not_contain_rejected_on_boolean_field(bool_reg: FieldRegistry) -> None:
+    with pytest.raises(DSLValidationError, match="isChair"):
+        bool_reg.validate_operator("isChair", Operator.NOT_CONTAIN)
+
+
+@pytest.mark.parametrize("op", list(Operator))
+def test_all_operators_allowed_on_string_field(
+    bool_reg: FieldRegistry, op: Operator
+) -> None:
+    bool_reg.validate_operator("referenceCode", op)
+
+
+def test_operator_error_mentions_allowed_ops(bool_reg: FieldRegistry) -> None:
+    with pytest.raises(DSLValidationError, match=r"=.*!=|!=.*="):
+        bool_reg.validate_operator("isChair", Operator.CONTAIN)
+
+
+def test_boolean_constructor_default_is_no_restrictions() -> None:
+    reg = FieldRegistry(frozenset(["referenceCode"]))
+    for op in Operator:
+        reg.validate_operator("referenceCode", op)
+
+
+def test_analysis_mode_has_boolean_fields() -> None:
+    reg = FieldRegistry.for_mode("analysis")
+    assert "analysisTeam.isContactEditor" in reg.fields()
+    assert "analysisTeam.isAnalysisContact" in reg.fields()
+    assert "phase0.editorialBoard.isChair" in reg.fields()
+    assert "phase0.editorialBoard.isExOfficio" in reg.fields()
+
+
+def test_analysis_boolean_fields_operator_restriction() -> None:
+    reg = FieldRegistry.for_mode("analysis")
+    with pytest.raises(DSLValidationError):
+        reg.validate_operator("analysisTeam.isContactEditor", Operator.CONTAIN)
