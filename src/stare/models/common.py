@@ -395,13 +395,13 @@ class Groups(_Base):
 class Collision(_Base):
     """A collision dataset descriptor (centre-of-mass energy, luminosity, etc.)."""
 
-    type: LenientCollisionType
-    year: str
-    run: str
-    ecm_value: str
-    ecm_unit: str
+    type: LenientCollisionType | None = None
+    year: str | None = None
+    run: str | None = None
+    ecm_value: str | None = None
+    ecm_unit: str | None = None
     luminosity_value: str | None = None
-    luminosity_unit: str
+    luminosity_unit: str | None = None
 
     def __rich__(self) -> Panel:
         """Return a Rich Panel showing run, centre-of-mass energy, and luminosity."""

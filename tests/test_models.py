@@ -209,19 +209,24 @@ class TestCollision:
         )
         assert c.luminosity_value is None
 
-    def test_required_fields(self) -> None:
-        for missing in ("type", "year", "run", "ecmValue", "ecmUnit", "luminosityUnit"):
-            full = {
-                "type": "p-p",
-                "year": "2018",
-                "run": "2",
-                "ecmValue": "13",
-                "ecmUnit": "TeV",
-                "luminosityUnit": "fb-1",
-            }
-            del full[missing]
-            with pytest.raises(ResponseParseError):
-                Collision.model_validate(full)
+    def test_all_fields_optional(self) -> None:
+        c = Collision.model_validate({})
+        assert c.type is None
+        assert c.year is None
+        assert c.run is None
+        assert c.ecm_value is None
+        assert c.ecm_unit is None
+        assert c.luminosity_value is None
+        assert c.luminosity_unit is None
+
+    def test_partial_fields(self) -> None:
+        c = Collision.model_validate({"type": "p-p", "year": "2018"})
+        assert c.type == "p-p"
+        assert c.year == "2018"
+        assert c.run is None
+        assert c.ecm_value is None
+        assert c.ecm_unit is None
+        assert c.luminosity_unit is None
 
 
 class TestMetadata:

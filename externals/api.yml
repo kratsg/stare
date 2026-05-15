@@ -12,6 +12,7 @@ servers:
     description: Analysis and Documents API
 
 tags:
+  - name: Publication
   - name: Analysis
   - name: Paper
   - name: Confnote
@@ -77,7 +78,7 @@ paths:
               <li>Field names are case-sensitive and must match the names below exactly.</li>
               <li>Operators are case-sensitive. This endpoint supports <code>contain</code>, <code>not-contain</code>, <code>=</code>, and <code>!=</code>.</li>
               <li>String matching is not case-sensitive for <code>contain</code>, <code>not-contain</code>, <code>=</code>, and <code>!=</code>.</li>
-              <li>Fields and values that contain spaces or special characters must stay inside double quotes, and the whole <code>queryString</code> parameter must be URL-encoded when sent over HTTP.</li>
+              <li>Fields and values must stay inside double quotes, and the whole <code>queryString</code> parameter must be URL-encoded when sent over HTTP.</li>
               <li>The parser does not define an escape syntax for embedded double quotes. Values containing <code>"</code> are therefore not supported.</li>
               <li>To compare against <code>NULL</code>, use the special token <code>__EMPTY__</code>, for example <code>"publicShortTitle" = "__EMPTY__"</code>.</li>
             </ul>
@@ -543,7 +544,7 @@ paths:
         - Pubnote
       summary: Search pubnotes
       description: >
-        Searches pubnotes with support for filtering, sorting, and pagination.
+        Searches PUB notes with support for filtering, sorting, and pagination.
         Filters are passed as a DSL query string via the `queryString`
         parameter.
 
@@ -689,6 +690,130 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error403"
+  /searchPublication:
+    get:
+      tags:
+        - Publication
+      summary: Search publication
+      description: >
+        Searches across all publication types (Analysis, Paper, CONF note, PUB
+        note) with support for filtering, sorting, and pagination. Filters are
+        passed as a DSL query string via the `queryString` parameter.
+
+
+        The same DSL is used across the `/search...` endpoints in this API. What
+        changes between resources is the set of searchable field names
+        documented on each endpoint.
+
+
+        **Search by reference code**
+
+
+        Publications can have two kinds of reference codes depending on their
+        type. Analyses and Papers have a single permanent reference code (e.g.
+        `ANA-SUSY-2018-04`). CONF notes and PUB notes start with a temporary
+        reference code (e.g. `CONF-SUSY-2018-04`) and later receive a final
+        reference code (e.g. `ATLAS-CONF-2019-018`) once approved.
+
+
+        The `referenceCode` filter field covers all cases — pass any code
+        (temporary or final) and the API will match it against whichever code is
+        applicable for each publication type.
+      operationId: searchPublication
+      security:
+        - oauth2: []
+      parameters:
+        - name: offset
+          in: query
+          description: Pagination offset (number of records to skip).
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: limit
+          in: query
+          description: Maximum number of records to return.
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: sortBy
+          in: query
+          description: Field name to sort results by.
+          required: false
+          schema:
+            type: string
+        - name: sortDesc
+          in: query
+          description: Sort in descending order when true.
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: queryString
+          in: query
+          description: |
+            URL-encoded DSL filter string.
+
+            <details>
+            <summary>See DSL syntax</summary>
+
+            <ul>
+              <li>Statements are written as <code>"fieldName" operator "value"</code>.</li>
+              <li>Supported conjunctions are uppercase <code>AND</code> and <code>OR</code>.</li>
+              <li>Parentheses <code>(</code> and <code>)</code> are supported for grouping.</li>
+              <li>Field names are case-sensitive and must match the names below exactly.</li>
+              <li>Operators are case-sensitive. This endpoint supports <code>contain</code>, <code>not-contain</code>, <code>=</code>, and <code>!=</code>.</li>
+              <li>String matching is not case-sensitive for <code>contain</code>, <code>not-contain</code>, <code>=</code>, and <code>!=</code>.</li>
+              <li>Fields and values must stay inside double quotes, and the whole <code>queryString</code> parameter must be URL-encoded when sent over HTTP.</li>
+              <li>The parser does not define an escape syntax for embedded double quotes. Values containing <code>"</code> are therefore not supported.</li>
+              <li>To compare against <code>NULL</code>, use the special token <code>__EMPTY__</code>, for example <code>"shortTitle" = "__EMPTY__"</code>.</li>
+            </ul>
+
+            </details>
+
+            <details>
+            <summary>See searchable fields for <code>/searchPublication</code></summary>
+
+            <ul>
+              <li><code>referenceCode</code></li>
+              <li><code>type</code></li>
+              <li><code>status</code></li>
+              <li><code>shortTitle</code></li>
+              <li><code>groups.leadingGroup</code></li>
+              <li><code>groups.subgroups</code></li>
+            </ul>
+
+            </details>
+
+            Examples:
+            - `"referenceCode" = "ATLAS-CONF-2021-010"`
+            - `"status" = "Phase 1 Closed" AND "shortTitle" contain "Hbb boosted"`
+            - `("groups.leadingGroup" = "HIGG" OR "groups.leadingGroup" = "EXOT") AND "type" != "Paper"`
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchPublicationResponse"
+        "400":
+          description: Invalid query parameters.
+        "401":
+          description: Invalid or missing authentication token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error401"
+        "403":
+          description: Action forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error403"
 
 components:
   securitySchemes:
@@ -801,10 +926,8 @@ components:
                       properties:
                         startDate:
                           type: string
-                          nullable: true
                         endDate:
                           type: string
-                          nullable: true
               metadata:
                 type: object
                 properties:
@@ -812,13 +935,6 @@ components:
                     type: array
                     items:
                       type: object
-                      required:
-                        - type
-                        - year
-                        - run
-                        - ecmValue
-                        - ecmUnit
-                        - luminosityUnit
                       properties:
                         type:
                           type: string
@@ -874,13 +990,9 @@ components:
                     type: object
                     properties:
                       ntupling:
-                        type: array
-                        items:
-                          type: string
+                        type: string
                       histogramming:
-                        type: array
-                        items:
-                          type: string
+                        type: string
               amiGlance:
                 type: array
                 items:
@@ -1089,13 +1201,6 @@ components:
                     type: array
                     items:
                       type: object
-                      required:
-                        - type
-                        - year
-                        - run
-                        - ecmValue
-                        - ecmUnit
-                        - luminosityUnit
                       properties:
                         type:
                           type: string
@@ -1265,11 +1370,6 @@ components:
                     type: string
               publicationPhase:
                 type: object
-                required:
-                  - arXivSubmissionDate
-                  - 1stRefereeReportDate
-                  - 1stProofDate
-                  - publishedOnlineDate
                 properties:
                   startDate:
                     type: string
@@ -1411,13 +1511,6 @@ components:
                     type: array
                     items:
                       type: object
-                      required:
-                        - type
-                        - year
-                        - run
-                        - ecmValue
-                        - ecmUnit
-                        - luminosityUnit
                       properties:
                         type:
                           type: string
@@ -1636,13 +1729,6 @@ components:
                     type: array
                     items:
                       type: object
-                      required:
-                        - type
-                        - year
-                        - run
-                        - ecmValue
-                        - ecmUnit
-                        - luminosityUnit
                       properties:
                         type:
                           type: string
@@ -1752,6 +1838,53 @@ components:
                     type: string
                   releaseDate:
                     type: string
+        numberOfResults:
+          type: integer
+          description: Number of matching records.
+
+    SearchPublicationResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              referenceCode:
+                type: string
+                description: Present for Analysis and Paper types.
+              temporaryReferenceCode:
+                type: string
+                description: Present for CONF note and PUB note types.
+              finalReferenceCode:
+                type: string
+                description: Present for CONF note and PUB note types.
+              type:
+                type: string
+                enum: [Analysis, Paper, CONF note, PUB note]
+              status:
+                type: string
+              shortTitle:
+                type: string
+              groups:
+                type: object
+                properties:
+                  leadingGroup:
+                    type: object
+                    required:
+                      - name
+                    properties:
+                      name:
+                        type: string
+                  subgroups:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - name
+                      properties:
+                        name:
+                          type: string
         numberOfResults:
           type: integer
           description: Number of matching records.
