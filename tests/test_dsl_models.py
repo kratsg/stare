@@ -158,6 +158,14 @@ def test_value_with_non_space_whitespace_raises(value: str) -> None:
         c.to_dsl()
 
 
+def test_empty_sentinel_emitted_bare() -> None:
+    """__EMPTY__ contains no special chars, so to_dsl() emits it unquoted."""
+    c = Condition.model_validate(
+        {"field": "publicShortTitle", "operator": Operator.EQ, "value": "__EMPTY__"}
+    )
+    assert c.to_dsl() == "publicShortTitle = __EMPTY__"
+
+
 def test_multiword_value_round_trips() -> None:
     """parse_dsl → to_dsl is idempotent for double-quoted multi-word values."""
     src = 'shortTitle = "Phase Closed"'

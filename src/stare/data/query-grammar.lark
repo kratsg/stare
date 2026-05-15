@@ -1,5 +1,9 @@
 // Generic DSL grammar — no field names hard-coded.
 // Syntax only; field/operator semantics validated downstream.
+//
+// NULL sentinel: the API-defined token __EMPTY__ (quoted or bare) is used to
+// compare a field against NULL, e.g.  "publicShortTitle" = "__EMPTY__".
+// It is matched as an ordinary VALUE (bare) or STRING (quoted) — no special rule.
 
 ?expression: or_expr
 ?or_expr: and_expr
