@@ -1,3 +1,3 @@
-| Group | Fields |
-| ----- | ------ |
+| Group     | Fields |
+| --------- | ------ |
 | Top-level | `name` |
