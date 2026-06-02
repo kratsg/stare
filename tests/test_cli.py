@@ -839,10 +839,57 @@ def test_subgroups_search_no_json_name_without_dash() -> None:
 
 
 def test_triggers_search_command() -> None:
+    # CliRunner is non-TTY → JSON by default; JSON output contains full name
     with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["triggers", "search"])
     assert result.exit_code == 0
     assert "HLT_e60" in result.output
+
+
+def test_triggers_search_no_json_renders_styled_name() -> None:
+    multi = TriggerSearchResult.model_validate(
+        {
+            "numberOfResults": 1,
+            "results": [
+                {
+                    "name": "HLT_2mu14_lhmedium_L12MU10",
+                    "year": "2022",
+                    "category": {"name": "primary"},
+                }
+            ],
+        }
+    )
+    g = _mock_glance()
+    g.triggers.search.return_value = multi
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(app, ["triggers", "search", "--no-json"])
+    assert result.exit_code == 0
+    assert "2mu14" in result.output
+    assert "lhmedium" in result.output
+    assert "L12MU10" in result.output
+
+
+def test_render_trigger_name_plain_text_contains_all_parts() -> None:
+    from stare.cli.triggers import _render_trigger_name
+
+    text = _render_trigger_name("HLT_2mu14_lhmedium_L12MU10")
+    assert "2mu14" in text.plain
+    assert "lhmedium" in text.plain
+    assert "L12MU10" in text.plain
+
+
+def test_render_trigger_name_no_hlt_prefix_returned_verbatim() -> None:
+    from stare.cli.triggers import _render_trigger_name
+
+    text = _render_trigger_name("L1_MU10")
+    assert text.plain == "L1_MU10"
+
+
+def test_render_trigger_name_empty_string() -> None:
+    from stare.cli.triggers import _render_trigger_name
+
+    text = _render_trigger_name("")
+    assert text.plain == ""
 
 
 def test_triggers_search_json() -> None:

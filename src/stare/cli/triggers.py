@@ -2,15 +2,95 @@
 
 from __future__ import annotations
 
+import re
 from typing import Annotated
 
 import typer
 from rich.table import Table
+from rich.text import Text
 
 from stare._output import stdout_is_interactive
 from stare.cli import utils
 from stare.dsl.errors import DSLError
 from stare.exceptions import StareError
+
+# Order matters: check bj before j, tau/xe/met/ht before their prefixes.
+_OBJ_RE = re.compile(r"^(\d*)(bj|tau|xe|met|ht|j|e|g|mu)(\d+.*)$")
+
+_OBJ_STYLES: dict[str, str] = {
+    "e": "bold cyan",
+    "mu": "bold magenta",
+    "j": "bold yellow",
+    "bj": "bold yellow3",
+    "g": "bold green",
+    "tau": "bold blue",
+    "xe": "bold red",
+    "met": "bold red",
+    "ht": "bold orange3",
+}
+
+_WP_TOKENS: frozenset[str] = frozenset(
+    {
+        "lhloose",
+        "lhmedium",
+        "lhvloose",
+        "lhtight",
+        "loose",
+        "medium",
+        "tight",
+        "medium1",
+        "etcut",
+        "ivarloose",
+        "ivarmedium",
+        "ivartight",
+        "ivarmedium1",
+        "boffperf",
+        "bperf",
+        "btight",
+    }
+)
+
+
+def _render_trigger_name(name: str) -> Text:
+    """Heuristically style an ATLAS HLT trigger name for Rich display.
+
+    Objects are coloured by type, working-point tokens italicised, the L1 seed
+    suffix greyed out, and all other modifier tokens dimmed.  The plain-text
+    content is identical to the original name — no information is lost.
+    """
+    text = Text(no_wrap=True, overflow="ellipsis")
+    if not name:
+        return text
+    if not name.startswith("HLT_"):
+        text.append(name)
+        return text
+
+    text.append("HLT_", style="dim")
+    rest = name[4:]
+
+    # Separate the L1 seed suffix (last _L1... segment).
+    l1_part = ""
+    l1_idx = rest.rfind("_L1")
+    if l1_idx != -1:
+        l1_part = rest[l1_idx + 1 :]  # drop the leading underscore
+        rest = rest[:l1_idx]
+
+    for i, tok in enumerate(rest.split("_")):
+        if i > 0:
+            text.append("_", style="dim")
+        m = _OBJ_RE.match(tok)
+        if m:
+            text.append(tok, style=_OBJ_STYLES.get(m.group(2), "bold"))
+        elif tok.lower() in _WP_TOKENS:
+            text.append(tok, style="italic")
+        else:
+            text.append(tok, style="dim")
+
+    if l1_part:
+        text.append(f"_{l1_part}", style="grey62")
+
+    return text
+
 
 triggers_app = typer.Typer(help="Trigger search commands.", rich_markup_mode="rich")
 
@@ -105,12 +185,12 @@ def triggers_search(
         return
 
     table = Table(title=f"Triggers ({result.number_of_results} total)")
-    table.add_column("Name", style="cyan")
+    table.add_column("Name")
     table.add_column("Year")
     table.add_column("Category")
     for trigger in result.results:
         table.add_row(
-            trigger.name or "",
+            _render_trigger_name(trigger.name or ""),
             trigger.year or "",
             trigger.category.name if trigger.category else "",
         )
