@@ -172,3 +172,15 @@ stare analysis search -q 'someNewField = value' --no-validate
 ## Publication fields
 
 --8<-- "snippets/fields-publication.md"
+
+## Leading group fields
+
+--8<-- "snippets/fields-leadgroup.md"
+
+## Subgroup fields
+
+--8<-- "snippets/fields-subgroup.md"
+
+## Trigger fields
+
+--8<-- "snippets/fields-trigger.md"

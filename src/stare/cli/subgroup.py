@@ -1,4 +1,4 @@
-"""Triggers CLI commands."""
+"""Subgroup CLI commands."""
 
 from __future__ import annotations
 
@@ -12,17 +12,17 @@ from stare.cli import utils
 from stare.dsl.errors import DSLError
 from stare.exceptions import StareError
 
-triggers_app = typer.Typer(help="Trigger search commands.", rich_markup_mode="rich")
+subgroup_app = typer.Typer(help="Subgroup search commands.", rich_markup_mode="rich")
 
 
-@triggers_app.command("search")
-def triggers_search(
+@subgroup_app.command("search")
+def subgroup_search(
     query: Annotated[
         str | None,
         typer.Option(
             "--query",
             "-q",
-            help="Filter query (e.g. 'year = 2024'; 'category.name = L1 AND year = 2023'). Ops: =, !=, contain, not-contain.",
+            help="Filter query (e.g. 'name contain HIGG'; ops: =, !=, contain, not-contain).",
         ),
     ] = None,
     limit: Annotated[
@@ -68,24 +68,24 @@ def triggers_search(
         ),
     ] = False,
 ) -> None:
-    """Search HLT triggers via GET /searchTrigger.
+    """Search subgroups via GET /searchSubgroup.
 
     Output auto-detects: Rich table when stdout is a terminal, JSON when piped.
     Override with [cyan]--json[/cyan] or [cyan]--no-json[/cyan].
 
     [bold]Examples[/bold]
-      [green]stare triggers search -q 'year = 2024'[/green]
-      [green]stare triggers search -q 'category.name = electron AND year = 2022'[/green]
-      [green]stare triggers search | jq '[.results[].name]'[/green]
+      [green]stare subgroups search[/green]
+      [green]stare subgroups search -q 'name contain HIGG'[/green]
+      [green]stare subgroups search | jq '[.results[].name]'[/green]
 
     [bold]API reference[/bold]
-      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-Trigger-searchTrigger
+      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-Subgroup-searchSubgroup
     """
     if output_json is None:
         output_json = not stdout_is_interactive()
     g = utils.make_glance(no_cache=no_cache)
     try:
-        result = g.triggers.search(
+        result = g.subgroups.search(
             query=query,
             limit=limit,
             offset=offset,
@@ -104,14 +104,8 @@ def triggers_search(
         typer.echo(result.model_dump_json(by_alias=True))
         return
 
-    table = Table(title=f"Triggers ({result.number_of_results} total)")
+    table = Table(title=f"Subgroups ({result.number_of_results} total)")
     table.add_column("Name", style="cyan")
-    table.add_column("Year")
-    table.add_column("Category")
-    for trigger in result.results:
-        table.add_row(
-            trigger.name or "",
-            trigger.year or "",
-            trigger.category.name if trigger.category else "",
-        )
+    for item in result.results:
+        table.add_row(item.name or "")
     utils.console.print(table)

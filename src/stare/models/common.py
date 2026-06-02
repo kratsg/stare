@@ -280,6 +280,12 @@ class Trigger(_NamedItem):
     """A trigger name."""
 
 
+class Dataset(_Base):
+    """A dataset name used in an analysis."""
+
+    name: str | None = None
+
+
 class AnalysisFramework(_Base):
     """Ntupling and histogramming framework names for an analysis."""
 

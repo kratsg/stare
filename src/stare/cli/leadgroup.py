@@ -1,4 +1,4 @@
-"""Triggers CLI commands."""
+"""Leading-group CLI commands."""
 
 from __future__ import annotations
 
@@ -12,17 +12,19 @@ from stare.cli import utils
 from stare.dsl.errors import DSLError
 from stare.exceptions import StareError
 
-triggers_app = typer.Typer(help="Trigger search commands.", rich_markup_mode="rich")
+leadgroup_app = typer.Typer(
+    help="Leading-group search commands.", rich_markup_mode="rich"
+)
 
 
-@triggers_app.command("search")
-def triggers_search(
+@leadgroup_app.command("search")
+def leadgroup_search(
     query: Annotated[
         str | None,
         typer.Option(
             "--query",
             "-q",
-            help="Filter query (e.g. 'year = 2024'; 'category.name = L1 AND year = 2023'). Ops: =, !=, contain, not-contain.",
+            help="Filter query (e.g. 'name = SUSY'; ops: =, !=, contain, not-contain).",
         ),
     ] = None,
     limit: Annotated[
@@ -68,24 +70,24 @@ def triggers_search(
         ),
     ] = False,
 ) -> None:
-    """Search HLT triggers via GET /searchTrigger.
+    """Search leading groups via GET /searchLeadgroup.
 
     Output auto-detects: Rich table when stdout is a terminal, JSON when piped.
     Override with [cyan]--json[/cyan] or [cyan]--no-json[/cyan].
 
     [bold]Examples[/bold]
-      [green]stare triggers search -q 'year = 2024'[/green]
-      [green]stare triggers search -q 'category.name = electron AND year = 2022'[/green]
-      [green]stare triggers search | jq '[.results[].name]'[/green]
+      [green]stare leadgroups search[/green]
+      [green]stare leadgroups search -q 'name = SUSY'[/green]
+      [green]stare leadgroups search | jq '[.results[].name]'[/green]
 
     [bold]API reference[/bold]
-      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-Trigger-searchTrigger
+      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-Leadgroup-searchLeadgroup
     """
     if output_json is None:
         output_json = not stdout_is_interactive()
     g = utils.make_glance(no_cache=no_cache)
     try:
-        result = g.triggers.search(
+        result = g.leadgroups.search(
             query=query,
             limit=limit,
             offset=offset,
@@ -104,14 +106,8 @@ def triggers_search(
         typer.echo(result.model_dump_json(by_alias=True))
         return
 
-    table = Table(title=f"Triggers ({result.number_of_results} total)")
+    table = Table(title=f"Leading Groups ({result.number_of_results} total)")
     table.add_column("Name", style="cyan")
-    table.add_column("Year")
-    table.add_column("Category")
-    for trigger in result.results:
-        table.add_row(
-            trigger.name or "",
-            trigger.year or "",
-            trigger.category.name if trigger.category else "",
-        )
+    for item in result.results:
+        table.add_row(item.name or "")
     utils.console.print(table)

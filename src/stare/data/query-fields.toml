@@ -28,6 +28,7 @@ fields = [
     "metadata.collisions.run",
     "metadata.collisions.type",
     "metadata.collisions.year",
+    "metadata.datasets.name",
     "metadata.keywords.name",
     "metadata.mvaMlTools.name",
     "metadata.statTools.name",
@@ -82,9 +83,12 @@ boolean_fields = [
 
 [confnote]
 fields = [
+    "analysisTeam.analysisContactAssignments.endDate",
+    "analysisTeam.analysisContactAssignments.startDate",
     "analysisTeam.cernCcid",
     "analysisTeam.email",
     "analysisTeam.firstName",
+    "analysisTeam.isAnalysisContact",
     "analysisTeam.isContactEditor",
     "analysisTeam.lastName",
     "documentation.supportingInternalDocuments.label",
@@ -139,16 +143,26 @@ fields = [
     "temporaryReferenceCode",
 ]
 boolean_fields = [
+    "analysisTeam.isAnalysisContact",
     "analysisTeam.isContactEditor",
     "phase1.editorialBoard.isChair",
     "phase1.editorialBoard.isExOfficio",
 ]
 
+[leadgroup]
+fields = [
+    "name",
+]
+boolean_fields = []
+
 [paper]
 fields = [
+    "analysisTeam.analysisContactAssignments.endDate",
+    "analysisTeam.analysisContactAssignments.startDate",
     "analysisTeam.cernCcid",
     "analysisTeam.email",
     "analysisTeam.firstName",
+    "analysisTeam.isAnalysisContact",
     "analysisTeam.isContactEditor",
     "analysisTeam.lastName",
     "documentation.supportingInternalDocuments.label",
@@ -233,17 +247,34 @@ fields = [
     "status",
 ]
 boolean_fields = [
+    "analysisTeam.isAnalysisContact",
     "analysisTeam.isContactEditor",
     "phase1.editorialBoard.isChair",
     "phase1.editorialBoard.isExOfficio",
     "phase2.preliminaryPlotsAndResultsReleased",
 ]
 
+[publication]
+fields = [
+    "finalReferenceCode",
+    "groups.leadingGroup.name",
+    "groups.subgroups.name",
+    "referenceCode",
+    "shortTitle",
+    "status",
+    "temporaryReferenceCode",
+    "type",
+]
+boolean_fields = []
+
 [pubnote]
 fields = [
+    "analysisTeam.analysisContactAssignments.endDate",
+    "analysisTeam.analysisContactAssignments.startDate",
     "analysisTeam.cernCcid",
     "analysisTeam.email",
     "analysisTeam.firstName",
+    "analysisTeam.isAnalysisContact",
     "analysisTeam.isContactEditor",
     "analysisTeam.lastName",
     "documentation.supportingInternalDocuments.label",
@@ -291,20 +322,22 @@ fields = [
     "temporaryReferenceCode",
 ]
 boolean_fields = [
+    "analysisTeam.isAnalysisContact",
     "analysisTeam.isContactEditor",
     "phase1.readers.isFirstReader",
     "phase1.readers.isSecondReader",
 ]
 
-[publication]
+[subgroup]
 fields = [
-    "finalReferenceCode",
-    "groups.leadingGroup.name",
-    "groups.subgroups.name",
-    "referenceCode",
-    "shortTitle",
-    "status",
-    "temporaryReferenceCode",
-    "type",
+    "name",
+]
+boolean_fields = []
+
+[trigger]
+fields = [
+    "category.name",
+    "name",
+    "year",
 ]
 boolean_fields = []

@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING, Any, TypeVar
 import httpx
 from hishel import CacheOptions, SpecificationPolicy, SyncSqliteStorage
 from hishel.httpx import SyncCacheTransport
-from pydantic import TypeAdapter, ValidationError
 
 from stare._version import version as __version__
 from stare.auth import TokenManager
@@ -19,7 +18,6 @@ from stare.exceptions import (
     ApiError,
     ForbiddenError,
     NotFoundError,
-    ResponseParseError,
     UnauthorizedError,
 )
 from stare.models import (
@@ -33,7 +31,11 @@ from stare.models import (
     PublicationSummary,
     PubNote,
     PubNoteSearchResult,
-    Trigger,
+)
+from stare.models.search import (
+    LeadgroupSearchResult,
+    SubgroupSearchResult,
+    TriggerSearchResult,
 )
 from stare.settings import StareSettings
 
@@ -319,42 +321,8 @@ class PublicationResource:
         return PublicationSearchResult.model_validate(response.json(), verbose=verbose)
 
 
-class GroupResource:
-    """Accessor for /groups endpoint."""
-
-    def __init__(self, client: httpx.Client) -> None:
-        """Store the shared httpx client."""
-        self._client = client
-
-    def list(self) -> list[str]:
-        """List all leading groups."""
-        response = self._client.get("/groups")
-        _raise_for_status(response)
-        try:
-            return TypeAdapter(list[str]).validate_python(response.json())
-        except ValidationError as exc:
-            raise ResponseParseError(str(exc), raw_data=response.json()) from exc
-
-
-class SubgroupResource:
-    """Accessor for /subgroups endpoint."""
-
-    def __init__(self, client: httpx.Client) -> None:
-        """Store the shared httpx client."""
-        self._client = client
-
-    def list(self) -> list[str]:
-        """List all subgroups."""
-        response = self._client.get("/subgroups")
-        _raise_for_status(response)
-        try:
-            return TypeAdapter(list[str]).validate_python(response.json())
-        except ValidationError as exc:
-            raise ResponseParseError(str(exc), raw_data=response.json()) from exc
-
-
-class TriggerResource:
-    """Accessor for /triggers/search endpoint."""
+class LeadgroupResource:
+    """Accessor for /searchLeadgroup endpoint."""
 
     def __init__(self, client: httpx.Client) -> None:
         """Store the shared httpx client."""
@@ -363,19 +331,90 @@ class TriggerResource:
     def search(
         self,
         *,
-        categories: list[str] | None = None,
-        years: list[str] | None = None,
+        query: str | Expression | None = None,
+        offset: int = 0,
+        limit: int = 50,
+        sort_by: str | None = None,
+        sort_desc: bool = False,
+        validate_query: bool = True,
         verbose: bool = False,
-    ) -> list[Trigger]:
-        """Search triggers by category and/or year."""
-        params: list[tuple[str, str | int | float | bool | None]] = []
-        params += [("categories", val) for val in categories or []]
-        params += [("years", val) for val in years or []]
-        response = self._client.get("/triggers/search", params=params)
+    ) -> LeadgroupSearchResult:
+        """Search leading groups via GET /searchLeadgroup."""
+        params: dict[str, Any] = {"offset": offset, "limit": limit}
+        if query is not None:
+            params["queryString"] = _resolve_query(
+                query, mode="leadgroup", validate=validate_query
+            )
+        if sort_by is not None:
+            params["sortBy"] = sort_by
+            params["sortDesc"] = str(sort_desc).lower()
+        response = self._client.get("/searchLeadgroup", params=params)
         _raise_for_status(response)
-        return [
-            Trigger.model_validate(item, verbose=verbose) for item in response.json()
-        ]
+        return LeadgroupSearchResult.model_validate(response.json(), verbose=verbose)
+
+
+class SubgroupResource:
+    """Accessor for /searchSubgroup endpoint."""
+
+    def __init__(self, client: httpx.Client) -> None:
+        """Store the shared httpx client."""
+        self._client = client
+
+    def search(
+        self,
+        *,
+        query: str | Expression | None = None,
+        offset: int = 0,
+        limit: int = 50,
+        sort_by: str | None = None,
+        sort_desc: bool = False,
+        validate_query: bool = True,
+        verbose: bool = False,
+    ) -> SubgroupSearchResult:
+        """Search subgroups via GET /searchSubgroup."""
+        params: dict[str, Any] = {"offset": offset, "limit": limit}
+        if query is not None:
+            params["queryString"] = _resolve_query(
+                query, mode="subgroup", validate=validate_query
+            )
+        if sort_by is not None:
+            params["sortBy"] = sort_by
+            params["sortDesc"] = str(sort_desc).lower()
+        response = self._client.get("/searchSubgroup", params=params)
+        _raise_for_status(response)
+        return SubgroupSearchResult.model_validate(response.json(), verbose=verbose)
+
+
+class TriggerResource:
+    """Accessor for /searchTrigger endpoint."""
+
+    def __init__(self, client: httpx.Client) -> None:
+        """Store the shared httpx client."""
+        self._client = client
+
+    def search(
+        self,
+        *,
+        query: str | Expression | None = None,
+        offset: int = 0,
+        limit: int = 50,
+        sort_by: str | None = None,
+        sort_desc: bool = False,
+        validate_query: bool = True,
+        verbose: bool = False,
+    ) -> TriggerSearchResult:
+        """Search triggers via GET /searchTrigger."""
+        params: dict[str, Any] = {"offset": offset, "limit": limit}
+        if query is not None:
+            params["queryString"] = _resolve_query(
+                query, mode="trigger", validate=validate_query
+            )
+        if sort_by is not None:
+            params["sortBy"] = sort_by
+            params["sortDesc"] = str(sort_desc).lower()
+        response = self._client.get("/searchTrigger", params=params)
+        _raise_for_status(response)
+        return TriggerSearchResult.model_validate(response.json(), verbose=verbose)
 
 
 class Glance:
@@ -427,7 +466,7 @@ class Glance:
         self.confnotes = ConfNoteResource(self._http)
         self.pubnotes = PubNoteResource(self._http)
         self.publications = PublicationResource(self._http)
-        self.groups = GroupResource(self._http)
+        self.leadgroups = LeadgroupResource(self._http)
         self.subgroups = SubgroupResource(self._http)
         self.triggers = TriggerResource(self._http)
 

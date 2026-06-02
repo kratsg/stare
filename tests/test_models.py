@@ -12,7 +12,7 @@ from rich.console import Console
 from rich.panel import Panel
 
 from stare.exceptions import ResponseParseError
-from stare.models.analysis import Analysis, AnalysisPhase0
+from stare.models.analysis import Analysis, AnalysisMetadata, AnalysisPhase0
 from stare.models.common import (
     AmiGlanceLink,
     AnalysisFramework,
@@ -20,6 +20,7 @@ from stare.models.common import (
     AnalysisTeamMember,
     Collision,
     Collisions,
+    Dataset,
     Documentation,
     EditorialBoard,
     EditorialBoardMember,
@@ -43,11 +44,16 @@ from stare.models.pubnote import PubNote, PubNotePhase1, Readers
 from stare.models.search import (
     AnalysisSearchResult,
     ConfNoteSearchResult,
+    Leadgroup,
+    LeadgroupSearchResult,
     PaperSearchResult,
     PublicationSearchResult,
     PublicationSummary,
     PubNoteSearchResult,
+    Subgroup,
+    SubgroupSearchResult,
     Trigger,
+    TriggerSearchResult,
 )
 
 # ---------------------------------------------------------------------------
@@ -747,22 +753,145 @@ class TestPublicationSearchResult:
         assert r.results == []
 
 
+class TestDataset:
+    def test_parse(self) -> None:
+        d = Dataset.model_validate({"name": "mc20_13TeV"})
+        assert d.name == "mc20_13TeV"
+
+    def test_optional_name(self) -> None:
+        d = Dataset.model_validate({})
+        assert d.name is None
+
+
+class TestAnalysisMetadataDatasets:
+    def test_datasets_parsed(self) -> None:
+        m = AnalysisMetadata.model_validate(
+            {
+                "datasets": [{"name": "mc20_13TeV"}, {"name": "data18_13TeV"}],
+            }
+        )
+        assert len(m.datasets) == 2
+        assert m.datasets[0].name == "mc20_13TeV"
+        assert m.datasets[1].name == "data18_13TeV"
+
+    def test_datasets_defaults_empty(self) -> None:
+        m = AnalysisMetadata.model_validate({})
+        assert m.datasets == []
+
+    def test_analysis_with_metadata_datasets(self) -> None:
+        # Confirm that analysis.metadata.datasets parses under extra="forbid"
+        a = Analysis.model_validate(
+            {
+                "referenceCode": "ANA-HDBS-2024-01",
+                "status": "Created",
+                "metadata": {
+                    "datasets": [{"name": "mc20_13TeV"}],
+                },
+            }
+        )
+        assert a.metadata is not None
+        assert a.metadata.datasets[0].name == "mc20_13TeV"
+
+
 class TestTrigger:
     def test_parse(self) -> None:
+        # year is top-level (not inside category) in the new searchTrigger shape
         t = Trigger.model_validate(
             {
                 "name": "HLT_e26_lhtight",
-                "category": {"name": "electron", "year": "2018"},
+                "year": "2018",
+                "category": {"name": "electron"},
             }
         )
         assert t.name == "HLT_e26_lhtight"
+        assert t.year == "2018"
         assert t.category is not None
         assert t.category.name == "electron"
-        assert t.category.year == "2018"
 
     def test_no_category(self) -> None:
         t = Trigger.model_validate({"name": "HLT_mu26"})
         assert t.category is None
+        assert t.year is None
+
+
+class TestLeadgroup:
+    def test_parse(self) -> None:
+        g = Leadgroup.model_validate({"name": "SUSY"})
+        assert g.name == "SUSY"
+
+    def test_optional_name(self) -> None:
+        g = Leadgroup.model_validate({})
+        assert g.name is None
+
+
+class TestSubgroup:
+    def test_parse(self) -> None:
+        s = Subgroup.model_validate({"name": "SUSY-1"})
+        assert s.name == "SUSY-1"
+
+    def test_optional_name(self) -> None:
+        s = Subgroup.model_validate({})
+        assert s.name is None
+
+
+class TestLeadgroupSearchResult:
+    def test_parse_results(self) -> None:
+        r = LeadgroupSearchResult.model_validate(
+            {
+                "numberOfResults": 2,
+                "results": [{"name": "SUSY"}, {"name": "HDBS"}],
+            }
+        )
+        assert r.number_of_results == 2
+        assert len(r.results) == 2
+        assert r.results[0].name == "SUSY"
+        assert r.results[1].name == "HDBS"
+
+    def test_empty_result(self) -> None:
+        r = LeadgroupSearchResult.model_validate({"numberOfResults": 0, "results": []})
+        assert r.number_of_results == 0
+        assert r.results == []
+
+
+class TestSubgroupSearchResult:
+    def test_parse_results(self) -> None:
+        r = SubgroupSearchResult.model_validate(
+            {
+                "numberOfResults": 1,
+                "results": [{"name": "HDBS-1"}],
+            }
+        )
+        assert r.number_of_results == 1
+        assert r.results[0].name == "HDBS-1"
+
+    def test_empty_result(self) -> None:
+        r = SubgroupSearchResult.model_validate({"numberOfResults": 0, "results": []})
+        assert r.results == []
+
+
+class TestTriggerSearchResult:
+    def test_parse_results(self) -> None:
+        r = TriggerSearchResult.model_validate(
+            {
+                "numberOfResults": 1,
+                "results": [
+                    {
+                        "name": "HLT_e60_lhmedium",
+                        "year": "2024",
+                        "category": {"name": "electron"},
+                    }
+                ],
+            }
+        )
+        assert r.number_of_results == 1
+        assert r.results[0].name == "HLT_e60_lhmedium"
+        assert r.results[0].year == "2024"
+        assert r.results[0].category is not None
+        assert r.results[0].category.name == "electron"
+
+    def test_empty_result(self) -> None:
+        r = TriggerSearchResult.model_validate({"numberOfResults": 0, "results": []})
+        assert r.results == []
 
 
 # ---------------------------------------------------------------------------

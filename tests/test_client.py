@@ -35,10 +35,15 @@ from stare.models import (
     PaperSearchResult,
     PubNote,
     PubNoteSearchResult,
-    Trigger,
 )
 from stare.models.common import _format_parse_error
-from stare.models.search import PublicationSearchResult, PublicationSummary
+from stare.models.search import (
+    LeadgroupSearchResult,
+    PublicationSearchResult,
+    PublicationSummary,
+    SubgroupSearchResult,
+    TriggerSearchResult,
+)
 
 if TYPE_CHECKING:
     from stare.settings import StareSettings
@@ -97,9 +102,16 @@ SAMPLE_PUBLICATION_SEARCH = {
     ],
 }
 
-SAMPLE_TRIGGERS = [
-    {"name": "HLT_e60_lhmedium", "category": {"name": "electron", "year": "2024"}},
-]
+SAMPLE_TRIGGERS = {
+    "numberOfResults": 1,
+    "results": [
+        {
+            "name": "HLT_e60_lhmedium",
+            "year": "2024",
+            "category": {"name": "electron"},
+        }
+    ],
+}
 
 
 @pytest.fixture
@@ -545,33 +557,67 @@ def test_publications_get_zero_results_raises_not_found(glance: Glance) -> None:
 
 
 # ---------------------------------------------------------------------------
-# GroupResource.list
+# LeadgroupResource.search
 # ---------------------------------------------------------------------------
 
+SAMPLE_LEADGROUP_SEARCH = {
+    "numberOfResults": 2,
+    "results": [{"name": "SUSY"}, {"name": "HDBS"}],
+}
 
-def test_groups_list_returns_strings(glance: Glance) -> None:
+
+def test_leadgroups_search_returns_search_result(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/groups").mock(
-            return_value=httpx.Response(200, json=["HDBS", "SUSY", "EXOT"])
+        rx.get("/searchLeadgroup").mock(
+            return_value=httpx.Response(200, json=SAMPLE_LEADGROUP_SEARCH)
         )
-        result = glance.groups.list()
+        result = glance.leadgroups.search()
 
-    assert result == ["HDBS", "SUSY", "EXOT"]
-
-
-# ---------------------------------------------------------------------------
-# SubgroupResource.list
-# ---------------------------------------------------------------------------
+    assert isinstance(result, LeadgroupSearchResult)
+    assert result.number_of_results == 2
+    assert result.results[0].name == "SUSY"
 
 
-def test_subgroups_list_returns_strings(glance: Glance) -> None:
+def test_leadgroups_search_passes_query(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/subgroups").mock(
-            return_value=httpx.Response(200, json=["Higgs", "Dibosons"])
+        rx.get("/searchLeadgroup").mock(
+            return_value=httpx.Response(200, json=SAMPLE_LEADGROUP_SEARCH)
         )
-        result = glance.subgroups.list()
+        glance.leadgroups.search(query="name = SUSY", validate_query=False)
+        params = dict(rx.calls[0].request.url.params)
+    assert params["queryString"] == "name = SUSY"
 
-    assert result == ["Higgs", "Dibosons"]
+
+# ---------------------------------------------------------------------------
+# SubgroupResource.search
+# ---------------------------------------------------------------------------
+
+SAMPLE_SUBGROUP_SEARCH = {
+    "numberOfResults": 1,
+    "results": [{"name": "HDBS-1"}],
+}
+
+
+def test_subgroups_search_returns_search_result(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchSubgroup").mock(
+            return_value=httpx.Response(200, json=SAMPLE_SUBGROUP_SEARCH)
+        )
+        result = glance.subgroups.search()
+
+    assert isinstance(result, SubgroupSearchResult)
+    assert result.number_of_results == 1
+    assert result.results[0].name == "HDBS-1"
+
+
+def test_subgroups_search_passes_query(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchSubgroup").mock(
+            return_value=httpx.Response(200, json=SAMPLE_SUBGROUP_SEARCH)
+        )
+        glance.subgroups.search(query="name contain HIGG", validate_query=False)
+        params = dict(rx.calls[0].request.url.params)
+    assert params["queryString"] == "name contain HIGG"
 
 
 # ---------------------------------------------------------------------------
@@ -579,28 +625,29 @@ def test_subgroups_list_returns_strings(glance: Glance) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_triggers_search_returns_triggers(glance: Glance) -> None:
+def test_triggers_search_returns_search_result(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/triggers/search").mock(
+        rx.get("/searchTrigger").mock(
             return_value=httpx.Response(200, json=SAMPLE_TRIGGERS)
         )
         result = glance.triggers.search()
 
-    assert isinstance(result, list)
-    assert len(result) == 1
-    assert isinstance(result[0], Trigger)
-    assert result[0].name == "HLT_e60_lhmedium"
-    assert result[0].category is not None
-    assert result[0].category.name == "electron"
+    assert isinstance(result, TriggerSearchResult)
+    assert result.number_of_results == 1
+    assert result.results[0].name == "HLT_e60_lhmedium"
+    assert result.results[0].year == "2024"
+    assert result.results[0].category is not None
+    assert result.results[0].category.name == "electron"
 
 
-def test_triggers_search_passes_filter_params(glance: Glance) -> None:
+def test_triggers_search_passes_query(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/triggers/search").mock(return_value=httpx.Response(200, json=[]))
-        glance.triggers.search(categories=["electron"], years=["2024"])
-        params = rx.calls[0].request.url.params
-    assert "electron" in params.get_list("categories")
-    assert "2024" in params.get_list("years")
+        rx.get("/searchTrigger").mock(
+            return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
+        )
+        glance.triggers.search(query='year = "2024"', validate_query=False)
+        params = dict(rx.calls[0].request.url.params)
+    assert params["queryString"] == 'year = "2024"'
 
 
 # ---------------------------------------------------------------------------
@@ -611,9 +658,9 @@ def test_triggers_search_passes_filter_params(glance: Glance) -> None:
 def test_generic_api_error_on_500(glance: Glance) -> None:
     err = {"status": 500, "title": "Internal Server Error", "detail": "Oops"}
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/groups").mock(return_value=httpx.Response(500, json=err))
+        rx.get("/searchLeadgroup").mock(return_value=httpx.Response(500, json=err))
         with pytest.raises(ApiError) as exc_info:
-            glance.groups.list()
+            glance.leadgroups.search()
     assert exc_info.value.status_code == 500
 
 

@@ -24,14 +24,16 @@ src/stare/
 ├── storage.py        # TokenStorage ABC + FileTokenStorage / KeyringTokenStorage
 ├── client.py         # Glance client + resource accessors
 ├── cli/
-│   ├── __init__.py   # app, top-level commands (version, groups, subgroups) + sub-apps
+│   ├── __init__.py   # app, top-level commands (version) + sub-apps
 │   ├── utils.py      # console, err_console, make_glance/make_settings/make_token_manager, sizeof_fmt
 │   ├── auth.py       # auth_app: login, logout, status, info
 │   ├── analysis.py   # analysis_app: search, get
 │   ├── paper.py      # paper_app: search, get
 │   ├── confnote.py   # confnote_app: search, get
 │   ├── pubnote.py    # pubnote_app: search, get
-│   ├── publications.py # publications_app: search
+│   ├── publications.py # publications_app: search, get
+│   ├── leadgroup.py  # leadgroup_app: search
+│   ├── subgroup.py   # subgroup_app: search
 │   ├── triggers.py   # triggers_app: search
 │   └── cache.py      # cache_app: info, clear
 ├── exceptions.py     # StareError hierarchy
@@ -299,6 +301,14 @@ stare confnote search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc
 stare confnote get REF_CODE [--json/--no-json] [--no-cache]
 stare pubnote search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json/--no-json] [--no-cache]
 stare pubnote get REF_CODE [--json/--no-json] [--no-cache]
+```
+
+Leading groups, subgroups, and triggers are search-only sub-apps (no `get`):
+
+```bash
+stare leadgroups search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json/--no-json] [--no-cache]
+stare subgroups search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json/--no-json] [--no-cache]
+stare triggers search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json/--no-json] [--no-cache]
 ```
 
 ### Output format auto-detection

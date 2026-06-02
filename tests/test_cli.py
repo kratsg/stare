@@ -25,10 +25,15 @@ from stare.models import (
     PaperSearchResult,
     PubNote,
     PubNoteSearchResult,
-    Trigger,
 )
 from stare.models.auth import JwtClaims, TokenInfo
-from stare.models.search import PublicationSearchResult, PublicationSummary
+from stare.models.search import (
+    LeadgroupSearchResult,
+    PublicationSearchResult,
+    PublicationSummary,
+    SubgroupSearchResult,
+    TriggerSearchResult,
+)
 
 runner = CliRunner()
 
@@ -139,11 +144,22 @@ SAMPLE_PUBLICATION = PublicationSummary.model_validate(
     {"referenceCode": "HDBS-2024-01", "type": "Paper", "shortTitle": "Test paper"}
 )
 
-SAMPLE_TRIGGERS = [
-    Trigger.model_validate(
-        {"name": "HLT_e60", "category": {"name": "electron", "year": "2024"}}
-    ),
-]
+SAMPLE_LEADGROUPS = LeadgroupSearchResult.model_validate(
+    {"numberOfResults": 2, "results": [{"name": "SUSY"}, {"name": "HDBS"}]}
+)
+
+SAMPLE_SUBGROUPS = SubgroupSearchResult.model_validate(
+    {"numberOfResults": 2, "results": [{"name": "HDBS-1"}, {"name": "SUSY-2"}]}
+)
+
+SAMPLE_TRIGGERS = TriggerSearchResult.model_validate(
+    {
+        "numberOfResults": 1,
+        "results": [
+            {"name": "HLT_e60", "year": "2024", "category": {"name": "electron"}}
+        ],
+    }
+)
 
 
 def _mock_glance(**overrides: object) -> MagicMock:
@@ -159,8 +175,8 @@ def _mock_glance(**overrides: object) -> MagicMock:
     g.pubnotes.get.return_value = SAMPLE_PUB_NOTE
     g.publications.search.return_value = SAMPLE_PUBLICATIONS
     g.publications.get.return_value = SAMPLE_PUBLICATION
-    g.groups.list.return_value = ["HDBS", "SUSY"]
-    g.subgroups.list.return_value = ["Higgs", "Dibosons"]
+    g.leadgroups.search.return_value = SAMPLE_LEADGROUPS
+    g.subgroups.search.return_value = SAMPLE_SUBGROUPS
     g.triggers.search.return_value = SAMPLE_TRIGGERS
     for k, v in overrides.items():
         setattr(g, k, v)
@@ -729,30 +745,53 @@ def test_publications_get_json() -> None:
 
 
 # ---------------------------------------------------------------------------
-# groups / subgroups
+# leadgroups search
 # ---------------------------------------------------------------------------
 
 
-def test_groups_command() -> None:
+def test_leadgroups_search_command() -> None:
     with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
-        result = runner.invoke(app, ["groups"])
+        result = runner.invoke(app, ["leadgroups", "search"])
     assert result.exit_code == 0
-    assert "HDBS" in result.output
+    assert "SUSY" in result.output
 
 
-def test_groups_json_output() -> None:
+def test_leadgroups_search_json_output() -> None:
     with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
-        result = runner.invoke(app, ["groups", "--json"])
+        result = runner.invoke(app, ["leadgroups", "search", "--json"])
     assert result.exit_code == 0
     data = json.loads(result.output)
-    assert "HDBS" in data
+    assert "numberOfResults" in data
+    assert data["results"][0]["name"] == "SUSY"
 
 
-def test_subgroups_command() -> None:
+def test_leadgroups_search_with_query() -> None:
+    g = _mock_glance()
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        runner.invoke(app, ["leadgroups", "search", "--query", "name = SUSY"])
+    call_kwargs = g.leadgroups.search.call_args.kwargs
+    assert call_kwargs.get("query") == "name = SUSY"
+
+
+# ---------------------------------------------------------------------------
+# subgroups search
+# ---------------------------------------------------------------------------
+
+
+def test_subgroups_search_command() -> None:
     with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
-        result = runner.invoke(app, ["subgroups"])
+        result = runner.invoke(app, ["subgroups", "search"])
     assert result.exit_code == 0
-    assert "Higgs" in result.output
+    assert "HDBS-1" in result.output
+
+
+def test_subgroups_search_json_output() -> None:
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
+        result = runner.invoke(app, ["subgroups", "search", "--json"])
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    assert "numberOfResults" in data
+    assert data["results"][0]["name"] == "HDBS-1"
 
 
 # ---------------------------------------------------------------------------
@@ -772,15 +811,15 @@ def test_triggers_search_json() -> None:
         result = runner.invoke(app, ["triggers", "search", "--json"])
     assert result.exit_code == 0
     data = json.loads(result.output)
-    assert isinstance(data, list)
+    assert "numberOfResults" in data
 
 
-def test_triggers_search_with_category_filter() -> None:
+def test_triggers_search_with_query() -> None:
     g = _mock_glance()
     with patch("stare.cli.utils.make_glance", return_value=g):
-        runner.invoke(app, ["triggers", "search", "--category", "electron"])
+        runner.invoke(app, ["triggers", "search", "--query", "year = 2024"])
     call_kwargs = g.triggers.search.call_args.kwargs
-    assert "electron" in call_kwargs.get("categories", [])
+    assert call_kwargs.get("query") == "year = 2024"
 
 
 # ---------------------------------------------------------------------------
