@@ -17,6 +17,9 @@ tags:
   - name: Paper
   - name: Confnote
   - name: Pubnote
+  - name: Leadgroup
+  - name: Subgroup
+  - name: Trigger
 
 paths:
   /searchAnalysis:
@@ -125,6 +128,7 @@ paths:
               <li><code>metadata.triggers.name</code></li>
               <li><code>metadata.analysisFramework.ntupling</code></li>
               <li><code>metadata.analysisFramework.histogramming</code></li>
+              <li><code>metadata.datasets.name</code></li>
               <li><code>extraMetadata</code></li>
               <li><code>relatedPublications.type</code></li>
               <li><code>relatedPublications.referenceCode</code></li>
@@ -279,6 +283,9 @@ paths:
               <li><code>analysisTeam.lastName</code></li>
               <li><code>analysisTeam.email</code></li>
               <li><code>analysisTeam.isContactEditor</code> (<code>=</code> and <code>!=</code> only)</li>
+              <li><code>analysisTeam.isAnalysisContact</code> (<code>=</code> and <code>!=</code> only)</li>
+              <li><code>analysisTeam.analysisContactAssignments.startDate</code></li>
+              <li><code>analysisTeam.analysisContactAssignments.endDate</code></li>
               <li><code>metadata.collisions.type</code></li>
               <li><code>metadata.collisions.year</code></li>
               <li><code>metadata.collisions.run</code></li>
@@ -467,6 +474,9 @@ paths:
               <li><code>analysisTeam.lastName</code></li>
               <li><code>analysisTeam.email</code></li>
               <li><code>analysisTeam.isContactEditor</code> (<code>=</code> and <code>!=</code> only)</li>
+              <li><code>analysisTeam.isAnalysisContact</code> (<code>=</code> and <code>!=</code> only)</li>
+              <li><code>analysisTeam.analysisContactAssignments.startDate</code></li>
+              <li><code>analysisTeam.analysisContactAssignments.endDate</code></li>
               <li><code>metadata.collisions.type</code></li>
               <li><code>metadata.collisions.year</code></li>
               <li><code>metadata.collisions.run</code></li>
@@ -626,6 +636,9 @@ paths:
               <li><code>analysisTeam.lastName</code></li>
               <li><code>analysisTeam.email</code></li>
               <li><code>analysisTeam.isContactEditor</code> (<code>=</code> and <code>!=</code> only)</li>
+              <li><code>analysisTeam.isAnalysisContact</code> (<code>=</code> and <code>!=</code> only)</li>
+              <li><code>analysisTeam.analysisContactAssignments.startDate</code></li>
+              <li><code>analysisTeam.analysisContactAssignments.endDate</code></li>
               <li><code>metadata.collisions.type</code></li>
               <li><code>metadata.collisions.year</code></li>
               <li><code>metadata.collisions.run</code></li>
@@ -676,6 +689,277 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SearchPubnoteResponse"
+        "400":
+          description: Invalid query parameters.
+        "401":
+          description: Invalid or missing authentication token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error401"
+        "403":
+          description: Action forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error403"
+  /searchLeadgroup:
+    get:
+      tags:
+        - Leadgroup
+      summary: Search leading groups
+      description: >
+        Searches leading groups with support for filtering, sorting, and
+        pagination. Filters are passed as a DSL query string via the
+        `queryString` parameter.
+
+        The same DSL is used across the `/search...` endpoints in this API. What
+        changes between resources is the set of searchable field names
+        documented on each endpoint.
+      operationId: searchLeadgroup
+      security:
+        - oauth2: []
+      parameters:
+        - name: offset
+          in: query
+          description: Pagination offset (number of records to skip).
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: limit
+          in: query
+          description: Maximum number of records to return.
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: sortBy
+          in: query
+          description: Field name to sort results by.
+          required: false
+          schema:
+            type: string
+        - name: sortDesc
+          in: query
+          description: Sort in descending order when true.
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: queryString
+          in: query
+          description: |
+            URL-encoded DSL filter string. Supports operators such as
+            `contain`, `not-contain`, `=`, and `!=` over the available
+            searchable properties.
+
+            <details>
+            <summary>See searchable fields for <code>/searchLeadgroup</code></summary>
+
+            <ul>
+              <li><code>name</code></li>
+            </ul>
+
+            </details>
+
+            Examples:
+            - `"name" contain "EGM"`
+            - `"name" = "EGAM"`
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchLeadgroupResponse"
+        "400":
+          description: Invalid query parameters.
+        "401":
+          description: Invalid or missing authentication token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error401"
+        "403":
+          description: Action forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error403"
+  /searchSubgroup:
+    get:
+      tags:
+        - Subgroup
+      summary: Search subgroups
+      description: >
+        Searches subgroups with support for filtering, sorting, and pagination.
+        Filters are passed as a DSL query string via the `queryString`
+        parameter.
+      operationId: searchSubgroup
+      security:
+        - oauth2: []
+      parameters:
+        - name: offset
+          in: query
+          description: Pagination offset (number of records to skip).
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: limit
+          in: query
+          description: Maximum number of records to return.
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: sortBy
+          in: query
+          description: Field name to sort results by.
+          required: false
+          schema:
+            type: string
+        - name: sortDesc
+          in: query
+          description: Sort in descending order when true.
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: queryString
+          in: query
+          description: |
+            URL-encoded DSL filter string. Supports `contain`, `not-contain`, `=`, and `!=`.
+
+            <details>
+            <summary>See searchable fields for <code>/searchSubgroup</code></summary>
+
+            <ul>
+              <li><code>name</code></li>
+            </ul>
+
+            </details>
+
+            Examples:
+            - `"name" contain "HIGG"`
+            - `"name" = "HIGG-1"`
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchSubgroupResponse"
+        "400":
+          description: Invalid query parameters.
+        "401":
+          description: Invalid or missing authentication token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error401"
+        "403":
+          description: Action forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error403"
+  /searchTrigger:
+    get:
+      tags:
+        - Trigger
+      summary: Search triggers
+      description: >
+        Searches physics triggers with support for filtering by name, year, and
+        category. Filters are passed as a DSL query string via the `queryString`
+        parameter.
+
+        The same DSL is used across the `/search...` endpoints in this API. What
+        changes between resources is the set of searchable field names
+        documented on each endpoint.
+      operationId: searchTrigger
+      security:
+        - oauth2: []
+      parameters:
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: sortBy
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: sortDesc
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: queryString
+          in: query
+          description: |
+            URL-encoded DSL filter string. Supports operators such as
+            `contain`, `not-contain`, `=`, and `!=` over the available
+            searchable properties.
+
+            <details>
+            <summary>See DSL syntax</summary>
+
+            <ul>
+              <li>Statements are written as <code>"fieldName" operator "value"</code>.</li>
+              <li>Supported conjunctions are uppercase <code>AND</code> and <code>OR</code>.</li>
+              <li>Parentheses <code>(</code> and <code>)</code> are supported for grouping.</li>
+              <li>Field names are case-sensitive and must match the names below exactly.</li>
+              <li>Operators are case-sensitive. This endpoint supports <code>contain</code>, <code>not-contain</code>, <code>=</code>, and <code>!=</code>.</li>
+              <li>String matching is not case-sensitive for <code>contain</code>, <code>not-contain</code>, <code>=</code>, and <code>!=</code>.</li>
+              <li>Fields and values that contain spaces or special characters must stay inside double quotes, and the whole <code>queryString</code> parameter must be URL-encoded when sent over HTTP.</li>
+              <li>The parser does not define an escape syntax for embedded double quotes. Values containing <code>"</code> are therefore not supported.</li>
+              <li>To compare against <code>NULL</code>, use the special token <code>__EMPTY__</code>, for example <code>"name" = "__EMPTY__"</code>.</li>
+            </ul>
+
+            </details>
+
+            <details>
+            <summary>See searchable fields for <code>/searchTrigger</code></summary>
+
+            <ul>
+              <li><code>name</code></li>
+              <li><code>year</code></li>
+              <li><code>category.name</code></li>
+            </ul>
+
+            </details>
+
+            Examples:
+            - `"year" = "2024"`
+            - `"category.name" = "L1" AND "year" = "2023"`
+            - `"name" contain "MET"`
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchTriggerResponse"
         "400":
           description: Invalid query parameters.
         "401":
@@ -993,6 +1277,13 @@ components:
                         type: string
                       histogramming:
                         type: string
+                  datasets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
               amiGlance:
                 type: array
                 items:
@@ -1183,6 +1474,7 @@ components:
                   type: object
                   required:
                     - isContactEditor
+                    - isAnalysisContact
                   properties:
                     cernCcid:
                       type: string
@@ -1194,6 +1486,15 @@ components:
                       type: string
                     isContactEditor:
                       type: boolean
+                    isAnalysisContact:
+                      type: boolean
+                    analysisContactAssignments:
+                      type: object
+                      properties:
+                        startDate:
+                          type: string
+                        endDate:
+                          type: string
               metadata:
                 type: object
                 properties:
@@ -1493,6 +1794,7 @@ components:
                   type: object
                   required:
                     - isContactEditor
+                    - isAnalysisContact
                   properties:
                     cernCcid:
                       type: string
@@ -1504,6 +1806,15 @@ components:
                       type: string
                     isContactEditor:
                       type: boolean
+                    isAnalysisContact:
+                      type: boolean
+                    analysisContactAssignments:
+                      type: object
+                      properties:
+                        startDate:
+                          type: string
+                        endDate:
+                          type: string
               metadata:
                 type: object
                 properties:
@@ -1643,6 +1954,21 @@ components:
         numberOfResults:
           type: integer
           description: Number of matching records.
+    SearchLeadgroupResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                type: string
+        numberOfResults:
+          type: integer
+          description: Number of matching records.
     SearchPubnoteResponse:
       type: object
       properties:
@@ -1711,6 +2037,7 @@ components:
                   type: object
                   required:
                     - isContactEditor
+                    - isAnalysisContact
                   properties:
                     cernCcid:
                       type: string
@@ -1722,6 +2049,15 @@ components:
                       type: string
                     isContactEditor:
                       type: boolean
+                    isAnalysisContact:
+                      type: boolean
+                    analysisContactAssignments:
+                      type: object
+                      properties:
+                        startDate:
+                          type: string
+                        endDate:
+                          type: string
               metadata:
                 type: object
                 properties:
@@ -1885,6 +2221,49 @@ components:
                       properties:
                         name:
                           type: string
+        numberOfResults:
+          type: integer
+          description: Number of matching records.
+
+    SearchSubgroupResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                type: string
+        numberOfResults:
+          type: integer
+          description: Number of matching records.
+
+    SearchTriggerResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            required:
+              - name
+              - year
+              - category
+            properties:
+              name:
+                type: string
+              year:
+                type: string
+              category:
+                type: object
+                required:
+                  - name
+                properties:
+                  name:
+                    type: string
         numberOfResults:
           type: integer
           description: Number of matching records.

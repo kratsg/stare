@@ -138,3 +138,46 @@ def test_analysis_boolean_fields_operator_restriction() -> None:
     reg = FieldRegistry.for_mode("analysis")
     with pytest.raises(DSLValidationError):
         reg.validate_operator("analysisTeam.isContactEditor", Operator.CONTAIN)
+
+
+def test_analysis_has_metadata_datasets_name() -> None:
+    reg = FieldRegistry.for_mode("analysis")
+    assert "metadata.datasets.name" in reg.fields()
+
+
+def test_paper_has_analysis_contact_fields() -> None:
+    reg = FieldRegistry.for_mode("paper")
+    assert "analysisTeam.isAnalysisContact" in reg.fields()
+    assert "analysisTeam.analysisContactAssignments.startDate" in reg.fields()
+    assert "analysisTeam.analysisContactAssignments.endDate" in reg.fields()
+
+
+def test_confnote_has_analysis_contact_fields() -> None:
+    reg = FieldRegistry.for_mode("confnote")
+    assert "analysisTeam.isAnalysisContact" in reg.fields()
+    assert "analysisTeam.analysisContactAssignments.startDate" in reg.fields()
+    assert "analysisTeam.analysisContactAssignments.endDate" in reg.fields()
+
+
+def test_pubnote_has_analysis_contact_fields() -> None:
+    reg = FieldRegistry.for_mode("pubnote")
+    assert "analysisTeam.isAnalysisContact" in reg.fields()
+    assert "analysisTeam.analysisContactAssignments.startDate" in reg.fields()
+    assert "analysisTeam.analysisContactAssignments.endDate" in reg.fields()
+
+
+def test_leadgroup_mode_has_name_field() -> None:
+    reg = FieldRegistry.for_mode("leadgroup")
+    assert "name" in reg.fields()
+
+
+def test_subgroup_mode_has_name_field() -> None:
+    reg = FieldRegistry.for_mode("subgroup")
+    assert "name" in reg.fields()
+
+
+def test_trigger_mode_has_fields() -> None:
+    reg = FieldRegistry.for_mode("trigger")
+    assert "name" in reg.fields()
+    assert "year" in reg.fields()
+    assert "category.name" in reg.fields()

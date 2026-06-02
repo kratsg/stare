@@ -20,7 +20,7 @@ icon: lucide/code-2
 
 ::: stare.client.PublicationResource
 
-::: stare.client.GroupResource
+::: stare.client.LeadgroupResource
 
 ::: stare.client.SubgroupResource
 
@@ -153,10 +153,22 @@ hyperlinks in CLI output; also available for library callers.
 
 ::: stare.models.PubNoteSearchResult
 
-### Publications and triggers
+### Publications
 
 ::: stare.models.PublicationSummary
 
 ::: stare.models.PublicationSearchResult
 
+### Leading groups, subgroups, and triggers
+
+::: stare.models.Leadgroup
+
+::: stare.models.LeadgroupSearchResult
+
+::: stare.models.Subgroup
+
+::: stare.models.SubgroupSearchResult
+
 ::: stare.models.Trigger
+
+::: stare.models.TriggerSearchResult

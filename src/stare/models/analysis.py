@@ -17,6 +17,7 @@ from stare.models.common import (
     AmiGlanceLink,
     AnalysisFramework,
     AnalysisTeam,
+    Dataset,
     Documentation,
     EditorialBoard,
     Groups,
@@ -51,6 +52,7 @@ class AnalysisMetadata(Metadata):
 
     triggers: list[Trigger] = Field(default_factory=list)
     analysis_framework: AnalysisFramework | None = None
+    datasets: list[Dataset] = Field(default_factory=list)
 
 
 class AnalysisPhase0(_Base):

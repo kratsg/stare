@@ -61,9 +61,12 @@ def main() -> None:
     for mode, schema_name in [
         ("analysis", "SearchAnalysisResponse"),
         ("confnote", "SearchConfnoteResponse"),
+        ("leadgroup", "SearchLeadgroupResponse"),
         ("paper", "SearchPaperResponse"),
-        ("pubnote", "SearchPubnoteResponse"),
         ("publication", "SearchPublicationResponse"),
+        ("pubnote", "SearchPubnoteResponse"),
+        ("subgroup", "SearchSubgroupResponse"),
+        ("trigger", "SearchTriggerResponse"),
     ]:
         item_schema = _schema_for(spec, schema_name)
         string_fields = extract_string_fields(item_schema)
