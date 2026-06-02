@@ -60,15 +60,15 @@ class PublicationSearchResult(_SearchResultsBase[PublicationSummary]):
 class TriggerCategory(_Base):
     """The category of a trigger (from GET /searchTrigger)."""
 
-    name: str | None = None
+    name: str
 
 
 class Trigger(_Base):
     """A trigger entry returned by GET /searchTrigger."""
 
-    name: str | None = None
-    year: str | None = None
-    category: TriggerCategory | None = None
+    name: str
+    year: str
+    category: TriggerCategory
 
 
 class TriggerSearchResult(_SearchResultsBase[Trigger]):
@@ -78,7 +78,7 @@ class TriggerSearchResult(_SearchResultsBase[Trigger]):
 class Leadgroup(_Base):
     """A leading physics group returned by GET /searchLeadgroup."""
 
-    name: str | None = None
+    name: str
 
 
 class LeadgroupSearchResult(_SearchResultsBase[Leadgroup]):
@@ -88,7 +88,7 @@ class LeadgroupSearchResult(_SearchResultsBase[Leadgroup]):
 class Subgroup(_Base):
     """A physics subgroup returned by GET /searchSubgroup."""
 
-    name: str | None = None
+    name: str
 
 
 class SubgroupSearchResult(_SearchResultsBase[Subgroup]):

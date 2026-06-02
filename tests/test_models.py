@@ -808,10 +808,10 @@ class TestTrigger:
         assert t.category is not None
         assert t.category.name == "electron"
 
-    def test_no_category(self) -> None:
-        t = Trigger.model_validate({"name": "HLT_mu26"})
-        assert t.category is None
-        assert t.year is None
+    def test_missing_required_fields_raises(self) -> None:
+        # name, year, category are all required per the spec
+        with pytest.raises(ResponseParseError):
+            Trigger.model_validate({"name": "HLT_mu26"})
 
 
 class TestLeadgroup:
@@ -819,9 +819,9 @@ class TestLeadgroup:
         g = Leadgroup.model_validate({"name": "SUSY"})
         assert g.name == "SUSY"
 
-    def test_optional_name(self) -> None:
-        g = Leadgroup.model_validate({})
-        assert g.name is None
+    def test_missing_name_raises(self) -> None:
+        with pytest.raises(ResponseParseError):
+            Leadgroup.model_validate({})
 
 
 class TestSubgroup:
@@ -829,9 +829,9 @@ class TestSubgroup:
         s = Subgroup.model_validate({"name": "SUSY-1"})
         assert s.name == "SUSY-1"
 
-    def test_optional_name(self) -> None:
-        s = Subgroup.model_validate({})
-        assert s.name is None
+    def test_missing_name_raises(self) -> None:
+        with pytest.raises(ResponseParseError):
+            Subgroup.model_validate({})
 
 
 class TestLeadgroupSearchResult:

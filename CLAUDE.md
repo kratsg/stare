@@ -306,9 +306,9 @@ stare pubnote get REF_CODE [--json/--no-json] [--no-cache]
 Leading groups, subgroups, and triggers are search-only sub-apps (no `get`):
 
 ```bash
-stare leadgroups search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json/--no-json] [--no-cache]
-stare subgroups search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json/--no-json] [--no-cache]
-stare triggers search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json/--no-json] [--no-cache]
+stare leadgroups search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json/--no-json] [--no-cache] [--validate/--no-validate]
+stare subgroups search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json/--no-json] [--no-cache] [--validate/--no-validate]
+stare triggers search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json/--no-json] [--no-cache] [--validate/--no-validate]
 ```
 
 ### Output format auto-detection
