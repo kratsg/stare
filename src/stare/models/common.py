@@ -278,10 +278,10 @@ class Group(_NamedItem):
     """A physics group (leading group, subgroup, or other group)."""
 
 
-class NullGroup(_NamedItem):
+class NullGroup(_Base):
     """A physics group (leading group, subgroup, or other group) with no name."""
 
-    name: None
+    name: None = None
 
 
 class Keyword(_NamedItem):

@@ -9,6 +9,7 @@ from typer.testing import CliRunner
 
 from stare import __version__
 from stare.cli import app
+from stare.cli.triggers import _OBJ_RE, _render_category, _render_trigger_name
 from stare.dsl.errors import DSLValidationError
 from stare.exceptions import (
     AuthenticationError,
@@ -870,8 +871,6 @@ def test_triggers_search_no_json_renders_styled_name() -> None:
 
 
 def test_render_trigger_name_plain_text_contains_all_parts() -> None:
-    from stare.cli.triggers import _render_trigger_name
-
     text = _render_trigger_name("HLT_2mu14_lhmedium_L12MU10")
     assert "2mu14" in text.plain
     assert "lhmedium" in text.plain
@@ -879,17 +878,55 @@ def test_render_trigger_name_plain_text_contains_all_parts() -> None:
 
 
 def test_render_trigger_name_no_hlt_prefix_returned_verbatim() -> None:
-    from stare.cli.triggers import _render_trigger_name
-
     text = _render_trigger_name("L1_MU10")
     assert text.plain == "L1_MU10"
 
 
 def test_render_trigger_name_empty_string() -> None:
-    from stare.cli.triggers import _render_trigger_name
-
     text = _render_trigger_name("")
     assert text.plain == ""
+
+
+def test_obj_re_matches_photon_g_tokens() -> None:
+    # g## is already handled — confirm it does NOT accidentally fall through to dim
+
+    assert _OBJ_RE.match("g25") is not None
+    assert _OBJ_RE.match("2g20") is not None
+    assert _OBJ_RE.match("g0") is not None
+    m = _OBJ_RE.match("g25")
+    assert m is not None
+    assert m.group(2) == "g"
+
+
+def test_obj_re_matches_xs_tokens() -> None:
+
+    assert _OBJ_RE.match("xs30") is not None
+    assert _OBJ_RE.match("xs15") is not None
+    m = _OBJ_RE.match("xs30")
+    assert m is not None
+    assert m.group(2) == "xs"
+
+
+def test_render_trigger_name_xs_object_in_plain() -> None:
+    text = _render_trigger_name("HLT_e18_etcut_xs30_L1EM15_XEHT35")
+    assert "e18" in text.plain
+    assert "xs30" in text.plain
+
+
+def test_render_category_plain_text_preserved() -> None:
+
+    assert _render_category("primary").plain == "primary"
+    assert _render_category("backup").plain == "backup"
+    assert _render_category("disabled").plain == "disabled"
+    assert _render_category("support").plain == "support"
+    assert _render_category("").plain == ""
+
+
+def test_triggers_search_no_json_shows_category() -> None:
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
+        result = runner.invoke(app, ["triggers", "search", "--no-json"])
+    assert result.exit_code == 0
+    assert "electron" in result.output  # category name from SAMPLE_TRIGGERS
 
 
 def test_triggers_search_json() -> None:

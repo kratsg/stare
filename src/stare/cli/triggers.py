@@ -14,8 +14,8 @@ from stare.cli import utils
 from stare.dsl.errors import DSLError
 from stare.exceptions import StareError
 
-# Order matters: check bj before j, tau/xe/met/ht before their prefixes.
-_OBJ_RE = re.compile(r"^(\d*)(bj|tau|xe|met|ht|j|e|g|mu)(\d+.*)$")
+# Order matters: longer/more-specific prefixes before their single-char subsets.
+_OBJ_RE = re.compile(r"^(\d*)(bj|tau|xs|xe|met|ht|j|e|g|mu)(\d+.*)$")
 
 _OBJ_STYLES: dict[str, str] = {
     "e": "bold cyan",
@@ -25,9 +25,22 @@ _OBJ_STYLES: dict[str, str] = {
     "g": "bold green",
     "tau": "bold blue",
     "xe": "bold red",
+    "xs": "bold red",
     "met": "bold red",
     "ht": "bold orange3",
 }
+
+_CATEGORY_STYLES: dict[str, str] = {
+    "primary": "bold on dark_green",
+    "backup": "green",
+    "disabled": "dim grey62",
+}
+
+
+def _render_category(name: str) -> Text:
+    """Style a trigger category name for Rich display."""
+    return Text(name, style=_CATEGORY_STYLES.get(name, ""))
+
 
 _WP_TOKENS: frozenset[str] = frozenset(
     {
@@ -35,6 +48,11 @@ _WP_TOKENS: frozenset[str] = frozenset(
         "lhmedium",
         "lhvloose",
         "lhtight",
+        "vloose",
+        "iloose",
+        "icalovloose",
+        "icaloloose",
+        "icalotight",
         "loose",
         "medium",
         "tight",
@@ -44,6 +62,7 @@ _WP_TOKENS: frozenset[str] = frozenset(
         "ivarmedium",
         "ivartight",
         "ivarmedium1",
+        "bmedium",
         "boffperf",
         "bperf",
         "btight",
@@ -192,6 +211,6 @@ def triggers_search(
         table.add_row(
             _render_trigger_name(trigger.name or ""),
             trigger.year or "",
-            trigger.category.name if trigger.category else "",
+            _render_category(trigger.category.name or "" if trigger.category else ""),
         )
     utils.console.print(table)
