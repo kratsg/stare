@@ -376,9 +376,9 @@ class TestRelatedPublication:
         r = RelatedPublication.model_validate({"type": "Paper"})
         assert r.reference_code is None
 
-    def test_type_required(self) -> None:
-        with pytest.raises(ResponseParseError):
-            RelatedPublication.model_validate({"referenceCode": "HDBS-2018-33"})
+    def test_type_optional(self) -> None:
+        r = RelatedPublication.model_validate({"referenceCode": "HDBS-2018-33"})
+        assert r.type is None
 
 
 # ---------------------------------------------------------------------------
