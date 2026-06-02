@@ -211,6 +211,6 @@ def triggers_search(
         table.add_row(
             _render_trigger_name(trigger.name or ""),
             trigger.year or "",
-            _render_category(trigger.category.name or "" if trigger.category else ""),
+            _render_category(trigger.category.name),
         )
     utils.console.print(table)
