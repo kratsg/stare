@@ -149,7 +149,10 @@ SAMPLE_LEADGROUPS = LeadgroupSearchResult.model_validate(
 )
 
 SAMPLE_SUBGROUPS = SubgroupSearchResult.model_validate(
-    {"numberOfResults": 2, "results": [{"name": "HDBS-1"}, {"name": "SUSY-2"}]}
+    {
+        "numberOfResults": 3,
+        "results": [{"name": "HDBS-1"}, {"name": "HDBS-2"}, {"name": "SUSY-2"}],
+    }
 )
 
 SAMPLE_TRIGGERS = TriggerSearchResult.model_validate(
@@ -779,6 +782,7 @@ def test_leadgroups_search_with_query() -> None:
 
 
 def test_subgroups_search_command() -> None:
+    # CliRunner is non-TTY → JSON by default; JSON output contains full names
     with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
         result = runner.invoke(app, ["subgroups", "search"])
     assert result.exit_code == 0
@@ -792,6 +796,41 @@ def test_subgroups_search_json_output() -> None:
     data = json.loads(result.output)
     assert "numberOfResults" in data
     assert data["results"][0]["name"] == "HDBS-1"
+
+
+def test_subgroups_search_no_json_groups_by_prefix() -> None:
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
+        result = runner.invoke(app, ["subgroups", "search", "--no-json"])
+    assert result.exit_code == 0
+    # Prefixes appear as card/panel titles
+    assert "HDBS" in result.output
+    assert "SUSY" in result.output
+    # Suffixes appear as subgroup names within each card
+    assert "1" in result.output  # from HDBS-1
+    assert "2" in result.output  # from HDBS-2 and SUSY-2
+    # Full "PREFIX-suffix" strings should not appear (split into heading + content)
+    assert "HDBS-1" not in result.output
+    assert "SUSY-2" not in result.output
+
+
+def test_subgroups_search_no_json_same_prefix_grouped_together() -> None:
+    # HDBS-1 and HDBS-2 both appear under a single HDBS card
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
+        result = runner.invoke(app, ["subgroups", "search", "--no-json"])
+    # "HDBS" should appear only once (one card per prefix, not two)
+    assert result.output.count("HDBS") == 1
+
+
+def test_subgroups_search_no_json_name_without_dash() -> None:
+    nodash = SubgroupSearchResult.model_validate(
+        {"numberOfResults": 1, "results": [{"name": "STANDALONE"}]}
+    )
+    g = _mock_glance()
+    g.subgroups.search.return_value = nodash
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(app, ["subgroups", "search", "--no-json"])
+    assert result.exit_code == 0
+    assert "STANDALONE" in result.output
 
 
 # ---------------------------------------------------------------------------

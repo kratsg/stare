@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
 from typing import Annotated
 
 import typer
-from rich.table import Table
+from rich.columns import Columns
+from rich.panel import Panel
 
 from stare._output import stdout_is_interactive
 from stare.cli import utils
@@ -104,8 +106,16 @@ def subgroup_search(
         typer.echo(result.model_dump_json(by_alias=True))
         return
 
-    table = Table(title=f"Subgroups ({result.number_of_results} total)")
-    table.add_column("Name", style="cyan")
+    groups: dict[str, list[str]] = defaultdict(list)
     for item in result.results:
-        table.add_row(item.name or "")
-    utils.console.print(table)
+        name = item.name or ""
+        prefix, _, suffix = name.partition("-")
+        groups[prefix].append(suffix or name)
+
+    panels = [
+        Panel("\n".join(sorted(subs)), title=f"[bold]{prefix}[/bold]", expand=False)
+        for prefix, subs in sorted(groups.items())
+    ]
+    utils.console.print(
+        Columns(panels, title=f"Subgroups ({result.number_of_results} total)")
+    )

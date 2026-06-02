@@ -249,6 +249,20 @@ class RequiredLink(Link):
     url: str
 
 
+class BrokenLink(Link):
+    """A link that is parsed incorrectly."""
+
+    label: str
+    url: None = None
+
+
+class BadLink(Link):
+    """A link that has url as label."""
+
+    label: None
+    url: str
+
+
 # Aliases for semantically-required-url contexts.
 AmiGlanceLink = RequiredLink
 InternalDocument = RequiredLink
@@ -262,6 +276,12 @@ class _NamedItem(_Base):
 
 class Group(_NamedItem):
     """A physics group (leading group, subgroup, or other group)."""
+
+
+class NullGroup(_NamedItem):
+    """A physics group (leading group, subgroup, or other group) with no name."""
+
+    name: None
 
 
 class Keyword(_NamedItem):
@@ -374,7 +394,7 @@ class AnalysisTeam(_TeamRichMixin, _ListRootModel[AnalysisTeamMember]):
 class Groups(_Base):
     """Leading group, subgroups, and other groups for a publication."""
 
-    leading_group: Group | None = None
+    leading_group: Group | NullGroup | None = None
     subgroups: list[Group] = Field(default_factory=list)
     other_groups: list[Group] = Field(default_factory=list)
 
@@ -485,7 +505,9 @@ class Documentation(_Base):
     """Repositories and supporting documents for a publication."""
 
     repositories: list[Repository] = Field(default_factory=list)
-    supporting_internal_documents: list[InternalDocument] = Field(default_factory=list)
+    supporting_internal_documents: list[InternalDocument | BrokenLink | BadLink] = (
+        Field(default_factory=list)
+    )
 
 
 class Meeting(_Base):
@@ -525,4 +547,4 @@ class RelatedPublication(_Base):
     """A reference to a related publication (analysis, paper, CONF/PUB note)."""
 
     reference_code: str | None = None
-    type: LenientPublicationType
+    type: LenientPublicationType | None
