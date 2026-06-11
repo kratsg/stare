@@ -119,8 +119,8 @@ stare publications search -q 'referenceCode = ATLAS-CONF-2021-010'
 stare publications get HDBS-2018-33
 
 # Search leading groups / subgroups (live)
-stare leadgroups search
-stare leadgroups search -q 'name = SUSY'
+stare leadinggroups search
+stare leadinggroups search -q 'name = SUSY'
 stare subgroups search
 stare subgroups search -q 'name contain HIGG'
 
@@ -175,7 +175,7 @@ pubs = g.publications.search(query="type = Paper AND groups.leadingGroup.name = 
 pub = g.publications.get("HDBS-2018-33")
 
 # Leading groups / subgroups / triggers (live)
-leadgroups = g.leadgroups.search(query="name = SUSY")
+leadinggroups = g.leadinggroups.search(query="name = SUSY")
 subgroups = g.subgroups.search()
 triggers = g.triggers.search(query="year = 2024")
 ```
@@ -206,16 +206,16 @@ g = Glance(token=os.environ["GLANCE_TOKEN"])
 
 ## Current API endpoint availability
 
-| Endpoint                 | Status   | Used by                                       |
-| ------------------------ | -------- | --------------------------------------------- |
-| `GET /searchAnalysis`    | **Live** | `analyses.search()`, `analyses.get()`         |
-| `GET /searchPaper`       | **Live** | `papers.search()`, `papers.get()`             |
-| `GET /searchConfnote`    | **Live** | `confnotes.search()`, `confnotes.get()`       |
-| `GET /searchPubnote`     | **Live** | `pubnotes.search()`, `pubnotes.get()`         |
-| `GET /searchPublication` | **Live** | `publications.search()`, `publications.get()` |
-| `GET /searchLeadgroup`   | **Live** | `leadgroups.search()`                         |
-| `GET /searchSubgroup`    | **Live** | `subgroups.search()`                          |
-| `GET /searchTrigger`     | **Live** | `triggers.search()`                           |
+| Endpoint                  | Status   | Used by                                       |
+| ------------------------- | -------- | --------------------------------------------- |
+| `GET /searchAnalysis`     | **Live** | `analyses.search()`, `analyses.get()`         |
+| `GET /searchPaper`        | **Live** | `papers.search()`, `papers.get()`             |
+| `GET /searchConfnote`     | **Live** | `confnotes.search()`, `confnotes.get()`       |
+| `GET /searchPubnote`      | **Live** | `pubnotes.search()`, `pubnotes.get()`         |
+| `GET /searchPublication`  | **Live** | `publications.search()`, `publications.get()` |
+| `GET /searchLeadingGroup` | **Live** | `leadinggroups.search()`                      |
+| `GET /searchSubgroup`     | **Live** | `subgroups.search()`                          |
+| `GET /searchTrigger`      | **Live** | `triggers.search()`                           |
 
 `.get()` on every resource uses the corresponding search endpoint with a
 single-result query — no per-record endpoints are required.

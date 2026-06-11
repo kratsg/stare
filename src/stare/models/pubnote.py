@@ -70,9 +70,7 @@ class PubNotePhase1(_Base):
     proceed_to_sign_off_date: date | None = None
     first_reader_sign_off_date: date | None = None
     second_reader_sign_off_date: date | None = None
-    public_web_page_url_for_figures_and_tables: str | None = Field(
-        default=None, alias="publicWebPageURLForFiguresAndTables"
-    )
+    public_web_page_url_for_figures_and_tables: str | None = None
     release_date: date | None = None
 
 

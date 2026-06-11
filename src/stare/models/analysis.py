@@ -39,10 +39,10 @@ _logger = logging.getLogger("stare")
 
 # Maps API JSON keys to meeting type tags (and reverse).
 _MEETING_API_KEYS: dict[str, str] = {
-    MeetingType.EOI: "eoiMeeting",
-    MeetingType.EDITORIAL_BOARD_REQUEST: "editorialBoardRequestMeeting",
-    MeetingType.PRE_APPROVAL: "preApprovalMeeting",
-    MeetingType.APPROVAL: "approvalMeeting",
+    MeetingType.EOI: "eoiMeetings",
+    MeetingType.EDITORIAL_BOARD_REQUEST: "editorialBoardRequestMeetings",
+    MeetingType.PRE_APPROVAL: "preApprovalMeetings",
+    MeetingType.APPROVAL: "approvalMeetings",
 }
 _MEETING_API_KEY_TO_TYPE: dict[str, str] = {v: k for k, v in _MEETING_API_KEYS.items()}
 
@@ -58,8 +58,8 @@ class AnalysisMetadata(Metadata):
 class AnalysisPhase0(_Base):
     """Phase 0 lifecycle metadata for an analysis.
 
-    The API sends four separate meeting lists (eoiMeeting, editorialBoardRequestMeeting,
-    preApprovalMeeting, approvalMeeting). We flatten them into a single ``meetings``
+    The API sends four separate meeting lists (eoiMeetings, editorialBoardRequestMeetings,
+    preApprovalMeetings, approvalMeetings). We flatten them into a single ``meetings``
     list and tag each entry with its role via ``TypedMeeting.meeting_type``.
     Serialization restores the original four keys for API round-trip fidelity.
     """

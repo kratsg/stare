@@ -32,7 +32,7 @@ src/stare/
 │   ├── confnote.py   # confnote_app: search, get
 │   ├── pubnote.py    # pubnote_app: search, get
 │   ├── publications.py # publications_app: search, get
-│   ├── leadgroup.py  # leadgroup_app: search
+│   ├── leadinggroup.py  # leadinggroup_app: search
 │   ├── subgroup.py   # subgroup_app: search
 │   ├── triggers.py   # triggers_app: search
 │   └── cache.py      # cache_app: info, clear
@@ -306,7 +306,7 @@ stare pubnote get REF_CODE [--json/--no-json] [--no-cache]
 Leading groups, subgroups, and triggers are search-only sub-apps (no `get`):
 
 ```bash
-stare leadgroups search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json/--no-json] [--no-cache] [--validate/--no-validate]
+stare leadinggroups search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json/--no-json] [--no-cache] [--validate/--no-validate]
 stare subgroups search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json/--no-json] [--no-cache] [--validate/--no-validate]
 stare triggers search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json/--no-json] [--no-cache] [--validate/--no-validate]
 ```

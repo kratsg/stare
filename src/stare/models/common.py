@@ -314,7 +314,7 @@ class TeamMember(Person):
 
     is_contact_editor: bool
     is_analysis_contact: bool | None = None
-    analysis_contact_assignments: AnalysisContactAssignment | None = None
+    analysis_contact_assignment: AnalysisContactAssignment | None = None
 
 
 class AnalysisTeamMember(TeamMember):
@@ -470,7 +470,7 @@ class Metadata(_Base):
 
     collisions: Collisions = Field(default_factory=Collisions)
     keywords: list[Keyword] = Field(default_factory=list)
-    statistical_tools: list[StatTool] = Field(default_factory=list, alias="statTools")
+    statistical_tools: list[StatTool] = Field(default_factory=list)
     mva_ml_tools: list[MvaMlTool] = Field(default_factory=list, alias="mvaMlTools")
 
 
