@@ -10,7 +10,7 @@ from stare.cli.analysis import analysis_app
 from stare.cli.auth import auth_app
 from stare.cli.cache import cache_app
 from stare.cli.confnote import confnote_app
-from stare.cli.leadgroup import leadgroup_app
+from stare.cli.leadinggroup import leadinggroup_app
 from stare.cli.paper import paper_app
 from stare.cli.publications import publications_app
 from stare.cli.pubnote import pubnote_app
@@ -43,7 +43,7 @@ app.add_typer(paper_app, name="paper")
 app.add_typer(confnote_app, name="confnote")
 app.add_typer(pubnote_app, name="pubnote")
 app.add_typer(publications_app, name="publications")
-app.add_typer(leadgroup_app, name="leadgroups")
+app.add_typer(leadinggroup_app, name="leadinggroups")
 app.add_typer(subgroup_app, name="subgroups")
 app.add_typer(triggers_app, name="triggers")
 app.add_typer(cache_app, name="cache")

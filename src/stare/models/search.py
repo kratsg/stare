@@ -75,14 +75,14 @@ class TriggerSearchResult(_SearchResultsBase[Trigger]):
     """Top-level response from GET /searchTrigger."""
 
 
-class Leadgroup(_Base):
-    """A leading physics group returned by GET /searchLeadgroup."""
+class LeadingGroup(_Base):
+    """A leading physics group returned by GET /searchLeadingGroup."""
 
     name: str
 
 
-class LeadgroupSearchResult(_SearchResultsBase[Leadgroup]):
-    """Top-level response from GET /searchLeadgroup."""
+class LeadingGroupSearchResult(_SearchResultsBase[LeadingGroup]):
+    """Top-level response from GET /searchLeadingGroup."""
 
 
 class Subgroup(_Base):

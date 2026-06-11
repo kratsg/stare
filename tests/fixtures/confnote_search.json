@@ -36,7 +36,7 @@
           "email": "pilot107.squadron@star.wars",
           "isContactEditor": false,
           "isAnalysisContact": null,
-          "analysisContactAssignments": null
+          "analysisContactAssignment": null
         },
         {
           "cernCcid": "100108",
@@ -45,7 +45,7 @@
           "email": "pilot108.squadron@star.wars",
           "isContactEditor": true,
           "isAnalysisContact": null,
-          "analysisContactAssignments": null
+          "analysisContactAssignment": null
         },
         {
           "cernCcid": "100109",
@@ -54,7 +54,7 @@
           "email": "pilot109.squadron@star.wars",
           "isContactEditor": true,
           "isAnalysisContact": null,
-          "analysisContactAssignments": null
+          "analysisContactAssignment": null
         }
       ],
       "metadata": {
@@ -101,7 +101,7 @@
             "name": "b-jets"
           }
         ],
-        "statTools": [
+        "statisticalTools": [
           {
             "name": "HistFitter"
           },
@@ -169,7 +169,7 @@
         },
         "firstSignOffDate": "2023-03-12",
         "secondSignOffDate": "2023-03-12",
-        "publicWebPageURLForFiguresAndTables": "https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/CONFNOTES/ATLAS-CONF-2023-009",
+        "publicWebPageUrlForFiguresAndTables": "https://atlas.web.cern.ch/Atlas/GROUPS/PHYSICS/CONFNOTES/ATLAS-CONF-2023-009",
         "releaseDate": "2023-03-13"
       }
     }

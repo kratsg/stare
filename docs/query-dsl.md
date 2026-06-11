@@ -175,7 +175,7 @@ stare analysis search -q 'someNewField = value' --no-validate
 
 ## Leading group fields
 
---8<-- "snippets/fields-leadgroup.md"
+--8<-- "snippets/fields-leadinggroup.md"
 
 ## Subgroup fields
 
