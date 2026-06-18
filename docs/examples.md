@@ -182,9 +182,9 @@ if analysis.phase0:
             print(f"  {meeting.link.url}")
 ```
 
-1. Meetings from all four phase 0 buckets (`eoiMeeting`,
-   `editorialBoardRequestMeeting`, `preApprovalMeeting`, `approvalMeeting`) are
-   flattened into a single `meetings` list, each tagged with its
+1. Meetings from all four phase 0 buckets (`eoiMeetings`,
+   `editorialBoardRequestMeetings`, `preApprovalMeetings`, `approvalMeetings`)
+   are flattened into a single `meetings` list, each tagged with its
    [`MeetingType`][stare.models.enums.MeetingType].
 
 ---
@@ -252,7 +252,7 @@ if analysis.phase0:
       | jq '.results[0].submission.arXivUrls'
 
     stare paper search -q 'referenceCode = EXOT-2018-14' --json \
-      | jq -r '.results[0].submission.finalJournalPublication[] | "\(.label)  →  \(.url)"'
+      | jq -r '.results[0].submission.finalJournalPublicationUrls[] | "\(.label)  →  \(.url)"'
     ```
 
 ---

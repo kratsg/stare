@@ -44,8 +44,8 @@ from stare.models.pubnote import PubNote, PubNotePhase1, Readers
 from stare.models.search import (
     AnalysisSearchResult,
     ConfNoteSearchResult,
-    Leadgroup,
-    LeadgroupSearchResult,
+    LeadingGroup,
+    LeadingGroupSearchResult,
     PaperSearchResult,
     PublicationSearchResult,
     PublicationSummary,
@@ -397,7 +397,7 @@ class TestAnalysisPhase0:
     def test_meetings_parsed(self) -> None:
         p = AnalysisPhase0.model_validate(
             {
-                "eoiMeeting": [
+                "eoiMeetings": [
                     {
                         "title": "EOI",
                         "date": "2022-03-01",
@@ -406,7 +406,7 @@ class TestAnalysisPhase0:
                         "url": "https://indico.cern.ch",
                     }
                 ],
-                "approvalMeeting": [],
+                "approvalMeetings": [],
             }
         )
         eoi = [m for m in p.meetings if m.meeting_type == MeetingType.EOI]
@@ -418,16 +418,16 @@ class TestAnalysisPhase0:
     def test_meetings_round_trip(self) -> None:
         p = AnalysisPhase0.model_validate(
             {
-                "eoiMeeting": [{"title": "EOI", "date": "2022-03-01", "comments": ""}],
-                "approvalMeeting": [{"title": "Approval", "date": "2023-01-01"}],
+                "eoiMeetings": [{"title": "EOI", "date": "2022-03-01", "comments": ""}],
+                "approvalMeetings": [{"title": "Approval", "date": "2023-01-01"}],
             }
         )
         dumped = p.model_dump(by_alias=True)
-        assert len(dumped["eoiMeeting"]) == 1
-        assert dumped["eoiMeeting"][0]["title"] == "EOI"
-        assert len(dumped["approvalMeeting"]) == 1
-        assert dumped["editorialBoardRequestMeeting"] == []
-        assert dumped["preApprovalMeeting"] == []
+        assert len(dumped["eoiMeetings"]) == 1
+        assert dumped["eoiMeetings"][0]["title"] == "EOI"
+        assert len(dumped["approvalMeetings"]) == 1
+        assert dumped["editorialBoardRequestMeetings"] == []
+        assert dumped["preApprovalMeetings"] == []
 
     def test_editorial_board(self) -> None:
         p = AnalysisPhase0.model_validate(
@@ -627,30 +627,30 @@ class TestPublicationPhase:
     def test_physics_briefings(self) -> None:
         s = PublicationPhase.model_validate(
             {
-                "physicsBriefing": [
+                "physicsBriefingUrls": [
                     {"label": "Physics Briefing", "url": "https://atlas.cern/pb/1"}
                 ]
             }
         )
-        assert len(s.physics_briefing) == 1
-        assert s.physics_briefing[0].label == "Physics Briefing"
+        assert len(s.physics_briefing_urls) == 1
+        assert s.physics_briefing_urls[0].label == "Physics Briefing"
 
     def test_final_journal_publications(self) -> None:
         s = PublicationPhase.model_validate(
             {
-                "finalJournalPublication": [
+                "finalJournalPublicationUrls": [
                     {"label": "JHEP 01 (2025) 001", "url": "https://doi.org/10.1007/x"}
                 ]
             }
         )
-        assert len(s.final_journal_publication) == 1
-        assert s.final_journal_publication[0].label == "JHEP 01 (2025) 001"
+        assert len(s.final_journal_publication_urls) == 1
+        assert s.final_journal_publication_urls[0].label == "JHEP 01 (2025) 001"
 
     def test_all_optional(self) -> None:
         s = PublicationPhase.model_validate({})
         assert s.arxiv_urls == []
-        assert s.physics_briefing == []
-        assert s.final_journal_publication == []
+        assert s.physics_briefing_urls == []
+        assert s.final_journal_publication_urls == []
 
 
 # ---------------------------------------------------------------------------
@@ -814,14 +814,14 @@ class TestTrigger:
             Trigger.model_validate({"name": "HLT_mu26"})
 
 
-class TestLeadgroup:
+class TestLeadingGroup:
     def test_parse(self) -> None:
-        g = Leadgroup.model_validate({"name": "SUSY"})
+        g = LeadingGroup.model_validate({"name": "SUSY"})
         assert g.name == "SUSY"
 
     def test_missing_name_raises(self) -> None:
         with pytest.raises(ResponseParseError):
-            Leadgroup.model_validate({})
+            LeadingGroup.model_validate({})
 
 
 class TestSubgroup:
@@ -834,9 +834,9 @@ class TestSubgroup:
             Subgroup.model_validate({})
 
 
-class TestLeadgroupSearchResult:
+class TestLeadingGroupSearchResult:
     def test_parse_results(self) -> None:
-        r = LeadgroupSearchResult.model_validate(
+        r = LeadingGroupSearchResult.model_validate(
             {
                 "numberOfResults": 2,
                 "results": [{"name": "SUSY"}, {"name": "HDBS"}],
@@ -848,7 +848,9 @@ class TestLeadgroupSearchResult:
         assert r.results[1].name == "HDBS"
 
     def test_empty_result(self) -> None:
-        r = LeadgroupSearchResult.model_validate({"numberOfResults": 0, "results": []})
+        r = LeadingGroupSearchResult.model_validate(
+            {"numberOfResults": 0, "results": []}
+        )
         assert r.number_of_results == 0
         assert r.results == []
 
@@ -1580,14 +1582,14 @@ class TestPubNotePhase1:
 
     def test_public_web_page_url_alias(self) -> None:
         p = PubNotePhase1.model_validate(
-            {"publicWebPageURLForFiguresAndTables": "https://atlas.cern/pub/x"}
+            {"publicWebPageUrlForFiguresAndTables": "https://atlas.cern/pub/x"}
         )
         assert (
             p.public_web_page_url_for_figures_and_tables == "https://atlas.cern/pub/x"
         )
         dumped = p.model_dump(by_alias=True, exclude_none=True)
         assert (
-            dumped["publicWebPageURLForFiguresAndTables"] == "https://atlas.cern/pub/x"
+            dumped["publicWebPageUrlForFiguresAndTables"] == "https://atlas.cern/pub/x"
         )
 
 
@@ -1607,11 +1609,11 @@ class TestPaperAliases:
 
     def test_first_referee_report_date_alias(self) -> None:
         s = PublicationPhase.model_validate(
-            {"1stRefereeReportDate": "2024-02-01T00:00:00+00:00"}
+            {"firstRefereeReportDate": "2024-02-01T00:00:00+00:00"}
         )
         assert s.first_referee_report_date is not None
         dumped = s.model_dump(by_alias=True, exclude_none=True)
-        assert "1stRefereeReportDate" in dumped
+        assert "firstRefereeReportDate" in dumped
 
     def test_related_analysis_alias(self) -> None:
         p = Paper.model_validate(
@@ -1633,14 +1635,14 @@ class TestPaperAliases:
 class TestConfNotePhase1Alias:
     def test_public_web_page_url_alias(self) -> None:
         p = ConfNotePhase1.model_validate(
-            {"publicWebPageURLForFiguresAndTables": "https://atlas.cern/conf/x"}
+            {"publicWebPageUrlForFiguresAndTables": "https://atlas.cern/conf/x"}
         )
         assert (
             p.public_web_page_url_for_figures_and_tables == "https://atlas.cern/conf/x"
         )
         dumped = p.model_dump(by_alias=True, exclude_none=True)
         assert (
-            dumped["publicWebPageURLForFiguresAndTables"] == "https://atlas.cern/conf/x"
+            dumped["publicWebPageUrlForFiguresAndTables"] == "https://atlas.cern/conf/x"
         )
 
 
@@ -1759,7 +1761,7 @@ class TestRealWorldConfNote:
         assert r.final_reference_code == "ATLAS-CONF-2023-009"
 
     def test_public_web_page_url_alias(self) -> None:
-        # verifies publicWebPageURLForFiguresAndTables (all-caps URL) is parsed
+        # verifies publicWebPageUrlForFiguresAndTables is parsed
         data = json.loads((_FIXTURES / "confnote_search.json").read_text())
         r = ConfNoteSearchResult.model_validate(data).results[0]
         assert r.phase1 is not None
@@ -1797,7 +1799,7 @@ class TestRealWorldPubNote:
         assert r.temp_reference_code == "PUB-SUSY-2019-05"
 
     def test_public_web_page_url_alias(self) -> None:
-        # verifies publicWebPageURLForFiguresAndTables (all-caps URL) is parsed
+        # verifies publicWebPageUrlForFiguresAndTables is parsed
         data = json.loads((_FIXTURES / "pubnote_search.json").read_text())
         r = PubNoteSearchResult.model_validate(data).results[0]
         assert r.phase1 is not None

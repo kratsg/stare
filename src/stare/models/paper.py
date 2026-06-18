@@ -66,7 +66,7 @@ class PaperPhase2(_Base):
     draft2_released_date: date | None = None
     draft2_sent_to_cern_date: date | None = None
     draft2_cern_sign_off_date: date | None = None
-    paper_closure_meeting: list[RequiredLink] = Field(default_factory=list)
+    paper_closure_meeting_urls: list[RequiredLink] = Field(default_factory=list)
     preliminary_plots_and_results_released: bool | None = None
     paper_closure_date: date | None = None
     editorial_board_revised_sign_off_date: date | None = None
@@ -87,13 +87,11 @@ class PublicationPhase(_Base):
     arxiv_submission_date: AwareDatetime | None = Field(
         default=None, alias="arXivSubmissionDate"
     )
-    physics_briefing: list[RequiredLink] = Field(default_factory=list)
-    first_referee_report_date: AwareDatetime | None = Field(
-        default=None, alias="1stRefereeReportDate"
-    )
+    physics_briefing_urls: list[RequiredLink] = Field(default_factory=list)
+    first_referee_report_date: AwareDatetime | None = None
     journal_acceptance_date: date | None = None
-    first_proof_date: AwareDatetime | None = Field(default=None, alias="1stProofDate")
-    final_journal_publication: list[RequiredLink] = Field(default_factory=list)
+    first_proof_date: AwareDatetime | None = None
+    final_journal_publication_urls: list[RequiredLink] = Field(default_factory=list)
     published_online_date: AwareDatetime | None = None
 
     @field_validator("arxiv_submission_date", mode="before")
@@ -134,11 +132,11 @@ class PublicationPhase(_Base):
         if self.published_online_date:
             rows.append(("Published", Text(str(self.published_online_date))))
 
-        if self.physics_briefing:
-            rows.append(("Briefings", _link_texts(self.physics_briefing)))
+        if self.physics_briefing_urls:
+            rows.append(("Briefings", _link_texts(self.physics_briefing_urls)))
 
-        if self.final_journal_publication:
-            rows.append(("Final", _link_texts(self.final_journal_publication)))
+        if self.final_journal_publication_urls:
+            rows.append(("Final", _link_texts(self.final_journal_publication_urls)))
 
         if not rows:
             return None

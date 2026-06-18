@@ -38,7 +38,7 @@ from stare.models import (
 )
 from stare.models.common import _format_parse_error
 from stare.models.search import (
-    LeadgroupSearchResult,
+    LeadingGroupSearchResult,
     PublicationSearchResult,
     PublicationSummary,
     SubgroupSearchResult,
@@ -557,33 +557,33 @@ def test_publications_get_zero_results_raises_not_found(glance: Glance) -> None:
 
 
 # ---------------------------------------------------------------------------
-# LeadgroupResource.search
+# LeadingGroupResource.search
 # ---------------------------------------------------------------------------
 
-SAMPLE_LEADGROUP_SEARCH = {
+SAMPLE_LEADINGGROUP_SEARCH = {
     "numberOfResults": 2,
     "results": [{"name": "SUSY"}, {"name": "HDBS"}],
 }
 
 
-def test_leadgroups_search_returns_search_result(glance: Glance) -> None:
+def test_leadinggroups_search_returns_search_result(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/searchLeadgroup").mock(
-            return_value=httpx.Response(200, json=SAMPLE_LEADGROUP_SEARCH)
+        rx.get("/searchLeadingGroup").mock(
+            return_value=httpx.Response(200, json=SAMPLE_LEADINGGROUP_SEARCH)
         )
-        result = glance.leadgroups.search()
+        result = glance.leadinggroups.search()
 
-    assert isinstance(result, LeadgroupSearchResult)
+    assert isinstance(result, LeadingGroupSearchResult)
     assert result.number_of_results == 2
     assert result.results[0].name == "SUSY"
 
 
-def test_leadgroups_search_passes_query(glance: Glance) -> None:
+def test_leadinggroups_search_passes_query(glance: Glance) -> None:
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/searchLeadgroup").mock(
-            return_value=httpx.Response(200, json=SAMPLE_LEADGROUP_SEARCH)
+        rx.get("/searchLeadingGroup").mock(
+            return_value=httpx.Response(200, json=SAMPLE_LEADINGGROUP_SEARCH)
         )
-        glance.leadgroups.search(query="name = SUSY", validate_query=False)
+        glance.leadinggroups.search(query="name = SUSY", validate_query=False)
         params = dict(rx.calls[0].request.url.params)
     assert params["queryString"] == "name = SUSY"
 
@@ -658,9 +658,9 @@ def test_triggers_search_passes_query(glance: Glance) -> None:
 def test_generic_api_error_on_500(glance: Glance) -> None:
     err = {"status": 500, "title": "Internal Server Error", "detail": "Oops"}
     with respx.mock(base_url=_BASE) as rx:
-        rx.get("/searchLeadgroup").mock(return_value=httpx.Response(500, json=err))
+        rx.get("/searchLeadingGroup").mock(return_value=httpx.Response(500, json=err))
         with pytest.raises(ApiError) as exc_info:
-            glance.leadgroups.search()
+            glance.leadinggroups.search()
     assert exc_info.value.status_code == 500
 
 

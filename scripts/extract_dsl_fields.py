@@ -61,7 +61,7 @@ def main() -> None:
     for mode, schema_name in [
         ("analysis", "SearchAnalysisResponse"),
         ("confnote", "SearchConfnoteResponse"),
-        ("leadgroup", "SearchLeadgroupResponse"),
+        ("leadinggroup", "SearchLeadingGroupResponse"),
         ("paper", "SearchPaperResponse"),
         ("publication", "SearchPublicationResponse"),
         ("pubnote", "SearchPubnoteResponse"),

@@ -17,7 +17,7 @@ tags:
   - name: Paper
   - name: Confnote
   - name: Pubnote
-  - name: Leadgroup
+  - name: LeadingGroup
   - name: Subgroup
   - name: Trigger
 
@@ -113,8 +113,8 @@ paths:
               <li><code>analysisTeam.email</code></li>
               <li><code>analysisTeam.isContactEditor</code> (<code>=</code> and <code>!=</code> only)</li>
               <li><code>analysisTeam.isAnalysisContact</code> (<code>=</code> and <code>!=</code> only)</li>
-              <li><code>analysisTeam.analysisContactAssignments.startDate</code></li>
-              <li><code>analysisTeam.analysisContactAssignments.endDate</code></li>
+              <li><code>analysisTeam.analysisContactAssignment.startDate</code></li>
+              <li><code>analysisTeam.analysisContactAssignment.endDate</code></li>
               <li><code>metadata.collisions.type</code></li>
               <li><code>metadata.collisions.year</code></li>
               <li><code>metadata.collisions.run</code></li>
@@ -123,7 +123,7 @@ paths:
               <li><code>metadata.collisions.luminosityValue</code></li>
               <li><code>metadata.collisions.luminosityUnit</code></li>
               <li><code>metadata.keywords.name</code></li>
-              <li><code>metadata.statTools.name</code></li>
+              <li><code>metadata.statisticalTools.name</code></li>
               <li><code>metadata.mvaMlTools.name</code></li>
               <li><code>metadata.triggers.name</code></li>
               <li><code>metadata.analysisFramework.ntupling</code></li>
@@ -134,20 +134,20 @@ paths:
               <li><code>relatedPublications.referenceCode</code></li>
               <li><code>phase0.startDate</code></li>
               <li><code>phase0.state</code></li>
-              <li><code>phase0.eoiMeeting.title</code></li>
-              <li><code>phase0.eoiMeeting.date</code></li>
-              <li><code>phase0.eoiMeeting.comments</code></li>
-              <li><code>phase0.eoiMeeting.label</code></li>
-              <li><code>phase0.eoiMeeting.url</code></li>
+              <li><code>phase0.eoiMeetings.title</code></li>
+              <li><code>phase0.eoiMeetings.date</code></li>
+              <li><code>phase0.eoiMeetings.comments</code></li>
+              <li><code>phase0.eoiMeetings.label</code></li>
+              <li><code>phase0.eoiMeetings.url</code></li>
               <li><code>phase0.mainPhysicsAim</code></li>
               <li><code>phase0.datasetUsed</code></li>
               <li><code>phase0.modelTested</code></li>
               <li><code>phase0.methods</code></li>
-              <li><code>phase0.editorialBoardRequestMeeting.title</code></li>
-              <li><code>phase0.editorialBoardRequestMeeting.date</code></li>
-              <li><code>phase0.editorialBoardRequestMeeting.comments</code></li>
-              <li><code>phase0.editorialBoardRequestMeeting.label</code></li>
-              <li><code>phase0.editorialBoardRequestMeeting.url</code></li>
+              <li><code>phase0.editorialBoardRequestMeetings.title</code></li>
+              <li><code>phase0.editorialBoardRequestMeetings.date</code></li>
+              <li><code>phase0.editorialBoardRequestMeetings.comments</code></li>
+              <li><code>phase0.editorialBoardRequestMeetings.label</code></li>
+              <li><code>phase0.editorialBoardRequestMeetings.url</code></li>
               <li><code>phase0.editorialBoard.cernCcid</code></li>
               <li><code>phase0.editorialBoard.firstName</code></li>
               <li><code>phase0.editorialBoard.lastName</code></li>
@@ -155,16 +155,16 @@ paths:
               <li><code>phase0.editorialBoard.isChair</code> (<code>=</code> and <code>!=</code> only)</li>
               <li><code>phase0.editorialBoard.isExOfficio</code> (<code>=</code> and <code>!=</code> only)</li>
               <li><code>phase0.editorialBoardFormedDate</code></li>
-              <li><code>phase0.preApprovalMeeting.title</code></li>
-              <li><code>phase0.preApprovalMeeting.date</code></li>
-              <li><code>phase0.preApprovalMeeting.comments</code></li>
-              <li><code>phase0.preApprovalMeeting.label</code></li>
-              <li><code>phase0.preApprovalMeeting.url</code></li>
-              <li><code>phase0.approvalMeeting.title</code></li>
-              <li><code>phase0.approvalMeeting.date</code></li>
-              <li><code>phase0.approvalMeeting.comments</code></li>
-              <li><code>phase0.approvalMeeting.label</code></li>
-              <li><code>phase0.approvalMeeting.url</code></li>
+              <li><code>phase0.preApprovalMeetings.title</code></li>
+              <li><code>phase0.preApprovalMeetings.date</code></li>
+              <li><code>phase0.preApprovalMeetings.comments</code></li>
+              <li><code>phase0.preApprovalMeetings.label</code></li>
+              <li><code>phase0.preApprovalMeetings.url</code></li>
+              <li><code>phase0.approvalMeetings.title</code></li>
+              <li><code>phase0.approvalMeetings.date</code></li>
+              <li><code>phase0.approvalMeetings.comments</code></li>
+              <li><code>phase0.approvalMeetings.label</code></li>
+              <li><code>phase0.approvalMeetings.url</code></li>
               <li><code>phase0.pgcOrSgcSignOffDate</code></li>
             </ul>
 
@@ -284,8 +284,8 @@ paths:
               <li><code>analysisTeam.email</code></li>
               <li><code>analysisTeam.isContactEditor</code> (<code>=</code> and <code>!=</code> only)</li>
               <li><code>analysisTeam.isAnalysisContact</code> (<code>=</code> and <code>!=</code> only)</li>
-              <li><code>analysisTeam.analysisContactAssignments.startDate</code></li>
-              <li><code>analysisTeam.analysisContactAssignments.endDate</code></li>
+              <li><code>analysisTeam.analysisContactAssignment.startDate</code></li>
+              <li><code>analysisTeam.analysisContactAssignment.endDate</code></li>
               <li><code>metadata.collisions.type</code></li>
               <li><code>metadata.collisions.year</code></li>
               <li><code>metadata.collisions.run</code></li>
@@ -294,7 +294,7 @@ paths:
               <li><code>metadata.collisions.luminosityValue</code></li>
               <li><code>metadata.collisions.luminosityUnit</code></li>
               <li><code>metadata.keywords.name</code></li>
-              <li><code>metadata.statTools.name</code></li>
+              <li><code>metadata.statisticalTools.name</code></li>
               <li><code>metadata.mvaMlTools.name</code></li>
               <li><code>rivetRoutinesUrl</code></li>
               <li><code>relatedAnalysis.referenceCode</code></li>
@@ -329,8 +329,8 @@ paths:
               <li><code>phase2.draft2ReleasedDate</code></li>
               <li><code>phase2.draft2SentToCernDate</code></li>
               <li><code>phase2.draft2CernSignOffDate</code></li>
-              <li><code>phase2.paperClosureMeeting.label</code></li>
-              <li><code>phase2.paperClosureMeeting.url</code></li>
+              <li><code>phase2.paperClosureMeetingUrls.label</code></li>
+              <li><code>phase2.paperClosureMeetingUrls.url</code></li>
               <li><code>phase2.preliminaryPlotsAndResultsReleased</code> (<code>=</code> and <code>!=</code> only)</li>
               <li><code>phase2.paperClosureDate</code></li>
               <li><code>phase2.editorialBoardRevisedSignOffDate</code></li>
@@ -348,13 +348,13 @@ paths:
               <li><code>publicationPhase.finalTitleTex</code></li>
               <li><code>publicationPhase.finalSubmissionJournal</code></li>
               <li><code>publicationPhase.arXivSubmissionDate</code></li>
-              <li><code>publicationPhase.physicsBriefing.label</code></li>
-              <li><code>publicationPhase.physicsBriefing.url</code></li>
-              <li><code>publicationPhase.1stRefereeReportDate</code></li>
+              <li><code>publicationPhase.physicsBriefingUrls.label</code></li>
+              <li><code>publicationPhase.physicsBriefingUrls.url</code></li>
+              <li><code>publicationPhase.firstRefereeReportDate</code></li>
               <li><code>publicationPhase.journalAcceptanceDate</code></li>
-              <li><code>publicationPhase.1stProofDate</code></li>
-              <li><code>publicationPhase.finalJournalPublication.label</code></li>
-              <li><code>publicationPhase.finalJournalPublication.url</code></li>
+              <li><code>publicationPhase.firstProofDate</code></li>
+              <li><code>publicationPhase.finalJournalPublicationUrls.label</code></li>
+              <li><code>publicationPhase.finalJournalPublicationUrls.url</code></li>
               <li><code>publicationPhase.publishedOnlineDate</code></li>
             </ul>
 
@@ -475,8 +475,8 @@ paths:
               <li><code>analysisTeam.email</code></li>
               <li><code>analysisTeam.isContactEditor</code> (<code>=</code> and <code>!=</code> only)</li>
               <li><code>analysisTeam.isAnalysisContact</code> (<code>=</code> and <code>!=</code> only)</li>
-              <li><code>analysisTeam.analysisContactAssignments.startDate</code></li>
-              <li><code>analysisTeam.analysisContactAssignments.endDate</code></li>
+              <li><code>analysisTeam.analysisContactAssignment.startDate</code></li>
+              <li><code>analysisTeam.analysisContactAssignment.endDate</code></li>
               <li><code>metadata.collisions.type</code></li>
               <li><code>metadata.collisions.year</code></li>
               <li><code>metadata.collisions.run</code></li>
@@ -485,7 +485,7 @@ paths:
               <li><code>metadata.collisions.luminosityValue</code></li>
               <li><code>metadata.collisions.luminosityUnit</code></li>
               <li><code>metadata.keywords.name</code></li>
-              <li><code>metadata.statTools.name</code></li>
+              <li><code>metadata.statisticalTools.name</code></li>
               <li><code>metadata.mvaMlTools.name</code></li>
               <li><code>relatedAnalysis.referenceCode</code></li>
               <li><code>relatedAnalysis.type</code></li>
@@ -514,7 +514,7 @@ paths:
               <li><code>phase1.secondSignOffResponsible.email</code></li>
               <li><code>phase1.firstSignOffDate</code></li>
               <li><code>phase1.secondSignOffDate</code></li>
-              <li><code>phase1.publicWebPageURLForFiguresAndTables</code></li>
+              <li><code>phase1.publicWebPageUrlForFiguresAndTables</code></li>
               <li><code>phase1.releaseDate</code></li>
             </ul>
 
@@ -637,8 +637,8 @@ paths:
               <li><code>analysisTeam.email</code></li>
               <li><code>analysisTeam.isContactEditor</code> (<code>=</code> and <code>!=</code> only)</li>
               <li><code>analysisTeam.isAnalysisContact</code> (<code>=</code> and <code>!=</code> only)</li>
-              <li><code>analysisTeam.analysisContactAssignments.startDate</code></li>
-              <li><code>analysisTeam.analysisContactAssignments.endDate</code></li>
+              <li><code>analysisTeam.analysisContactAssignment.startDate</code></li>
+              <li><code>analysisTeam.analysisContactAssignment.endDate</code></li>
               <li><code>metadata.collisions.type</code></li>
               <li><code>metadata.collisions.year</code></li>
               <li><code>metadata.collisions.run</code></li>
@@ -647,7 +647,7 @@ paths:
               <li><code>metadata.collisions.luminosityValue</code></li>
               <li><code>metadata.collisions.luminosityUnit</code></li>
               <li><code>metadata.keywords.name</code></li>
-              <li><code>metadata.statTools.name</code></li>
+              <li><code>metadata.statisticalTools.name</code></li>
               <li><code>metadata.mvaMlTools.name</code></li>
               <li><code>relatedAnalysis.referenceCode</code></li>
               <li><code>relatedAnalysis.type</code></li>
@@ -669,7 +669,7 @@ paths:
               <li><code>phase1.proceedToSignOffDate</code></li>
               <li><code>phase1.firstReaderSignOffDate</code></li>
               <li><code>phase1.secondReaderSignOffDate</code></li>
-              <li><code>phase1.publicWebPageURLForFiguresAndTables</code></li>
+              <li><code>phase1.publicWebPageUrlForFiguresAndTables</code></li>
               <li><code>phase1.releaseDate</code></li>
             </ul>
 
@@ -703,10 +703,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error403"
-  /searchLeadgroup:
+  /searchLeadingGroup:
     get:
       tags:
-        - Leadgroup
+        - LeadingGroup
       summary: Search leading groups
       description: >
         Searches leading groups with support for filtering, sorting, and
@@ -716,7 +716,7 @@ paths:
         The same DSL is used across the `/search...` endpoints in this API. What
         changes between resources is the set of searchable field names
         documented on each endpoint.
-      operationId: searchLeadgroup
+      operationId: searchLeadingGroup
       security:
         - oauth2: []
       parameters:
@@ -755,7 +755,7 @@ paths:
             searchable properties.
 
             <details>
-            <summary>See searchable fields for <code>/searchLeadgroup</code></summary>
+            <summary>See searchable fields for <code>/searchLeadingGroup</code></summary>
 
             <ul>
               <li><code>name</code></li>
@@ -775,7 +775,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SearchLeadgroupResponse"
+                $ref: "#/components/schemas/SearchLeadingGroupResponse"
         "400":
           description: Invalid query parameters.
         "401":
@@ -1064,8 +1064,8 @@ paths:
               <li><code>type</code></li>
               <li><code>status</code></li>
               <li><code>shortTitle</code></li>
-              <li><code>groups.leadingGroup</code></li>
-              <li><code>groups.subgroups</code></li>
+              <li><code>groups.leadingGroup.name</code></li>
+              <li><code>groups.subgroups.name</code></li>
             </ul>
 
             </details>
@@ -1073,7 +1073,7 @@ paths:
             Examples:
             - `"referenceCode" = "ATLAS-CONF-2021-010"`
             - `"status" = "Phase 1 Closed" AND "shortTitle" contain "Hbb boosted"`
-            - `("groups.leadingGroup" = "HIGG" OR "groups.leadingGroup" = "EXOT") AND "type" != "Paper"`
+            - `("groups.leadingGroup.name" = "HIGG" OR "groups.leadingGroup.name" = "EXOT") AND "type" != "Paper"`
           required: false
           schema:
             type: string
@@ -1085,7 +1085,15 @@ paths:
               schema:
                 $ref: "#/components/schemas/SearchPublicationResponse"
         "400":
-          description: Invalid query parameters.
+          description: >
+            Invalid query parameters. Returned, for example, when
+            `temporaryReferenceCode` is used as a filter field — use
+            `referenceCode` instead, which matches both temporary and final
+            reference codes.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error400"
         "401":
           description: Invalid or missing authentication token.
           content:
@@ -1205,7 +1213,7 @@ components:
                       type: boolean
                     isAnalysisContact:
                       type: boolean
-                    analysisContactAssignments:
+                    analysisContactAssignment:
                       type: object
                       properties:
                         startDate:
@@ -1243,7 +1251,7 @@ components:
                       properties:
                         name:
                           type: string
-                  statTools:
+                  statisticalTools:
                     type: array
                     items:
                       type: object
@@ -1345,7 +1353,7 @@ components:
                     type: string
                   pgcOrSgcSignOffDate:
                     type: string
-                  eoiMeeting:
+                  eoiMeetings:
                     type: array
                     items:
                       type: object
@@ -1360,7 +1368,7 @@ components:
                           type: string
                         url:
                           type: string
-                  editorialBoardRequestMeeting:
+                  editorialBoardRequestMeetings:
                     type: array
                     items:
                       type: object
@@ -1375,7 +1383,7 @@ components:
                           type: string
                         url:
                           type: string
-                  preApprovalMeeting:
+                  preApprovalMeetings:
                     type: array
                     items:
                       type: object
@@ -1390,7 +1398,7 @@ components:
                           type: string
                         url:
                           type: string
-                  approvalMeeting:
+                  approvalMeetings:
                     type: array
                     items:
                       type: object
@@ -1488,7 +1496,7 @@ components:
                       type: boolean
                     isAnalysisContact:
                       type: boolean
-                    analysisContactAssignments:
+                    analysisContactAssignment:
                       type: object
                       properties:
                         startDate:
@@ -1526,7 +1534,7 @@ components:
                       properties:
                         name:
                           type: string
-                  statTools:
+                  statisticalTools:
                     type: array
                     items:
                       type: object
@@ -1635,7 +1643,7 @@ components:
                     type: string
                   draft2CernSignOffDate:
                     type: string
-                  paperClosureMeeting:
+                  paperClosureMeetingUrls:
                     type: array
                     items:
                       type: object
@@ -1693,7 +1701,7 @@ components:
                     type: string
                   arXivSubmissionDate:
                     type: string
-                  physicsBriefing:
+                  physicsBriefingUrls:
                     type: array
                     items:
                       type: object
@@ -1704,13 +1712,13 @@ components:
                           type: string
                         url:
                           type: string
-                  1stRefereeReportDate:
+                  firstRefereeReportDate:
                     type: string
                   journalAcceptanceDate:
                     type: string
-                  1stProofDate:
+                  firstProofDate:
                     type: string
-                  finalJournalPublication:
+                  finalJournalPublicationUrls:
                     type: array
                     items:
                       type: object
@@ -1808,7 +1816,7 @@ components:
                       type: boolean
                     isAnalysisContact:
                       type: boolean
-                    analysisContactAssignments:
+                    analysisContactAssignment:
                       type: object
                       properties:
                         startDate:
@@ -1846,7 +1854,7 @@ components:
                       properties:
                         name:
                           type: string
-                  statTools:
+                  statisticalTools:
                     type: array
                     items:
                       type: object
@@ -1947,14 +1955,14 @@ components:
                     type: string
                   secondSignOffDate:
                     type: string
-                  publicWebPageURLForFiguresAndTables:
+                  publicWebPageUrlForFiguresAndTables:
                     type: string
                   releaseDate:
                     type: string
         numberOfResults:
           type: integer
           description: Number of matching records.
-    SearchLeadgroupResponse:
+    SearchLeadingGroupResponse:
       type: object
       properties:
         results:
@@ -2051,7 +2059,7 @@ components:
                       type: boolean
                     isAnalysisContact:
                       type: boolean
-                    analysisContactAssignments:
+                    analysisContactAssignment:
                       type: object
                       properties:
                         startDate:
@@ -2089,7 +2097,7 @@ components:
                       properties:
                         name:
                           type: string
-                  statTools:
+                  statisticalTools:
                     type: array
                     items:
                       type: object
@@ -2170,7 +2178,7 @@ components:
                     type: string
                   secondReaderSignOffDate:
                     type: string
-                  publicWebPageURLForFiguresAndTables:
+                  publicWebPageUrlForFiguresAndTables:
                     type: string
                   releaseDate:
                     type: string
@@ -2267,6 +2275,9 @@ components:
         numberOfResults:
           type: integer
           description: Number of matching records.
+
+    Error400:
+      $ref: "schemas/errors.yml#/schemas/Error400"
 
     Error401:
       $ref: "schemas/errors.yml#/schemas/Error401"

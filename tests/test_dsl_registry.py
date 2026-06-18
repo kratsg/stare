@@ -148,26 +148,26 @@ def test_analysis_has_metadata_datasets_name() -> None:
 def test_paper_has_analysis_contact_fields() -> None:
     reg = FieldRegistry.for_mode("paper")
     assert "analysisTeam.isAnalysisContact" in reg.fields()
-    assert "analysisTeam.analysisContactAssignments.startDate" in reg.fields()
-    assert "analysisTeam.analysisContactAssignments.endDate" in reg.fields()
+    assert "analysisTeam.analysisContactAssignment.startDate" in reg.fields()
+    assert "analysisTeam.analysisContactAssignment.endDate" in reg.fields()
 
 
 def test_confnote_has_analysis_contact_fields() -> None:
     reg = FieldRegistry.for_mode("confnote")
     assert "analysisTeam.isAnalysisContact" in reg.fields()
-    assert "analysisTeam.analysisContactAssignments.startDate" in reg.fields()
-    assert "analysisTeam.analysisContactAssignments.endDate" in reg.fields()
+    assert "analysisTeam.analysisContactAssignment.startDate" in reg.fields()
+    assert "analysisTeam.analysisContactAssignment.endDate" in reg.fields()
 
 
 def test_pubnote_has_analysis_contact_fields() -> None:
     reg = FieldRegistry.for_mode("pubnote")
     assert "analysisTeam.isAnalysisContact" in reg.fields()
-    assert "analysisTeam.analysisContactAssignments.startDate" in reg.fields()
-    assert "analysisTeam.analysisContactAssignments.endDate" in reg.fields()
+    assert "analysisTeam.analysisContactAssignment.startDate" in reg.fields()
+    assert "analysisTeam.analysisContactAssignment.endDate" in reg.fields()
 
 
-def test_leadgroup_mode_has_name_field() -> None:
-    reg = FieldRegistry.for_mode("leadgroup")
+def test_leadinggroup_mode_has_name_field() -> None:
+    reg = FieldRegistry.for_mode("leadinggroup")
     assert "name" in reg.fields()
 
 

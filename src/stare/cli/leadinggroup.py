@@ -12,13 +12,13 @@ from stare.cli import utils
 from stare.dsl.errors import DSLError
 from stare.exceptions import StareError
 
-leadgroup_app = typer.Typer(
+leadinggroup_app = typer.Typer(
     help="Leading-group search commands.", rich_markup_mode="rich"
 )
 
 
-@leadgroup_app.command("search")
-def leadgroup_search(
+@leadinggroup_app.command("search")
+def leadinggroup_search(
     query: Annotated[
         str | None,
         typer.Option(
@@ -70,24 +70,24 @@ def leadgroup_search(
         ),
     ] = False,
 ) -> None:
-    """Search leading groups via GET /searchLeadgroup.
+    """Search leading groups via GET /searchLeadingGroup.
 
     Output auto-detects: Rich table when stdout is a terminal, JSON when piped.
     Override with [cyan]--json[/cyan] or [cyan]--no-json[/cyan].
 
     [bold]Examples[/bold]
-      [green]stare leadgroups search[/green]
-      [green]stare leadgroups search -q 'name = SUSY'[/green]
-      [green]stare leadgroups search | jq '[.results[].name]'[/green]
+      [green]stare leadinggroups search[/green]
+      [green]stare leadinggroups search -q 'name = SUSY'[/green]
+      [green]stare leadinggroups search | jq '[.results[].name]'[/green]
 
     [bold]API reference[/bold]
-      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-Leadgroup-searchLeadgroup
+      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-LeadingGroup-searchLeadingGroup
     """
     if output_json is None:
         output_json = not stdout_is_interactive()
     g = utils.make_glance(no_cache=no_cache)
     try:
-        result = g.leadgroups.search(
+        result = g.leadinggroups.search(
             query=query,
             limit=limit,
             offset=offset,

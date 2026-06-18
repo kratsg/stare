@@ -130,9 +130,9 @@ def test_paper_submission_data(glance: Glance) -> None:
     assert len(paper.publication_phase.arxiv_urls) >= 1
     for link in paper.publication_phase.arxiv_urls:
         assert link.url is not None
-    assert isinstance(paper.publication_phase.physics_briefing, list)
-    assert isinstance(paper.publication_phase.final_journal_publication, list)
-    assert len(paper.publication_phase.final_journal_publication) >= 1
+    assert isinstance(paper.publication_phase.physics_briefing_urls, list)
+    assert isinstance(paper.publication_phase.final_journal_publication_urls, list)
+    assert len(paper.publication_phase.final_journal_publication_urls) >= 1
 
 
 # ---------------------------------------------------------------------------

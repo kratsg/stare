@@ -33,7 +33,7 @@ from stare.models import (
     PubNoteSearchResult,
 )
 from stare.models.search import (
-    LeadgroupSearchResult,
+    LeadingGroupSearchResult,
     SubgroupSearchResult,
     TriggerSearchResult,
 )
@@ -321,8 +321,8 @@ class PublicationResource:
         return PublicationSearchResult.model_validate(response.json(), verbose=verbose)
 
 
-class LeadgroupResource:
-    """Accessor for /searchLeadgroup endpoint."""
+class LeadingGroupResource:
+    """Accessor for /searchLeadingGroup endpoint."""
 
     def __init__(self, client: httpx.Client) -> None:
         """Store the shared httpx client."""
@@ -338,19 +338,19 @@ class LeadgroupResource:
         sort_desc: bool = False,
         validate_query: bool = True,
         verbose: bool = False,
-    ) -> LeadgroupSearchResult:
-        """Search leading groups via GET /searchLeadgroup."""
+    ) -> LeadingGroupSearchResult:
+        """Search leading groups via GET /searchLeadingGroup."""
         params: dict[str, Any] = {"offset": offset, "limit": limit}
         if query is not None:
             params["queryString"] = _resolve_query(
-                query, mode="leadgroup", validate=validate_query
+                query, mode="leadinggroup", validate=validate_query
             )
         if sort_by is not None:
             params["sortBy"] = sort_by
             params["sortDesc"] = str(sort_desc).lower()
-        response = self._client.get("/searchLeadgroup", params=params)
+        response = self._client.get("/searchLeadingGroup", params=params)
         _raise_for_status(response)
-        return LeadgroupSearchResult.model_validate(response.json(), verbose=verbose)
+        return LeadingGroupSearchResult.model_validate(response.json(), verbose=verbose)
 
 
 class SubgroupResource:
@@ -466,7 +466,7 @@ class Glance:
         self.confnotes = ConfNoteResource(self._http)
         self.pubnotes = PubNoteResource(self._http)
         self.publications = PublicationResource(self._http)
-        self.leadgroups = LeadgroupResource(self._http)
+        self.leadinggroups = LeadingGroupResource(self._http)
         self.subgroups = SubgroupResource(self._http)
         self.triggers = TriggerResource(self._http)
 

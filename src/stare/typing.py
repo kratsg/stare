@@ -11,7 +11,7 @@ from typing import Literal
 Mode = Literal[
     "analysis",
     "confnote",
-    "leadgroup",
+    "leadinggroup",
     "paper",
     "publication",
     "pubnote",
