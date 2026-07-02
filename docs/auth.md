@@ -40,8 +40,9 @@ store:
 | Linux    | Secret Service (GNOME Keyring / KWallet) |
 | Windows  | Credential Locker                        |
 
-If no keyring backend is available (e.g. a headless CI machine), tokens fall
-back to a JSON file:
+If no keyring backend is available (e.g. a headless CI machine), or a registered
+backend is present but non-functional (e.g. a broken D-Bus Secret Service),
+tokens fall back to a JSON file:
 
 | Platform | Path                                              |
 | -------- | ------------------------------------------------- |
