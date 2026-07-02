@@ -140,8 +140,7 @@ def get_default_storage(token_path: Path | None = None) -> TokenStorage:
         return FileTokenStorage(file_path)
     keyring_storage = KeyringTokenStorage()
     try:
-        keyring_storage.exists()
+        keyring_storage.migrate_from_file(file_path)
     except Exception:  # noqa: BLE001 - backend failures are unpredictable, see docstring
         return FileTokenStorage(file_path)
-    keyring_storage.migrate_from_file(file_path)
     return keyring_storage
