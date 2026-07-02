@@ -235,3 +235,16 @@ def test_get_default_storage_uses_custom_fallback_path(tmp_path: Path) -> None:
     with patch("keyring.get_keyring", return_value=object.__new__(FailKeyring)):
         storage = get_default_storage(token_path=custom_path)
     assert isinstance(storage, FileTokenStorage)
+
+
+def test_get_default_storage_falls_back_to_file_when_keyring_broken_at_runtime(
+    tmp_path: Path,
+) -> None:
+    """A backend that isn't FailKeyring can still blow up on the first real
+    call (e.g. a broken D-Bus Secret Service) — probe it and fall back."""
+    with (
+        patch("keyring.get_keyring", return_value=MagicMock(spec=object)),
+        patch("keyring.get_password", side_effect=RuntimeError("DBus broken")),
+    ):
+        storage = get_default_storage(token_path=tmp_path / "tokens.json")
+    assert isinstance(storage, FileTokenStorage)

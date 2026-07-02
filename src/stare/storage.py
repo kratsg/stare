@@ -128,13 +128,20 @@ def get_default_storage(token_path: Path | None = None) -> TokenStorage:
 
     Uses :class:`KeyringTokenStorage` when the OS keyring is functional, and
     performs a one-time migration from the plaintext file if needed.  Falls
-    back to :class:`FileTokenStorage` when no functional keyring is available
-    (headless servers, CI environments).
+    back to :class:`FileTokenStorage` when no keyring backend is registered
+    (headless servers, CI environments) or when a registered backend raises
+    on first use — e.g. a Secret Service that's present but broken at the
+    D-Bus protocol level, which surfaces as unwrapped, backend-specific
+    exceptions that neither ``secretstorage`` nor ``keyring`` normalize.
     """
     file_path = token_path or _DEFAULT_TOKEN_PATH
     backend = keyring.get_keyring()
     if isinstance(backend, FailKeyring):
         return FileTokenStorage(file_path)
     keyring_storage = KeyringTokenStorage()
+    try:
+        keyring_storage.exists()
+    except Exception:  # noqa: BLE001 - backend failures are unpredictable, see docstring
+        return FileTokenStorage(file_path)
     keyring_storage.migrate_from_file(file_path)
     return keyring_storage
