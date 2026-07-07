@@ -23,6 +23,7 @@ from stare.auth import TokenManager, _decode_jwt_payload
 from stare.exceptions import AuthenticationError, TokenExpiredError
 from stare.models.auth import JwtClaims, ResourceAccessEntry, TokenInfo, _StoredToken
 from stare.settings import StareSettings
+from stare.storage import TokenStorage
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -407,6 +408,125 @@ def test_get_token_raises_when_no_refresh_token(
     manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
     with pytest.raises(TokenExpiredError):
         manager.get_token()
+
+
+# ---------------------------------------------------------------------------
+# base token in-memory caching
+# ---------------------------------------------------------------------------
+
+
+class _CountingStorage(TokenStorage):
+    """Storage stub that counts load() calls and holds a token in memory."""
+
+    def __init__(self, token: _StoredToken | None, lock_path: Path) -> None:
+        self._token = token
+        self._lock_path = lock_path
+        self.load_count = 0
+        self.save_count = 0
+        self.delete_count = 0
+
+    def load(self) -> _StoredToken | None:
+        self.load_count += 1
+        return self._token
+
+    def save(self, token: _StoredToken) -> None:
+        self.save_count += 1
+        self._token = token
+
+    def delete(self) -> None:
+        self.delete_count += 1
+        self._token = None
+
+    def exists(self) -> bool:
+        return self._token is not None
+
+    @property
+    def lock_path(self) -> Path:
+        return self._lock_path
+
+
+def _fresh_token(access_token: str = "cached-access") -> _StoredToken:
+    return _StoredToken(
+        access_token=access_token,
+        token_type="Bearer",
+        expires_at=int(time.time()) + 3600,
+    )
+
+
+def test_get_token_caches_base_token_across_calls(
+    tmp_path: Path, test_settings: StareSettings
+) -> None:
+    """A fresh base token is loaded once and served from memory thereafter."""
+    storage = _CountingStorage(_fresh_token(), tmp_path / "tokens.lock")
+    manager = TokenManager(settings=test_settings, storage=storage)
+
+    for _ in range(5):
+        assert manager.get_token() == "cached-access"
+
+    assert storage.load_count == 1
+
+
+def test_get_token_reloads_after_cached_token_expires(
+    tmp_path: Path, test_settings: StareSettings
+) -> None:
+    """Storage is consulted again once the cached base token nears expiry."""
+    storage = _CountingStorage(_fresh_token("first"), tmp_path / "tokens.lock")
+    manager = TokenManager(settings=test_settings, storage=storage)
+
+    assert manager.get_token() == "first"
+    assert storage.load_count == 1
+
+    # Simulate the cached token expiring while storage now holds a fresh one.
+    storage._token = _fresh_token("second")
+    manager._base_token = _StoredToken(
+        access_token="first", token_type="Bearer", expires_at=int(time.time()) - 10
+    )
+
+    assert manager.get_token() == "second"
+    assert storage.load_count == 2
+
+
+def test_logout_clears_cached_base_token(
+    tmp_path: Path, test_settings: StareSettings
+) -> None:
+    """logout() drops the in-memory base token cache."""
+    storage = _CountingStorage(_fresh_token(), tmp_path / "tokens.lock")
+    with respx.mock:
+        respx.post(test_settings.revocation_url).mock(return_value=httpx.Response(200))
+        manager = TokenManager(settings=test_settings, storage=storage)
+        manager.get_token()
+        assert manager._base_token is not None
+        manager.logout()
+
+    assert manager._base_token is None
+
+
+def test_refresh_failure_clears_cached_base_token(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    """A 4xx refresh failure must not leave a stale base token in memory."""
+    expired = {
+        "access_token": "old",
+        "refresh_token": "bad-refresh",
+        "token_type": "Bearer",
+        "expires_at": int(time.time()) - 10,
+    }
+    tmp_token_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_token_path.write_text(json.dumps(expired))
+
+    with respx.mock:
+        respx.post(test_settings.token_url).mock(
+            return_value=httpx.Response(401, json={"error": "invalid_grant"})
+        )
+        manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+        manager._base_token = _StoredToken(
+            access_token="stale", token_type="Bearer", expires_at=int(time.time()) - 5
+        )
+        with pytest.raises(TokenExpiredError):
+            manager.get_token()
+
+    cached: _StoredToken | None = manager._base_token
+    assert cached is None
 
 
 # ---------------------------------------------------------------------------

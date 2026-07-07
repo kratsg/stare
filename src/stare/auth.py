@@ -79,6 +79,9 @@ class TokenManager:
         # to the token endpoint on every API call).
         self._exchanged_token: str | None = None
         self._exchanged_expires_at: int = 0
+        # In-memory cache for the loaded PKCE base token (avoids a keyring/disk
+        # round-trip on every API call while the token is still fresh).
+        self._base_token: _StoredToken | None = None
         # Locking: thread lock guards in-process races; file lock guards
         # cross-process races (e.g. two CLI invocations refreshing at once).
         self._thread_lock = threading.Lock()
@@ -272,6 +275,7 @@ class TokenManager:
             self._storage.delete()
             self._exchanged_token = None
             self._exchanged_expires_at = 0
+            self._base_token = None
 
     def _revoke_token(self, token: str | None, token_type_hint: str) -> None:
         """POST token to the Keycloak revocation endpoint; never raises."""
@@ -307,20 +311,32 @@ class TokenManager:
         return self._exchange_token(base_token)
 
     def _get_base_token(self) -> str:
-        """Return the raw PKCE access token, refreshing via refresh_token if expired."""
-        with self._thread_lock, self._file_lock:
-            token = self._storage.load()
-            if token is None:
-                msg = "Not authenticated. Run `stare auth login` first."
-                raise AuthenticationError(msg)
+        """Return the raw PKCE access token, refreshing via refresh_token if expired.
 
-            if token.is_expired_with_margin(self._settings.token_expiry_margin_seconds):
-                if not token.refresh_token:
-                    msg = "Access token has expired and no refresh token is available. Run `stare auth login` again."
-                    raise TokenExpiredError(msg)
-                token = self._refresh(token.refresh_token)
+        A valid loaded token is cached in memory and returned without touching
+        storage or the file lock. Storage is consulted only when the cache is
+        absent or within the expiry margin (another process may have refreshed
+        it meanwhile), refreshing via the refresh token as a last resort.
+        """
+        margin = self._settings.token_expiry_margin_seconds
+        with self._thread_lock:
+            cached = self._base_token
+            if cached is not None and not cached.is_expired_with_margin(margin):
+                return cached.access_token
+            with self._file_lock:
+                token = self._storage.load()
+                if token is None:
+                    msg = "Not authenticated. Run `stare auth login` first."
+                    raise AuthenticationError(msg)
 
-            return token.access_token
+                if token.is_expired_with_margin(margin):
+                    if not token.refresh_token:
+                        msg = "Access token has expired and no refresh token is available. Run `stare auth login` again."
+                        raise TokenExpiredError(msg)
+                    token = self._refresh(token.refresh_token)
+
+                self._base_token = token
+                return token.access_token
 
     def _exchange_token(self, subject_token: str) -> str:
         """Exchange a PKCE access token for an audience-scoped token (RFC 8693).
@@ -377,6 +393,7 @@ class TokenManager:
             self._storage.delete()
             self._exchanged_token = None
             self._exchanged_expires_at = 0
+            self._base_token = None
             msg = f"Token refresh failed ({exc.response.status_code}). Run `stare auth login` again."
             raise TokenExpiredError(msg) from exc
         except httpx.RequestError as exc:
