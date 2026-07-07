@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import contextlib
+import os
+import tempfile
 from abc import ABC, abstractmethod
 from pathlib import Path
 
@@ -52,13 +54,28 @@ class FileTokenStorage(TokenStorage):
         """Return stored tokens, or None if the file does not exist."""
         if not self._path.exists():
             return None
-        return _StoredToken.model_validate_json(self._path.read_text())
+        return _StoredToken.model_validate_json(self._path.read_text(encoding="utf-8"))
 
     def save(self, token: _StoredToken) -> None:
-        """Write tokens to the JSON file, creating parent directories as needed."""
+        """Write tokens to the JSON file, creating parent directories as needed.
+
+        Written atomically to a 0o600 temp file in the same directory, then
+        renamed onto the target, so the file is never briefly world-readable
+        or observable mid-write.
+        """
         self._path.parent.mkdir(parents=True, exist_ok=True)
-        self._path.write_text(token.model_dump_json(), encoding="utf-8")
-        self._path.chmod(0o600)
+        # mkstemp creates the file with mode 0o600 up front (no chmod race).
+        fd, tmp_name = tempfile.mkstemp(
+            dir=self._path.parent, prefix=f".{self._path.name}.", suffix=".tmp"
+        )
+        tmp_path = Path(tmp_name)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                f.write(token.model_dump_json())
+            tmp_path.replace(self._path)
+        except BaseException:
+            tmp_path.unlink(missing_ok=True)
+            raise
 
     def delete(self) -> None:
         """Delete the token file; no-op if it does not exist."""
