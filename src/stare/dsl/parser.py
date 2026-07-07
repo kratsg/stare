@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import difflib
+import functools
 import logging
 from importlib.resources import files
 from typing import TYPE_CHECKING, Any
@@ -19,10 +20,25 @@ if TYPE_CHECKING:
 
 _logger = logging.getLogger("stare")
 
-_GRAMMAR = files("stare.data").joinpath("query-grammar.lark").read_text()
-_LARK = Lark(_GRAMMAR, start="expression", parser="lalr")
-
 _VALID_OPS = tuple(op.value for op in Operator)
+
+
+@functools.cache
+def _get_lark() -> Lark:
+    """Build the LALR parser lazily so importing stare stays cheap for the CLI."""
+    grammar = files("stare.data").joinpath("query-grammar.lark").read_text()
+    return Lark(grammar, start="expression", parser="lalr")
+
+
+def _has_unquoted_paren(source: str) -> bool:
+    """True if '(' appears outside a STRING (double-quoted, no escapes per grammar)."""
+    in_string = False
+    for char in source:
+        if char == '"':
+            in_string = not in_string
+        elif char == "(" and not in_string:
+            return True
+    return False
 
 
 def _unquote(token: Any) -> str:
@@ -102,7 +118,7 @@ def parse_dsl(source: str, *, mode: Mode) -> Expression:
     unknown fields.  Normalizes field names to camelCase.
     """
     try:
-        tree = _LARK.parse(source)
+        tree = _get_lark().parse(source)
     except UnexpectedInput as exc:
         context = exc.get_context(source)
         hint = _syntax_hint(exc, source)
@@ -110,7 +126,7 @@ def parse_dsl(source: str, *, mode: Mode) -> Expression:
         msg = f"Invalid query syntax near '{source[:40]}': {context}{suffix}"
         raise DSLSyntaxError(msg) from exc
 
-    if "(" in source:
+    if _has_unquoted_paren(source):
         _logger.warning(
             "parentheses in DSL query are not supported by the server and will be ignored"
         )
