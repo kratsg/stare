@@ -21,7 +21,7 @@ from stare.models.common import (
     Team,
     _Base,
 )
-from stare.models.enums import ConfnoteStatus, LenientConfnotePhase1State
+from stare.models.enums import LenientConfnotePhase1State, LenientConfnoteStatus
 from stare.settings import StareSettings
 from stare.urls import confnote_url
 
@@ -52,7 +52,7 @@ class ConfNote(_Base):
         alias="temporaryReferenceCode", pattern=r"^CONF-[A-Z]{4}-\d{4}-\d{2}$"
     )
     final_reference_code: str | None = None
-    status: ConfnoteStatus
+    status: LenientConfnoteStatus
     short_title: str | None = None
     public_short_title: str | None = None
     full_title: str | None = None

@@ -21,9 +21,9 @@ from rich.text import Text
 from stare.exceptions import EnrichedErrorResponse, ResponseParseError
 from stare.models.enums import (
     LenientCollisionType,
+    LenientMeetingType,
     LenientPublicationType,
     LenientRepositoryType,
-    MeetingType,
 )
 
 if TYPE_CHECKING:
@@ -508,7 +508,7 @@ class Meeting(_Base):
 class TypedMeeting(Meeting):
     """A Meeting tagged with its phase0 role (EOI, EB request, pre-approval, approval)."""
 
-    meeting_type: MeetingType
+    meeting_type: LenientMeetingType
 
 
 class RelatedPublication(_Base):

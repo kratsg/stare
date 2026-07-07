@@ -20,7 +20,7 @@ from stare.models.common import (
     _Base,
     _ListRootModel,
 )
-from stare.models.enums import LenientPubnotePhase1State, PubnoteStatus
+from stare.models.enums import LenientPubnotePhase1State, LenientPubnoteStatus
 from stare.settings import StareSettings
 from stare.urls import pubnote_url
 
@@ -81,7 +81,7 @@ class PubNote(_Base):
         alias="temporaryReferenceCode", pattern=r"^PUB-[A-Z]{4}-\d{4}-\d{2}$"
     )
     final_reference_code: str | None = None
-    status: PubnoteStatus | None = None
+    status: LenientPubnoteStatus | None = None
     short_title: str | None = None
     public_short_title: str | None = None
     full_title: str | None = None
