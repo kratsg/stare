@@ -95,16 +95,16 @@ paper = g.papers.get("HDBS-2018-33")
 conf_note = g.confnotes.get("ATLAS-CONF-2024-001")
 pub_note = g.pubnotes.get("ATL-PHYS-PUB-2024-001")
 
-# Planned endpoints
-groups = g.groups.list()
+# Leading groups (live)
+leadinggroups = g.leadinggroups.search(query="name = SUSY")
 ```
 
 ## Settings
 
 All defaults are in `StareSettings`. See
-[docs/configuration.md](docs/configuration.md) for the full env-var reference
-(`snippets/env-vars.md` is the single source of truth for that table — update it
-when adding or renaming fields in `src/stare/settings.py`).
+[docs/configuration.md](docs/configuration.md) for the full env-var reference —
+it is the single source of truth for that table; update it when adding or
+renaming fields in `src/stare/settings.py`.
 
 ## Auth flow (PKCE)
 
