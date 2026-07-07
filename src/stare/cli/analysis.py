@@ -115,7 +115,8 @@ def analysis_search(
         typer.echo(
             f"Invalid offset: {offset}. Maximum allowed offset is "
             f"{max(result.number_of_results - 1, 0)} for "
-            f"{result.number_of_results} total results."
+            f"{result.number_of_results} total results.",
+            err=True,
         )
         raise typer.Exit(2)
 
