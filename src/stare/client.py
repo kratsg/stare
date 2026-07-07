@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import ssl
 from importlib.resources import as_file, files
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, Generic, TypeVar, cast
 
 import httpx
 from hishel import CacheOptions, SpecificationPolicy, SyncSqliteStorage
@@ -39,13 +39,11 @@ from stare.models.search import (
 )
 from stare.settings import StareSettings
 
-_ResourceT = TypeVar(
-    "_ResourceT", Analysis, Paper, ConfNote, PubNote, PublicationSummary
-)
+_SearchResultT = TypeVar("_SearchResultT", bound="_SearchResultsBase[Any]")
+_ItemT = TypeVar("_ItemT")
 
 if TYPE_CHECKING:
     import types
-    from collections.abc import Callable
 
     from stare.models.search import _SearchResultsBase
     from stare.typing import Mode
@@ -103,189 +101,106 @@ def _resolve_query(
     return q.to_dsl()
 
 
-def _get_by_ref(
-    search: Callable[..., _SearchResultsBase[_ResourceT]],
-    *,
-    field: str,
-    ref_code: str,
-    verbose: bool,
-) -> _ResourceT:
-    """Delegate ``.get(ref_code)`` to ``.search()`` via the DSL.
+class _Resource(Generic[_SearchResultT]):
+    """Generic search accessor parameterized by endpoint, DSL mode, and result model."""
 
-    Builds a single ``Condition`` (never a string) so future DSL changes flow
-    through without touching callers. Raises ``NotFoundError`` on zero results.
-    """
-    condition = Condition(field=field, operator=Operator.EQ, value=ref_code)
-    result = search(query=condition, limit=1, verbose=verbose)
-    if not result.results:
-        raise NotFoundError(404, "Not Found", f"{field}={ref_code!r} not found")
-    return result.results[0]
+    _endpoint: ClassVar[str]
+    _mode: ClassVar[Mode]
+    _result_model: type[_SearchResultT]
+
+    def __init__(self, client: httpx.Client) -> None:
+        """Store the shared httpx client."""
+        self._client = client
+
+    def search(
+        self,
+        *,
+        query: str | Expression | None = None,
+        offset: int = 0,
+        limit: int = 50,
+        sort_by: str | None = None,
+        sort_desc: bool = False,
+        validate_query: bool = True,
+        verbose: bool = False,
+    ) -> _SearchResultT:
+        """Search this resource's endpoint with an optional DSL query."""
+        params: dict[str, Any] = {"offset": offset, "limit": limit}
+        if query is not None:
+            params["queryString"] = _resolve_query(
+                query, mode=self._mode, validate=validate_query
+            )
+        if sort_by is not None:
+            params["sortBy"] = sort_by
+            params["sortDesc"] = str(sort_desc).lower()
+        response = self._client.get(self._endpoint, params=params)
+        _raise_for_status(response)
+        return self._result_model.model_validate(response.json(), verbose=verbose)
 
 
-class AnalysisResource:
+class _GettableResource(_Resource[_SearchResultT], Generic[_SearchResultT, _ItemT]):
+    """A search resource that also resolves a single record by reference code."""
+
+    _get_field: ClassVar[str]
+
+    def get(self, ref_code: str, *, verbose: bool = False) -> _ItemT:
+        """Fetch a single record by reference code via this resource's search endpoint.
+
+        Builds a single ``Condition`` (never a string) so future DSL changes flow
+        through without touching callers. Raises ``NotFoundError`` on zero results.
+        """
+        condition = Condition(
+            field=self._get_field, operator=Operator.EQ, value=ref_code
+        )
+        result = self.search(query=condition, limit=1, verbose=verbose)
+        if not result.results:
+            raise NotFoundError(
+                404, "Not Found", f"{self._get_field}={ref_code!r} not found"
+            )
+        return cast("_ItemT", result.results[0])
+
+
+class AnalysisResource(_GettableResource[AnalysisSearchResult, Analysis]):
     """Accessor for /analyses/ and /searchAnalysis endpoints."""
 
-    def __init__(self, client: httpx.Client) -> None:
-        """Store the shared httpx client."""
-        self._client = client
-
-    def get(self, ref_code: str, *, verbose: bool = False) -> Analysis:
-        """Fetch a single analysis by reference code via /searchAnalysis."""
-        return _get_by_ref(
-            self.search, field="referenceCode", ref_code=ref_code, verbose=verbose
-        )
-
-    def search(
-        self,
-        *,
-        query: str | Expression | None = None,
-        offset: int = 0,
-        limit: int = 50,
-        sort_by: str | None = None,
-        sort_desc: bool = False,
-        validate_query: bool = True,
-        verbose: bool = False,
-    ) -> AnalysisSearchResult:
-        """Search analyses via GET /searchAnalysis."""
-        params: dict[str, Any] = {"offset": offset, "limit": limit}
-        if query is not None:
-            params["queryString"] = _resolve_query(
-                query, mode="analysis", validate=validate_query
-            )
-        if sort_by is not None:
-            params["sortBy"] = sort_by
-            params["sortDesc"] = str(sort_desc).lower()
-        response = self._client.get("/searchAnalysis", params=params)
-        _raise_for_status(response)
-        return AnalysisSearchResult.model_validate(response.json(), verbose=verbose)
+    _endpoint = "/searchAnalysis"
+    _mode = "analysis"
+    _result_model = AnalysisSearchResult
+    _get_field = "referenceCode"
 
 
-class PaperResource:
+class PaperResource(_GettableResource[PaperSearchResult, Paper]):
     """Accessor for /papers/ and /searchPaper endpoints."""
 
-    def __init__(self, client: httpx.Client) -> None:
-        """Store the shared httpx client."""
-        self._client = client
-
-    def get(self, ref_code: str, *, verbose: bool = False) -> Paper:
-        """Fetch a single paper by reference code via /searchPaper."""
-        return _get_by_ref(
-            self.search, field="referenceCode", ref_code=ref_code, verbose=verbose
-        )
-
-    def search(
-        self,
-        *,
-        query: str | Expression | None = None,
-        offset: int = 0,
-        limit: int = 50,
-        sort_by: str | None = None,
-        sort_desc: bool = False,
-        validate_query: bool = True,
-        verbose: bool = False,
-    ) -> PaperSearchResult:
-        """Search papers via GET /searchPaper."""
-        params: dict[str, Any] = {"offset": offset, "limit": limit}
-        if query is not None:
-            params["queryString"] = _resolve_query(
-                query, mode="paper", validate=validate_query
-            )
-        if sort_by is not None:
-            params["sortBy"] = sort_by
-            params["sortDesc"] = str(sort_desc).lower()
-        response = self._client.get("/searchPaper", params=params)
-        _raise_for_status(response)
-        return PaperSearchResult.model_validate(response.json(), verbose=verbose)
+    _endpoint = "/searchPaper"
+    _mode = "paper"
+    _result_model = PaperSearchResult
+    _get_field = "referenceCode"
 
 
-class ConfNoteResource:
+class ConfNoteResource(_GettableResource[ConfNoteSearchResult, ConfNote]):
     """Accessor for /confnotes/ endpoint."""
 
-    def __init__(self, client: httpx.Client) -> None:
-        """Store the shared httpx client."""
-        self._client = client
-
-    def get(self, ref_code: str, *, verbose: bool = False) -> ConfNote:
-        """Fetch a single CONF note by temporary reference code via /searchConfnote."""
-        return _get_by_ref(
-            self.search,
-            field="temporaryReferenceCode",
-            ref_code=ref_code,
-            verbose=verbose,
-        )
-
-    def search(
-        self,
-        *,
-        query: str | Expression | None = None,
-        offset: int = 0,
-        limit: int = 50,
-        sort_by: str | None = None,
-        sort_desc: bool = False,
-        validate_query: bool = True,
-        verbose: bool = False,
-    ) -> ConfNoteSearchResult:
-        """Search conf notes via GET /searchConfnote."""
-        params: dict[str, Any] = {"offset": offset, "limit": limit}
-        if query is not None:
-            params["queryString"] = _resolve_query(
-                query, mode="confnote", validate=validate_query
-            )
-        if sort_by is not None:
-            params["sortBy"] = sort_by
-            params["sortDesc"] = str(sort_desc).lower()
-        response = self._client.get("/searchConfnote", params=params)
-        _raise_for_status(response)
-        return ConfNoteSearchResult.model_validate(response.json(), verbose=verbose)
+    _endpoint = "/searchConfnote"
+    _mode = "confnote"
+    _result_model = ConfNoteSearchResult
+    _get_field = "temporaryReferenceCode"
 
 
-class PubNoteResource:
+class PubNoteResource(_GettableResource[PubNoteSearchResult, PubNote]):
     """Accessor for /searchPubnote endpoint."""
 
-    def __init__(self, client: httpx.Client) -> None:
-        """Store the shared httpx client."""
-        self._client = client
-
-    def get(self, ref_code: str, *, verbose: bool = False) -> PubNote:
-        """Fetch a single PUB note by temporary reference code via /searchPubnote."""
-        return _get_by_ref(
-            self.search,
-            field="temporaryReferenceCode",
-            ref_code=ref_code,
-            verbose=verbose,
-        )
-
-    def search(
-        self,
-        *,
-        query: str | Expression | None = None,
-        offset: int = 0,
-        limit: int = 50,
-        sort_by: str | None = None,
-        sort_desc: bool = False,
-        validate_query: bool = True,
-        verbose: bool = False,
-    ) -> PubNoteSearchResult:
-        """Search pub notes via GET /searchPubnote."""
-        params: dict[str, Any] = {"offset": offset, "limit": limit}
-        if query is not None:
-            params["queryString"] = _resolve_query(
-                query, mode="pubnote", validate=validate_query
-            )
-        if sort_by is not None:
-            params["sortBy"] = sort_by
-            params["sortDesc"] = str(sort_desc).lower()
-        response = self._client.get("/searchPubnote", params=params)
-        _raise_for_status(response)
-        return PubNoteSearchResult.model_validate(response.json(), verbose=verbose)
+    _endpoint = "/searchPubnote"
+    _mode = "pubnote"
+    _result_model = PubNoteSearchResult
+    _get_field = "temporaryReferenceCode"
 
 
-class PublicationResource:
+class PublicationResource(_Resource[PublicationSearchResult]):
     """Accessor for the /searchPublication endpoint."""
 
-    def __init__(self, client: httpx.Client) -> None:
-        """Store the shared httpx client."""
-        self._client = client
+    _endpoint = "/searchPublication"
+    _mode = "publication"
+    _result_model = PublicationSearchResult
 
     def get(self, ref_code: str, *, verbose: bool = False) -> PublicationSummary:
         """Fetch a single publication by reference code via /searchPublication."""
@@ -296,125 +211,29 @@ class PublicationResource:
                 return result.results[0]
         raise NotFoundError(404, "Not Found", f"{ref_code!r} not found")
 
-    def search(
-        self,
-        *,
-        query: str | Expression | None = None,
-        offset: int = 0,
-        limit: int = 50,
-        sort_by: str | None = None,
-        sort_desc: bool = False,
-        validate_query: bool = True,
-        verbose: bool = False,
-    ) -> PublicationSearchResult:
-        """Search across all publication types via GET /searchPublication."""
-        params: dict[str, Any] = {"offset": offset, "limit": limit}
-        if query is not None:
-            params["queryString"] = _resolve_query(
-                query, mode="publication", validate=validate_query
-            )
-        if sort_by is not None:
-            params["sortBy"] = sort_by
-            params["sortDesc"] = str(sort_desc).lower()
-        response = self._client.get("/searchPublication", params=params)
-        _raise_for_status(response)
-        return PublicationSearchResult.model_validate(response.json(), verbose=verbose)
 
-
-class LeadingGroupResource:
+class LeadingGroupResource(_Resource[LeadingGroupSearchResult]):
     """Accessor for /searchLeadingGroup endpoint."""
 
-    def __init__(self, client: httpx.Client) -> None:
-        """Store the shared httpx client."""
-        self._client = client
-
-    def search(
-        self,
-        *,
-        query: str | Expression | None = None,
-        offset: int = 0,
-        limit: int = 50,
-        sort_by: str | None = None,
-        sort_desc: bool = False,
-        validate_query: bool = True,
-        verbose: bool = False,
-    ) -> LeadingGroupSearchResult:
-        """Search leading groups via GET /searchLeadingGroup."""
-        params: dict[str, Any] = {"offset": offset, "limit": limit}
-        if query is not None:
-            params["queryString"] = _resolve_query(
-                query, mode="leadinggroup", validate=validate_query
-            )
-        if sort_by is not None:
-            params["sortBy"] = sort_by
-            params["sortDesc"] = str(sort_desc).lower()
-        response = self._client.get("/searchLeadingGroup", params=params)
-        _raise_for_status(response)
-        return LeadingGroupSearchResult.model_validate(response.json(), verbose=verbose)
+    _endpoint = "/searchLeadingGroup"
+    _mode = "leadinggroup"
+    _result_model = LeadingGroupSearchResult
 
 
-class SubgroupResource:
+class SubgroupResource(_Resource[SubgroupSearchResult]):
     """Accessor for /searchSubgroup endpoint."""
 
-    def __init__(self, client: httpx.Client) -> None:
-        """Store the shared httpx client."""
-        self._client = client
-
-    def search(
-        self,
-        *,
-        query: str | Expression | None = None,
-        offset: int = 0,
-        limit: int = 50,
-        sort_by: str | None = None,
-        sort_desc: bool = False,
-        validate_query: bool = True,
-        verbose: bool = False,
-    ) -> SubgroupSearchResult:
-        """Search subgroups via GET /searchSubgroup."""
-        params: dict[str, Any] = {"offset": offset, "limit": limit}
-        if query is not None:
-            params["queryString"] = _resolve_query(
-                query, mode="subgroup", validate=validate_query
-            )
-        if sort_by is not None:
-            params["sortBy"] = sort_by
-            params["sortDesc"] = str(sort_desc).lower()
-        response = self._client.get("/searchSubgroup", params=params)
-        _raise_for_status(response)
-        return SubgroupSearchResult.model_validate(response.json(), verbose=verbose)
+    _endpoint = "/searchSubgroup"
+    _mode = "subgroup"
+    _result_model = SubgroupSearchResult
 
 
-class TriggerResource:
+class TriggerResource(_Resource[TriggerSearchResult]):
     """Accessor for /searchTrigger endpoint."""
 
-    def __init__(self, client: httpx.Client) -> None:
-        """Store the shared httpx client."""
-        self._client = client
-
-    def search(
-        self,
-        *,
-        query: str | Expression | None = None,
-        offset: int = 0,
-        limit: int = 50,
-        sort_by: str | None = None,
-        sort_desc: bool = False,
-        validate_query: bool = True,
-        verbose: bool = False,
-    ) -> TriggerSearchResult:
-        """Search triggers via GET /searchTrigger."""
-        params: dict[str, Any] = {"offset": offset, "limit": limit}
-        if query is not None:
-            params["queryString"] = _resolve_query(
-                query, mode="trigger", validate=validate_query
-            )
-        if sort_by is not None:
-            params["sortBy"] = sort_by
-            params["sortDesc"] = str(sort_desc).lower()
-        response = self._client.get("/searchTrigger", params=params)
-        _raise_for_status(response)
-        return TriggerSearchResult.model_validate(response.json(), verbose=verbose)
+    _endpoint = "/searchTrigger"
+    _mode = "trigger"
+    _result_model = TriggerSearchResult
 
 
 class Glance:
