@@ -28,13 +28,6 @@ repos:
       - id: requirements-txt-fixer
       - id: trailing-whitespace
 
-  - repo: https://github.com/pre-commit/pygrep-hooks
-    rev: "v1.10.0"
-    hooks:
-      - id: rst-backticks
-      - id: rst-directive-colons
-      - id: rst-inline-touching-normal
-
   - repo: https://github.com/rbubley/mirrors-prettier
     rev: "v3.8.3"
     hooks:
@@ -64,7 +57,7 @@ repos:
           - keyring>=25
           - PyJWT[crypto]>=2.8
           - filelock>=3.13
-          - typer[all]>=0.12
+          - typer>=0.12
           - platformdirs>=4
           - respx>=0.21
           - lark>=1.2
@@ -102,9 +95,3 @@ repos:
       - id: check-dependabot
       - id: check-github-workflows
       - id: check-readthedocs
-
-  - repo: https://github.com/rstcheck/rstcheck
-    rev: "v6.2.5"
-    hooks:
-      - id: rstcheck
-        additional_dependencies: ["rstcheck[sphinx,toml]"]
