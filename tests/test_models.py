@@ -1388,6 +1388,25 @@ class TestRichRendering:
         result = s.__rich__()
         assert isinstance(result, Panel)
 
+    def test_publication_phase_rich_includes_preprint_row(self) -> None:
+        s = PublicationPhase.model_validate(
+            {
+                "cernPreprintUrls": [
+                    {
+                        "label": "CERN-EP-2019-132",
+                        "url": "https://cds.cern.ch/record/2682119",
+                    }
+                ]
+            }
+        )
+        result = s.__rich__()
+        assert isinstance(result, Panel)
+        console = _make_console()
+        console.print(result)
+        text = console.export_text()
+        assert "Preprint" in text
+        assert "CERN-EP-2019-132" in text
+
     def test_collisions_rich_single(self) -> None:
         colls = Collisions.model_validate(
             [
