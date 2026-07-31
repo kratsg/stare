@@ -31,7 +31,7 @@ def _get_lark() -> Lark:
 
 
 def _has_unquoted_paren(source: str) -> bool:
-    """True if '(' appears outside a STRING (double-quoted, no escapes per grammar)."""
+    """This returns True if '(' appears outside a STRING (double-quoted, no escapes per grammar)."""
     in_string = False
     for char in source:
         if char == '"':
