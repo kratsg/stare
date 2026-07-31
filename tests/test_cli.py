@@ -473,6 +473,8 @@ def test_analysis_search_not_enough_results() -> None:
             app, ["analysis", "search", "--limit", "10", "--offset", "5"]
         )
     assert result.exit_code == 2
+    assert "Invalid offset" in result.stderr
+    assert "Invalid offset" not in result.stdout
 
 
 # ---------------------------------------------------------------------------
@@ -569,6 +571,8 @@ def test_paper_search_not_enough_results() -> None:
             app, ["paper", "search", "--limit", "10", "--offset", "5"]
         )
     assert result.exit_code == 2
+    assert "Invalid offset" in result.stderr
+    assert "Invalid offset" not in result.stdout
 
 
 # ---------------------------------------------------------------------------
@@ -643,6 +647,17 @@ def test_confnote_search_with_query() -> None:
     assert call_kwargs["query"] == "test"
 
 
+def test_confnote_search_not_enough_results() -> None:
+    g = _mock_glance()
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(
+            app, ["confnote", "search", "--limit", "10", "--offset", "5"]
+        )
+    assert result.exit_code == 2
+    assert "Invalid offset" in result.stderr
+    assert "Invalid offset" not in result.stdout
+
+
 # ---------------------------------------------------------------------------
 # pubnote get
 # ---------------------------------------------------------------------------
@@ -700,6 +715,17 @@ def test_pubnote_search_with_query() -> None:
     assert result.exit_code == 0
     call_kwargs = g.pubnotes.search.call_args.kwargs
     assert call_kwargs["query"] == "test"
+
+
+def test_pubnote_search_not_enough_results() -> None:
+    g = _mock_glance()
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(
+            app, ["pubnote", "search", "--limit", "10", "--offset", "5"]
+        )
+    assert result.exit_code == 2
+    assert "Invalid offset" in result.stderr
+    assert "Invalid offset" not in result.stdout
 
 
 # ---------------------------------------------------------------------------
