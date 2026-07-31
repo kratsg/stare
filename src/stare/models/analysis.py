@@ -28,8 +28,8 @@ from stare.models.common import (
     _Base,
 )
 from stare.models.enums import (
-    AnalysisStatus,
     LenientAnalysisPhase0State,
+    LenientAnalysisStatus,
     MeetingType,
 )
 from stare.settings import StareSettings
@@ -101,16 +101,23 @@ class AnalysisPhase0(_Base):
         groups: dict[str, list[dict[str, Any]]] = {
             api_key: [] for api_key in _MEETING_API_KEYS.values()
         }
+        unmapped: list[dict[str, Any]] = []
         for m_dict in raw_meetings:
             mt_val = m_dict.pop(mt_key, None)
             try:
-                mt = MeetingType(mt_val)
+                api_key = _MEETING_API_KEYS[MeetingType(mt_val)]
             except (ValueError, TypeError):
+                # Unknown (lenient) meeting type — preserve instead of dropping.
+                _logger.warning(
+                    "Unknown meeting type %r — serializing under 'meetings'", mt_val
+                )
+                m_dict[mt_key] = mt_val
+                unmapped.append(m_dict)
                 continue
-            api_key = _MEETING_API_KEYS.get(mt)
-            if api_key:
-                groups[api_key].append(m_dict)
+            groups[api_key].append(m_dict)
         result.update(groups)
+        if unmapped:
+            result["meetings"] = unmapped
         return result
 
 
@@ -119,7 +126,7 @@ class Analysis(_Base):
 
     reference_code: str = Field(pattern=r"^ANA-[A-Z]+-\d{4}-\d{2}$")
     creation_date: date | None = None
-    status: AnalysisStatus
+    status: LenientAnalysisStatus
     short_title: str | None = None
     public_short_title: str | None = None
     groups: Groups | None = None

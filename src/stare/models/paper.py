@@ -28,7 +28,7 @@ from stare.models.enums import (
     LenientPaperPhase1State,
     LenientPaperPhase2State,
     LenientPaperPublicationphaseState,
-    PaperStatus,
+    LenientPaperStatus,
 )
 from stare.settings import StareSettings
 from stare.urls import paper_url
@@ -157,7 +157,7 @@ class Paper(_Base):
     """A published ATLAS paper."""
 
     reference_code: str = Field(pattern=r"^[A-Z]+-\d{4}-\d{2}$")
-    status: PaperStatus
+    status: LenientPaperStatus
     short_title: str | None = None
     public_short_title: str | None = None
     full_title: str | None = None

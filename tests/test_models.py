@@ -567,6 +567,29 @@ class TestAnalysis:
         assert dumped["referenceCode"] == "ANA-X-2021-01"
         assert dumped["publicShortTitle"] == "Public"
 
+    def test_lenient_status_accepts_unknown(self, caplog) -> None:
+        with caplog.at_level(logging.WARNING, logger="stare"):
+            a = Analysis.model_validate(
+                {
+                    "referenceCode": "ANA-HION-2018-01",
+                    "status": "Brand New Status",
+                }
+            )
+        assert a.status == "Brand New Status"
+        assert "AnalysisStatus" in caplog.text
+
+    def test_unknown_meeting_type_survives_round_trip(self, caplog) -> None:
+        # A new API meeting key would surface as an unknown lenient meeting_type;
+        # serialization must not silently drop it.
+        a = AnalysisPhase0.model_validate(
+            {"meetings": [{"title": "Mystery", "meetingType": "brand_new_meeting"}]}
+        )
+        assert a.meetings[0].meeting_type == "brand_new_meeting"
+        with caplog.at_level(logging.WARNING, logger="stare"):
+            dumped = a.model_dump(by_alias=True)
+        assert any(m["title"] == "Mystery" for m in dumped["meetings"])
+        assert "brand_new_meeting" in caplog.text
+
 
 # ---------------------------------------------------------------------------
 # Paper models
@@ -1494,14 +1517,16 @@ class TestConfNote:
         assert dumped["temporaryReferenceCode"] == "CONF-HION-2024-01"
         assert dumped["finalReferenceCode"] == "ATLAS-CONF-2024-001"
 
-    def test_strict_status_rejects_unknown(self) -> None:
-        with pytest.raises(ResponseParseError):
-            ConfNote.model_validate(
+    def test_lenient_status_accepts_unknown(self, caplog) -> None:
+        with caplog.at_level(logging.WARNING, logger="stare"):
+            note = ConfNote.model_validate(
                 {
                     "temporaryReferenceCode": "CONF-HION-2024-01",
                     "status": "SomeUnknownStatus",
                 }
             )
+        assert note.status == "SomeUnknownStatus"
+        assert "ConfnoteStatus" in caplog.text
 
     def test_final_reference_code_optional(self) -> None:
         note = ConfNote.model_validate(
@@ -1576,14 +1601,16 @@ class TestPubNote:
         assert dumped["temporaryReferenceCode"] == "PUB-EXOT-2026-03"
         assert dumped["finalReferenceCode"] == "ATL-PHYS-PUB-2024-01"
 
-    def test_strict_status_rejects_unknown(self) -> None:
-        with pytest.raises(ResponseParseError):
-            PubNote.model_validate(
+    def test_lenient_status_accepts_unknown(self, caplog) -> None:
+        with caplog.at_level(logging.WARNING, logger="stare"):
+            note = PubNote.model_validate(
                 {
                     "temporaryReferenceCode": "PUB-EXOT-2026-03",
                     "status": "SomeUnknownStatus",
                 }
             )
+        assert note.status == "SomeUnknownStatus"
+        assert "PubnoteStatus" in caplog.text
 
     def test_final_reference_code_optional(self) -> None:
         note = PubNote.model_validate(
@@ -1634,6 +1661,14 @@ class TestPubNotePhase1:
 
 
 class TestPaperAliases:
+    def test_lenient_status_accepts_unknown(self, caplog) -> None:
+        with caplog.at_level(logging.WARNING, logger="stare"):
+            p = Paper.model_validate(
+                {"referenceCode": "HDBS-2024-01", "status": "Brand New Status"}
+            )
+        assert p.status == "Brand New Status"
+        assert "PaperStatus" in caplog.text
+
     def test_arxiv_submission_date_alias(self) -> None:
         s = PublicationPhase.model_validate(
             {"arXivSubmissionDate": "2024-01-15T00:00:00+00:00"}
