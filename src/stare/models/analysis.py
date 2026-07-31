@@ -124,7 +124,7 @@ class AnalysisPhase0(_Base):
 class Analysis(_Base):
     """A single ATLAS analysis record."""
 
-    reference_code: str
+    reference_code: str = Field(pattern=r"^ANA-[A-Z]+-\d{4}-\d{2}$")
     creation_date: date | None = None
     status: LenientAnalysisStatus
     short_title: str | None = None
