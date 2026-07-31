@@ -53,9 +53,10 @@ Every resource that supports server-side search exposes a
 | `--no-cache`                   |       | Bypass the 8-hour cache for this invocation   |
 | `--validate` / `--no-validate` |       | Enable/disable client-side DSL field checking |
 
-Today `--query`/`-q` applies to `stare analysis search`, `stare paper search`,
-and `stare publications search`; more search commands will appear as the server
-rolls out new endpoints.
+`--query`/`-q` is supported by every search subcommand: `stare analysis search`,
+`stare paper search`, `stare confnote search`, `stare pubnote search`,
+`stare publications search`, `stare leadinggroups search`,
+`stare subgroups search`, and `stare triggers search`.
 
 ```bash
 # List recent analyses (default limit: 50)

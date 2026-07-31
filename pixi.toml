@@ -110,6 +110,7 @@ extract-fields = { cmd = "python scripts/extract_dsl_fields.py", description = "
 extract-enums = { cmd = "python scripts/extract_enums.py", description = "Regenerate enum fields from statuses.md" }
 
 [environments]
+default = ["test"]
 docs = ["docs"]
 dev = ["dev"]
 py310 = ["test", "py310"]
