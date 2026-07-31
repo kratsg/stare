@@ -82,6 +82,7 @@ class PublicationPhase(_Base):
     state: LenientPaperPublicationphaseState | None = None
     start_date: date | None = None
     arxiv_urls: list[RequiredLink] = Field(default_factory=list, alias="arXivUrls")
+    cern_preprint_urls: list[RequiredLink] = Field(default_factory=list)
     final_title_tex: str | None = None
     final_submission_journal: str | None = None
     arxiv_submission_date: AwareDatetime | None = Field(
@@ -119,6 +120,9 @@ class PublicationPhase(_Base):
 
         if self.arxiv_urls:
             rows.append(("arXiv", _link_texts(self.arxiv_urls)))
+
+        if self.cern_preprint_urls:
+            rows.append(("Preprint", _link_texts(self.cern_preprint_urls)))
 
         if self.final_submission_journal:
             rows.append(("Journal", Text(self.final_submission_journal)))
