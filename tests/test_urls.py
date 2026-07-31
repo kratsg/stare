@@ -55,7 +55,7 @@ class TestPubnoteUrl:
 class TestPlotUrl:
     def test_default_base(self) -> None:
         url = plot_url("PLOT-MUON-2018-08", web_base=_BASE)
-        assert url == f"{_BASE}/plots/details?ref_code=PLOT-MUON-2018-08"
+        assert url == f"{_BASE}/plots/details.php?ref_code=PLOT-MUON-2018-08"
 
     def test_ref_code_preserved(self) -> None:
         ref = "PLOT-EGAM-2021-01"
