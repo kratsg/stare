@@ -28,7 +28,7 @@ from stare.models.enums import (
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
-    from typing import Any
+    from typing import Any, NoReturn
 
     from typing_extensions import Self
 
@@ -162,6 +162,18 @@ def _format_parse_error(
     return "\n".join(lines), enriched_errors
 
 
+def _raise_parse_error(
+    cls_name: str, exc: ValidationError, *, obj: Any, verbose: bool
+) -> NoReturn:
+    """Wrap a pydantic ValidationError as a ResponseParseError."""
+    msg, details = _format_parse_error(cls_name, exc, obj=obj)
+    raise ResponseParseError(
+        msg,
+        raw_data=obj if verbose else None,
+        details=details,
+    ) from exc
+
+
 class _Base(BaseModel):
     model_config = ConfigDict(
         alias_generator=to_camel,
@@ -180,13 +192,7 @@ class _Base(BaseModel):
         try:
             return super().model_validate(obj, *args, **kwargs)
         except ValidationError as exc:
-            msg, details = _format_parse_error(cls.__name__, exc, obj=obj)
-
-            raise ResponseParseError(
-                msg,
-                raw_data=obj if verbose else None,
-                details=details,
-            ) from exc
+            _raise_parse_error(cls.__name__, exc, obj=obj, verbose=verbose)
 
 
 _T = TypeVar("_T")
@@ -209,12 +215,7 @@ class _ListRootModel(RootModel[list[_T]], Generic[_T]):
         try:
             return super().model_validate(obj, *args, **kwargs)
         except ValidationError as exc:
-            msg, details = _format_parse_error(cls.__name__, exc, obj=obj)
-            raise ResponseParseError(
-                msg,
-                raw_data=obj if verbose else None,
-                details=details,
-            ) from exc
+            _raise_parse_error(cls.__name__, exc, obj=obj, verbose=verbose)
 
     def __iter__(self) -> Iterator[_T]:  # type: ignore[override]
         return iter(self.root)
@@ -414,20 +415,25 @@ class Collision(_Base):
         physics = Table.grid(padding=(0, 1))
         physics.add_column(style="bold cyan", justify="right")
         physics.add_column()
-        run_label = " ".join(
-            part for part in [self.run, f"({self.year})" if self.year else None] if part
-        )
-        ecm_label = " ".join(part for part in [self.ecm_value, self.ecm_unit] if part)
-        lumi_label = " ".join(
-            part for part in [self.luminosity_value, self.luminosity_unit] if part
-        )
-        if run_label:
-            physics.add_row("Run", run_label)
-        if ecm_label:
-            physics.add_row("√s", ecm_label)
-        if lumi_label:
-            physics.add_row("L", lumi_label)
+        _add_collision_rows(physics, self)
         return Panel(physics, title="Physics", expand=True)
+
+
+def _add_collision_rows(physics: Table, coll: Collision) -> None:
+    """Append a collision's run, centre-of-mass energy, and luminosity rows."""
+    run_label = " ".join(
+        part for part in [coll.run, f"({coll.year})" if coll.year else None] if part
+    )
+    ecm_label = " ".join(part for part in [coll.ecm_value, coll.ecm_unit] if part)
+    lumi_label = " ".join(
+        part for part in [coll.luminosity_value, coll.luminosity_unit] if part
+    )
+    if run_label:
+        physics.add_row("Run", run_label)
+    if ecm_label:
+        physics.add_row("√s", ecm_label)
+    if lumi_label:
+        physics.add_row("L", lumi_label)
 
 
 class Collisions(_ListRootModel[Collision]):
@@ -441,23 +447,7 @@ class Collisions(_ListRootModel[Collision]):
         for i, coll in enumerate(self):
             if i > 0:
                 physics.add_row("", "")
-            run_label = " ".join(
-                part
-                for part in [coll.run, f"({coll.year})" if coll.year else None]
-                if part
-            )
-            ecm_label = " ".join(
-                part for part in [coll.ecm_value, coll.ecm_unit] if part
-            )
-            lumi_label = " ".join(
-                part for part in [coll.luminosity_value, coll.luminosity_unit] if part
-            )
-            if run_label:
-                physics.add_row("Run", run_label)
-            if ecm_label:
-                physics.add_row("√s", ecm_label)
-            if lumi_label:
-                physics.add_row("L", lumi_label)
+            _add_collision_rows(physics, coll)
         return Panel(physics, title="Physics", expand=True)
 
 
