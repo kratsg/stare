@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import os
+import sys
 import time
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import keyring.errors
+import pytest
 from keyring.backends.fail import Keyring as FailKeyring
 from platformdirs import user_data_dir
 
@@ -92,6 +95,62 @@ def test_file_storage_lock_path(tmp_path: Path) -> None:
     path = tmp_path / "tokens.json"
     storage = FileTokenStorage(path)
     assert storage.lock_path == tmp_path / "tokens.lock"
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="POSIX permission bits")
+def test_file_storage_save_perms_0600_despite_permissive_umask(tmp_path: Path) -> None:
+    """Even with a wide-open umask, the file must never be created wider than 0600."""
+    path = tmp_path / "tokens.json"
+    storage = FileTokenStorage(path)
+
+    old_umask = os.umask(0o000)
+    try:
+        storage.save(_make_stored_token())
+    finally:
+        os.umask(old_umask)
+    assert path.stat().st_mode & 0o777 == 0o600
+
+
+def test_file_storage_save_leaves_no_temp_file_behind(tmp_path: Path) -> None:
+    path = tmp_path / "tokens.json"
+    storage = FileTokenStorage(path)
+    storage.save(_make_stored_token())
+    assert {p.name for p in tmp_path.iterdir()} == {"tokens.json"}
+
+
+def test_file_storage_save_overwrite_is_atomic_replace(tmp_path: Path) -> None:
+    """save() must replace the target via a single atomic rename, not truncate-in-place."""
+    path = tmp_path / "tokens.json"
+    storage = FileTokenStorage(path)
+    storage.save(_make_stored_token(access_token="first"))
+    first_inode = path.stat().st_ino
+
+    with patch(
+        "pathlib.Path.replace", side_effect=Path.replace, autospec=True
+    ) as mock_replace:
+        storage.save(_make_stored_token(access_token="second"))
+
+    mock_replace.assert_called_once()
+    tmp_arg, target_arg = mock_replace.call_args.args
+    assert target_arg == path
+    assert tmp_arg.parent == path.parent
+    # A real rename produces a new inode; content is never edited in place.
+    assert path.stat().st_ino != first_inode
+    loaded = storage.load()
+    assert loaded is not None
+    assert loaded.access_token == "second"
+
+
+def test_file_storage_load_uses_utf8_encoding(tmp_path: Path) -> None:
+    """load() must not rely on locale-dependent default encoding (see save(), which pins utf-8)."""
+    path = tmp_path / "tokens.json"
+    path.write_text(_make_stored_token().model_dump_json(), encoding="utf-8")
+    storage = FileTokenStorage(path)
+    with patch(
+        "pathlib.Path.read_text", side_effect=Path.read_text, autospec=True
+    ) as mock_read_text:
+        storage.load()
+    mock_read_text.assert_called_once_with(path, encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
