@@ -11,6 +11,7 @@ from stare.models.common import Groups, _Base
 from stare.models.confnote import ConfNote
 from stare.models.enums import LenientPublicationType
 from stare.models.paper import Paper
+from stare.models.plot import Plot
 from stare.models.pubnote import PubNote
 
 T = TypeVar("T")
@@ -33,6 +34,10 @@ class ConfNoteSearchResult(_SearchResultsBase[ConfNote]):
 
 class PaperSearchResult(_SearchResultsBase[Paper]):
     """Top-level response from GET /searchPaper."""
+
+
+class PlotSearchResult(_SearchResultsBase[Plot]):
+    """Top-level response from GET /searchPlot."""
 
 
 class PubNoteSearchResult(_SearchResultsBase[PubNote]):

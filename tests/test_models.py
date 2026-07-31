@@ -40,6 +40,7 @@ from stare.models.confnote import ConfNote, ConfNotePhase1
 from stare.models.enums import ConfnotePhase1State, MeetingType
 from stare.models.errors import ApiErrorResponse
 from stare.models.paper import Paper, PaperPhase1, PaperPhase2, PublicationPhase
+from stare.models.plot import Plot, PlotPhase1
 from stare.models.pubnote import PubNote, PubNotePhase1, Readers
 from stare.models.search import (
     AnalysisSearchResult,
@@ -47,6 +48,7 @@ from stare.models.search import (
     LeadingGroup,
     LeadingGroupSearchResult,
     PaperSearchResult,
+    PlotSearchResult,
     PublicationSearchResult,
     PublicationSummary,
     PubNoteSearchResult,
@@ -1656,6 +1658,88 @@ class TestPubNotePhase1:
 
 
 # ---------------------------------------------------------------------------
+# Plot models
+# ---------------------------------------------------------------------------
+
+
+class TestPlot:
+    def test_round_trip(self) -> None:
+        payload = {
+            "referenceCode": "PLOT-MUON-2018-08",
+            "status": "phase1_closed",
+            "shortTitle": "Test plot",
+        }
+        plot = Plot.model_validate(payload)
+        assert plot.reference_code == "PLOT-MUON-2018-08"
+        assert plot.status == "phase1_closed"
+        assert plot.short_title == "Test plot"
+        dumped = plot.model_dump(by_alias=True, exclude_none=True)
+        assert dumped["referenceCode"] == "PLOT-MUON-2018-08"
+        assert dumped["status"] == "phase1_closed"
+
+    def test_optional_fields_default_none(self) -> None:
+        plot = Plot.model_validate({})
+        assert plot.reference_code is None
+        assert plot.status is None
+        assert plot.short_title is None
+        assert plot.full_title is None
+        assert plot.groups is None
+        assert plot.documentation is None
+        assert plot.metadata is None
+        assert plot.phase1 is None
+        assert len(plot.analysis_team) == 0
+        assert plot.superseded_by == []
+
+
+class TestPlotPhase1:
+    def test_field_parsing(self) -> None:
+        p = PlotPhase1.model_validate(
+            {
+                "startDate": "2018-05-14",
+                "state": "phase1_closed",
+                "draftCdsUrl": "https://cds.cern.ch/record/0000202",
+                "groupCoordinatorSignOff": "Approved",
+                "finalCdsReport": "https://cds.cern.ch/record/0000203",
+            }
+        )
+        assert p.start_date == "2018-05-14"
+        assert p.state == "phase1_closed"
+        assert p.draft_cds_url == "https://cds.cern.ch/record/0000202"
+        assert p.group_coordinator_sign_off == "Approved"
+        assert p.final_cds_report == "https://cds.cern.ch/record/0000203"
+
+    def test_all_optional(self) -> None:
+        p = PlotPhase1.model_validate({})
+        assert p.start_date is None
+        assert p.state is None
+        assert p.draft_cds_url is None
+        assert p.group_coordinator_sign_off is None
+        assert p.final_cds_report is None
+
+
+class TestPlotSearchResult:
+    def test_round_trip(self) -> None:
+        payload = {
+            "numberOfResults": 1,
+            "results": [
+                {
+                    "referenceCode": "PLOT-MUON-2018-08",
+                    "status": "phase1_closed",
+                    "shortTitle": "x",
+                }
+            ],
+        }
+        result = PlotSearchResult.model_validate(payload)
+        assert result.number_of_results == 1
+        assert result.results[0].reference_code == "PLOT-MUON-2018-08"
+
+    def test_empty_results(self) -> None:
+        result = PlotSearchResult.model_validate({"numberOfResults": 0, "results": []})
+        assert result.number_of_results == 0
+        assert result.results == []
+
+
+# ---------------------------------------------------------------------------
 # api.yml alias alignment tests (TDD: these must fail before model fixes)
 # ---------------------------------------------------------------------------
 
@@ -1901,3 +1985,29 @@ class TestRealWorldPubNote:
         assert len(r.analysis_team) > 0
         assert r.analysis_team[0].email is not None
         assert r.analysis_team[0].email.endswith("@star.wars")
+
+
+class TestRealWorldPlot:
+    def test_parses_without_error(self) -> None:
+        data = json.loads((_FIXTURES / "plot_search.json").read_text())
+        result = PlotSearchResult.model_validate(data)
+        assert result.number_of_results == 1
+        assert len(result.results) == 1
+
+    def test_reference_code(self) -> None:
+        data = json.loads((_FIXTURES / "plot_search.json").read_text())
+        r = PlotSearchResult.model_validate(data).results[0]
+        assert r.reference_code == "PLOT-MUON-2018-08"
+
+    def test_analysis_team_anonymized(self) -> None:
+        data = json.loads((_FIXTURES / "plot_search.json").read_text())
+        r = PlotSearchResult.model_validate(data).results[0]
+        assert len(r.analysis_team) > 0
+        assert r.analysis_team[0].email is not None
+        assert r.analysis_team[0].email.endswith("@star.wars")
+
+    def test_superseded_by(self) -> None:
+        data = json.loads((_FIXTURES / "plot_search.json").read_text())
+        r = PlotSearchResult.model_validate(data).results[0]
+        assert len(r.superseded_by) == 1
+        assert r.superseded_by[0].reference_code == "MUON-2020-03"
