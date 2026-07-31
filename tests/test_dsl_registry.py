@@ -6,7 +6,7 @@ import pytest
 
 from stare.dsl.errors import DSLValidationError
 from stare.dsl.models import Operator
-from stare.dsl.registry import FieldRegistry
+from stare.dsl.registry import FieldRegistry, _load_fields_toml
 
 
 @pytest.fixture
@@ -181,3 +181,11 @@ def test_trigger_mode_has_fields() -> None:
     assert "name" in reg.fields()
     assert "year" in reg.fields()
     assert "category.name" in reg.fields()
+
+
+def test_for_mode_caches_toml_parse() -> None:
+    """The bundled TOML is parsed once and reused across for_mode() calls."""
+    _load_fields_toml.cache_clear()
+    FieldRegistry.for_mode("analysis")
+    FieldRegistry.for_mode("paper")
+    assert _load_fields_toml.cache_info().hits >= 1

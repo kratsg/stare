@@ -166,6 +166,20 @@ def test_empty_sentinel_emitted_bare() -> None:
     assert c.to_dsl() == "publicShortTitle = __EMPTY__"
 
 
+@pytest.mark.parametrize(
+    "value", ["and", "or", "AND", "Or", "contain", "not-contain", "=", "!="]
+)
+def test_reserved_token_value_quoted(value: str) -> None:
+    """Values equal to DSL keywords/operators are quoted so they round-trip."""
+    c = Condition.model_validate(
+        {"field": "shortTitle", "operator": Operator.EQ, "value": value}
+    )
+    assert c.to_dsl() == f'shortTitle = "{value}"'
+    reparsed = parse_dsl(c.to_dsl(), mode="analysis")
+    assert isinstance(reparsed, Condition)
+    assert reparsed.value == value
+
+
 def test_multiword_value_round_trips() -> None:
     """parse_dsl → to_dsl is idempotent for double-quoted multi-word values."""
     src = 'shortTitle = "Phase Closed"'

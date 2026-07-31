@@ -73,6 +73,17 @@ def test_parentheses_warn(caplog: pytest.LogCaptureFixture) -> None:
     assert "parenthes" in caplog.text.lower()
 
 
+def test_parens_in_quoted_value_do_not_warn(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Parentheses inside a quoted string value must not trigger the warning."""
+    with caplog.at_level(logging.WARNING, logger="stare"):
+        expr = parse_dsl('shortTitle = "foo (bar)"', mode="analysis")
+    assert "parenthes" not in caplog.text.lower()
+    assert isinstance(expr, Condition)
+    assert expr.value == "foo (bar)"
+
+
 def test_parentheses_stripped_from_output() -> None:
     """Parentheses affect the AST but are not emitted in to_dsl() output."""
     expr = parse_dsl(

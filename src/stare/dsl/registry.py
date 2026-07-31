@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import difflib
+import functools
 import sys
 
 if sys.version_info >= (3, 11):
@@ -11,7 +12,7 @@ else:
     import tomli as tomllib
 
 from importlib.resources import files
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from pydantic.alias_generators import to_camel
 
@@ -22,6 +23,14 @@ if TYPE_CHECKING:
     from stare.typing import Mode
 
 _EQ_NE_ONLY = frozenset({Operator.EQ, Operator.NE})
+
+
+@functools.cache
+def _load_fields_toml() -> dict[str, Any]:
+    """Parse the bundled query-fields.toml once; reused across all for_mode() calls."""
+    data = files("stare.data").joinpath("query-fields.toml").read_text()
+    result: dict[str, Any] = tomllib.loads(data)
+    return result
 
 
 class FieldRegistry:
@@ -39,8 +48,7 @@ class FieldRegistry:
     @classmethod
     def for_mode(cls, mode: Mode) -> FieldRegistry:
         """Load the field catalogue for *mode* from the bundled TOML data file."""
-        data = files("stare.data").joinpath("query-fields.toml").read_text()
-        mode_data = tomllib.loads(data)[mode]
+        mode_data = _load_fields_toml()[mode]
         fields = mode_data["fields"]
         boolean_fields = mode_data.get("boolean_fields", [])
         return cls(frozenset(fields), frozenset(boolean_fields))

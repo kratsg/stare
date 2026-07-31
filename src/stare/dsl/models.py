@@ -23,6 +23,10 @@ class Operator(str, Enum):
 
 Expression = Union["Condition", "And", "Or"]
 
+# DSL keywords and operator tokens; a bare value equal to one of these would be
+# reparsed as syntax, so to_dsl() quotes it.
+_RESERVED_VALUES = frozenset({"and", "or", "contain", "not-contain", "=", "!="})
+
 
 class Condition(BaseModel):
     """A single field OP value predicate."""
@@ -39,9 +43,10 @@ class Condition(BaseModel):
         - embedded double-quotes are unsupported (escaped-quote support not yet implemented)
         - non-space whitespace (tabs, newlines, etc.) is excluded by the grammar
 
-        Wraps the value in double quotes when it is empty or contains spaces,
-        parentheses, or square brackets; emits bare otherwise.  Fields are always
-        emitted bare after normalization.
+        Wraps the value in double quotes when it is empty, contains spaces,
+        parentheses, or square brackets, or is a DSL keyword/operator token
+        (which would otherwise be reparsed as syntax); emits bare otherwise.
+        Fields are always emitted bare after normalization.
         """
         if '"' in self.value:
             # STRING: /"[^"\n\r\t\f\v]*"/ excludes embedded double-quotes entirely.
@@ -55,11 +60,12 @@ class Condition(BaseModel):
             # STRING: /"[^"\n\r\t\f\v]*"/ excludes non-space whitespace at the grammar level.
             msg = f"to_dsl: self.value {self.value!r} contains non-space whitespace {bad_ws!r}, which is not supported"
             raise ValueError(msg)
-        value = (
-            f'"{self.value}"'
-            if self.value == "" or any(c in " ()[]" for c in self.value)
-            else self.value
+        needs_quotes = (
+            self.value == ""
+            or any(c in " ()[]" for c in self.value)
+            or self.value.lower() in _RESERVED_VALUES
         )
+        value = f'"{self.value}"' if needs_quotes else self.value
         return f"{self.field} {self.operator} {value}"
 
 
