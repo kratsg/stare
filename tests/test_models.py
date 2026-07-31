@@ -646,9 +646,25 @@ class TestPublicationPhase:
         assert len(s.final_journal_publication_urls) == 1
         assert s.final_journal_publication_urls[0].label == "JHEP 01 (2025) 001"
 
+    def test_cern_preprint_urls(self) -> None:
+        s = PublicationPhase.model_validate(
+            {
+                "cernPreprintUrls": [
+                    {
+                        "label": "CERN-EP-2019-132",
+                        "url": "https://cds.cern.ch/record/2682119",
+                    }
+                ]
+            }
+        )
+        assert len(s.cern_preprint_urls) == 1
+        assert s.cern_preprint_urls[0].label == "CERN-EP-2019-132"
+        assert s.cern_preprint_urls[0].url == "https://cds.cern.ch/record/2682119"
+
     def test_all_optional(self) -> None:
         s = PublicationPhase.model_validate({})
         assert s.arxiv_urls == []
+        assert s.cern_preprint_urls == []
         assert s.physics_briefing_urls == []
         assert s.final_journal_publication_urls == []
 
@@ -1372,6 +1388,25 @@ class TestRichRendering:
         result = s.__rich__()
         assert isinstance(result, Panel)
 
+    def test_publication_phase_rich_includes_preprint_row(self) -> None:
+        s = PublicationPhase.model_validate(
+            {
+                "cernPreprintUrls": [
+                    {
+                        "label": "CERN-EP-2019-132",
+                        "url": "https://cds.cern.ch/record/2682119",
+                    }
+                ]
+            }
+        )
+        result = s.__rich__()
+        assert isinstance(result, Panel)
+        console = _make_console()
+        console.print(result)
+        text = console.export_text()
+        assert "Preprint" in text
+        assert "CERN-EP-2019-132" in text
+
     def test_collisions_rich_single(self) -> None:
         colls = Collisions.model_validate(
             [
@@ -1738,6 +1773,14 @@ class TestRealWorldPaper:
         r = PaperSearchResult.model_validate(data).results[0]
         assert r.publication_phase is not None
         assert r.publication_phase.arxiv_submission_date is not None
+
+    def test_cern_preprint_urls(self) -> None:
+        # verifies the cernPreprintUrls key on the paper endpoint is parsed
+        data = json.loads((_FIXTURES / "paper_search.json").read_text())
+        r = PaperSearchResult.model_validate(data).results[0]
+        assert r.publication_phase is not None
+        assert len(r.publication_phase.cern_preprint_urls) == 1
+        assert r.publication_phase.cern_preprint_urls[0].label == "CERN-EP-2026-099"
 
     def test_analysis_team_anonymized(self) -> None:
         data = json.loads((_FIXTURES / "paper_search.json").read_text())

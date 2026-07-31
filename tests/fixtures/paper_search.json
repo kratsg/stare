@@ -748,6 +748,12 @@
         "state": "CERN and ATLAS Collection",
         "startDate": "2026-05-08",
         "arXivUrls": [],
+        "cernPreprintUrls": [
+          {
+            "label": "CERN-EP-2026-099",
+            "url": "https://cds.cern.ch/record/2900000"
+          }
+        ],
         "finalTitleTex": "Track and Vertex Reconstruction with the ATLAS Inner Detector",
         "finalSubmissionJournal": null,
         "arXivSubmissionDate": "2026-05-08T13:00:00+02:00",
