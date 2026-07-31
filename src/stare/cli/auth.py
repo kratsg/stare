@@ -57,7 +57,11 @@ def auth_login() -> None:
 def auth_logout() -> None:
     """Remove stored authentication tokens."""
     tm = utils.make_token_manager()
-    tm.logout()
+    try:
+        tm.logout()
+    except StareError as exc:
+        utils.handle_error(exc)
+        raise typer.Exit(1) from exc
     utils.console.print("Logged out.")
 
 
@@ -156,18 +160,22 @@ def auth_info(
 
     exp: int = info.expires_at
     now = int(time.time())
-    is_expired: bool = info.is_expired
     claims = info.claims
 
+    # Derive the label from the real expiry vs now (not info.is_expired, which
+    # bakes in a 60s refresh margin) so the state matches the shown timestamp.
+    remaining = exp - now
     expires_dt = datetime.fromtimestamp(exp, tz=timezone.utc)
-    if not is_expired:
-        remaining = exp - now
+    ts = expires_dt.strftime("%Y-%m-%d %H:%M:%S %Z")
+    if remaining > 60:
         mins, secs = divmod(remaining, 60)
-        expiry_label = f"[green]valid[/green] — expires in {mins}m {secs}s ({expires_dt.strftime('%Y-%m-%d %H:%M:%S %Z')})"
-    else:
+        expiry_label = f"[green]valid[/green] — expires in {mins}m {secs}s ({ts})"
+    elif remaining > 0:
         expiry_label = (
-            f"[red]expired[/red] ({expires_dt.strftime('%Y-%m-%d %H:%M:%S %Z')})"
+            f"[yellow]expiring soon[/yellow] — expires in {remaining}s ({ts})"
         )
+    else:
+        expiry_label = f"[red]expired[/red] ({ts})"
 
     table = Table(show_header=False, box=None, padding=(0, 1))
     table.add_column(style="dim")

@@ -114,6 +114,7 @@ class TokenManager:
 
         received: dict[str, str] = {}
         code_queue: queue.Queue[str] = queue.Queue(maxsize=1)
+        stop_serving = threading.Event()
 
         class _CallbackHandler(BaseHTTPRequestHandler):
             def do_GET(self) -> None:  # pylint: disable=invalid-name
@@ -141,6 +142,7 @@ class TokenManager:
                 self.wfile.write(b"Authentication complete. You can close this window.")
                 with contextlib.suppress(queue.Full):
                     code_queue.put_nowait(received["code"])
+                stop_serving.set()
 
             def log_message(self, *args: object) -> None:  # suppress server logs
                 pass
@@ -156,7 +158,9 @@ class TokenManager:
                 f"redirect URI with the Keycloak client, then run `stare auth login` again."
             )
             raise AuthenticationError(msg) from exc
-        server.timeout = 125.0  # slightly longer than the queue timeout below
+        # Short per-request timeout so the serving loop can re-check its stop
+        # condition between requests rather than blocking on a single one.
+        server.timeout = 0.5
         redirect_uri = f"http://localhost:{self._settings.callback_port}/callback"
 
         auth_params = {
@@ -170,10 +174,16 @@ class TokenManager:
         }
         auth_url = f"{self._settings.auth_url}?{urlencode(auth_params)}"
 
-        # Start callback server in a background thread
+        # Serve callback requests in a loop until a code is queued or the
+        # deadline passes. Looping (rather than a single handle_request) keeps
+        # login alive when a stray request — favicon probe, stale tab reload,
+        # port scan — reaches the port before the real OAuth redirect.
+        serving_deadline = time.monotonic() + 122.0
+
         def _serve() -> None:
-            with contextlib.suppress(OSError):
-                server.handle_request()
+            while not stop_serving.is_set() and time.monotonic() < serving_deadline:
+                with contextlib.suppress(OSError):
+                    server.handle_request()
 
         threading.Thread(target=_serve, daemon=True).start()
 
@@ -203,6 +213,9 @@ class TokenManager:
             )
             raise AuthenticationError(msg) from err
         finally:
+            # Stop the serving loop before closing so the thread doesn't spin
+            # on the closed socket.
+            stop_serving.set()
             server.server_close()
 
         # Validate state only when it was received from the server callback
@@ -272,7 +285,11 @@ class TokenManager:
             if token is not None:
                 self._revoke_token(token.refresh_token, "refresh_token")
                 self._revoke_token(token.access_token, "access_token")
-            self._storage.delete()
+            try:
+                self._storage.delete()
+            except Exception as exc:
+                msg = f"Failed to remove stored credentials: {exc}"
+                raise AuthenticationError(msg) from exc
             self._exchanged_token = None
             self._exchanged_expires_at = 0
             self._base_token = None

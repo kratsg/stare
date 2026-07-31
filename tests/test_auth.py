@@ -23,7 +23,7 @@ from stare.auth import TokenManager, _decode_jwt_payload
 from stare.exceptions import AuthenticationError, TokenExpiredError
 from stare.models.auth import JwtClaims, ResourceAccessEntry, TokenInfo, _StoredToken
 from stare.settings import StareSettings
-from stare.storage import TokenStorage
+from stare.storage import FileTokenStorage, TokenStorage
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -271,6 +271,25 @@ def test_logout_skips_revocation_when_no_stored_tokens(
         manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
         manager.logout()
     assert not revoke_route.called
+
+
+def test_logout_wraps_storage_delete_errors(
+    stored_token_path: Path, test_settings: StareSettings
+) -> None:
+    """A raw backend error from storage.delete() surfaces as AuthenticationError."""
+
+    class _BoomStorage(FileTokenStorage):
+        def delete(self) -> None:
+            msg = "keyring backend exploded"
+            raise RuntimeError(msg)
+
+    with respx.mock:
+        respx.post(test_settings.revocation_url).mock(return_value=httpx.Response(200))
+        manager = TokenManager(
+            settings=test_settings, storage=_BoomStorage(stored_token_path)
+        )
+        with pytest.raises(AuthenticationError):
+            manager.logout()
 
 
 # ---------------------------------------------------------------------------
@@ -717,6 +736,65 @@ def test_login_uses_manual_code_fallback(
     stored = json.loads(tmp_token_path.read_text())
     assert stored["access_token"] == "manual-access"
     assert stored["refresh_token"] == "manual-refresh"
+
+
+def test_login_survives_stray_request_before_callback(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    """A stray request hitting the port first must not break the real callback."""
+    captured_url: dict[str, str] = {}
+
+    def _fake_browser(url: str) -> bool:
+        captured_url["url"] = url
+        return True
+
+    def _run() -> None:
+        deadline = time.time() + 5.0
+        while "url" not in captured_url and time.time() < deadline:
+            time.sleep(0.01)
+        url = captured_url.get("url", "")
+        if not url:
+            return
+        params = parse_qs(urlparse(url).query)
+        state = params.get("state", [""])[0]
+        port = urlparse(params.get("redirect_uri", [""])[0]).port
+        time.sleep(0.05)
+        # Stray request first (favicon probe / stale tab) — must not consume
+        # the only serve slot and starve the real redirect.
+        with contextlib.suppress(OSError, http.client.HTTPException):
+            conn = http.client.HTTPConnection("127.0.0.1", port, timeout=5)
+            conn.request("GET", "/favicon.ico")
+            conn.getresponse().read()
+            conn.close()
+        with contextlib.suppress(Exception):
+            urllib.request.urlopen(
+                f"http://127.0.0.1:{port}/callback?code=real-code&state={state}",
+                timeout=5,
+            )
+
+    new_tokens = {
+        "access_token": "stray-access",
+        "refresh_token": "stray-refresh",
+        "token_type": "Bearer",
+        "expires_in": 3600,
+    }
+
+    t = threading.Thread(target=_run, daemon=True)
+    t.start()
+
+    with respx.mock:
+        respx.post(test_settings.token_url).mock(
+            return_value=httpx.Response(200, json=new_tokens)
+        )
+        with patch("stare.auth.webbrowser.open", side_effect=_fake_browser):
+            manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+            manager.login()
+
+    t.join(timeout=5.0)
+
+    assert tmp_token_path.exists()
+    stored = json.loads(tmp_token_path.read_text())
+    assert stored["access_token"] == "stray-access"
 
 
 # ---------------------------------------------------------------------------

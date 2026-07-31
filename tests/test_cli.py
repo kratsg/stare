@@ -229,6 +229,15 @@ def test_auth_logout_command_calls_token_manager() -> None:
     mock_tm.logout.assert_called_once()
 
 
+def test_auth_logout_shows_error_on_failure() -> None:
+    mock_tm = MagicMock()
+    mock_tm.logout.side_effect = AuthenticationError("keyring locked")
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "logout"])
+    assert result.exit_code != 0
+    assert "keyring locked" in result.output
+
+
 def test_auth_status_authenticated() -> None:
     mock_tm = MagicMock()
     mock_tm.is_authenticated.return_value = True
@@ -285,6 +294,23 @@ def test_auth_info_shows_expired_when_token_expired() -> None:
         result = runner.invoke(app, ["auth", "info"])
     assert result.exit_code == 0
     assert "expired" in result.output.lower()
+
+
+def test_auth_info_shows_expiring_soon_within_margin() -> None:
+    """A token still valid but within the 60s refresh margin reads 'expiring soon'."""
+    mock_tm = MagicMock()
+    mock_tm.get_token_info.return_value = TokenInfo(
+        # is_expired bakes in a 60s margin, but the expiry is still in the future.
+        is_expired=True,
+        expires_at=int(__import__("time").time()) + 30,
+        claims=JwtClaims(preferred_username="kratsg"),
+    )
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "info"])
+    assert result.exit_code == 0
+    out = result.output.lower()
+    assert "expiring soon" in out
+    assert "expired" not in out
 
 
 def test_auth_info_shows_audience_string() -> None:
