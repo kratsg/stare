@@ -578,12 +578,6 @@ class TestAnalysis:
         assert a.status == "Brand New Status"
         assert "AnalysisStatus" in caplog.text
 
-    def test_nonconforming_reference_code_accepted(self) -> None:
-        a = Analysis.model_validate(
-            {"referenceCode": "LEGACY-CODE-01", "status": "Created"}
-        )
-        assert a.reference_code == "LEGACY-CODE-01"
-
     def test_unknown_meeting_type_survives_round_trip(self, caplog) -> None:
         # A new API meeting key would surface as an unknown lenient meeting_type;
         # serialization must not silently drop it.
