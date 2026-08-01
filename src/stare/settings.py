@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
@@ -61,3 +62,21 @@ class StareSettings(BaseSettings):
         if self.cache_dir is not None:
             return self.cache_dir
         return Path(platformdirs.user_cache_dir("stare"))
+
+
+@lru_cache(maxsize=1)
+def get_settings() -> StareSettings:
+    """Return a process-wide cached StareSettings instance.
+
+    Intended for read-only rendering paths (CLI table/URL building, model
+    ``__rich__`` methods) that only need ``web_base_url`` and re-parse
+    ``STARE_*`` env vars on every render otherwise. Do NOT use this for the
+    live client/auth path — ``Glance``, ``TokenManager``, and
+    ``cli.utils.make_settings()`` construct ``StareSettings()`` directly so
+    they keep observing env changes (e.g. ``--no-cache``) per call.
+
+    ``lru_cache`` populates under a lock, so concurrent first calls (e.g. from
+    multiple threads within one process) can't race to construct two
+    instances — safe under the GIL.
+    """
+    return StareSettings()

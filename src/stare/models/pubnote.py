@@ -23,7 +23,7 @@ from stare.models.common import (
     _ListRootModel,
 )
 from stare.models.enums import LenientPubnotePhase1State, LenientPubnoteStatus
-from stare.settings import StareSettings
+from stare.settings import get_settings
 from stare.urls import pubnote_url
 
 
@@ -145,7 +145,7 @@ class PubNote(_Base):
             people_cols.append(self.phase1.readers)
 
         # --- Header ---
-        settings = StareSettings()
+        settings = get_settings()
         url = pubnote_url(self.temp_reference_code, web_base=settings.web_base_url)
         header = _build_header(
             self.temp_reference_code,

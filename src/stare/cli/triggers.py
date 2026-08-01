@@ -3,16 +3,26 @@
 from __future__ import annotations
 
 import re
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated
 
 import typer
 from rich.table import Table
 from rich.text import Text
 
-from stare._output import stdout_is_interactive
 from stare.cli import utils
-from stare.dsl.errors import DSLError
-from stare.exceptions import StareError
+from stare.cli._params import (
+    JsonOption,
+    LimitOption,
+    NoCacheOption,
+    OffsetOption,
+    SortDescOption,
+    ValidateOption,
+    VerboseOption,
+)
+from stare.cli._shared import SearchOptions, SearchSpec, run_search
+
+if TYPE_CHECKING:
+    from stare.models import TriggerSearchResult
 
 # Order matters: longer/more-specific prefixes before their single-char subsets.
 _OBJ_RE = re.compile(r"^(\d*)(bj|tau|xs|xe|met|ht|j|e|g|mu)(\d+.*)$")
@@ -114,6 +124,27 @@ def _render_trigger_name(name: str) -> Text:
 triggers_app = typer.Typer(help="Trigger search commands.", rich_markup_mode="rich")
 
 
+def _render_search_table(result: TriggerSearchResult) -> None:
+    table = Table(title=f"Triggers ({result.number_of_results} total)")
+    table.add_column("Name")
+    table.add_column("Year")
+    table.add_column("Category")
+    for trigger in result.results:
+        table.add_row(
+            _render_trigger_name(trigger.name or ""),
+            trigger.year or "",
+            _render_category(trigger.category.name),
+        )
+    utils.console.print(table)
+
+
+_SEARCH_SPEC = SearchSpec(
+    accessor=lambda g: g.triggers,
+    render=_render_search_table,
+    check_offset=False,
+)
+
+
 @triggers_app.command("search")
 def triggers_search(
     query: Annotated[
@@ -124,48 +155,17 @@ def triggers_search(
             help="Filter query (e.g. 'year = 2024'; 'category.name = L1 AND year = 2023'). Ops: =, !=, contain, not-contain.",
         ),
     ] = None,
-    limit: Annotated[
-        int,
-        typer.Option(
-            "--limit", "-n", help="Max results to return (server default: 50)."
-        ),
-    ] = 50,
-    offset: Annotated[
-        int, typer.Option("--offset", help="Result offset for pagination.")
-    ] = 0,
+    limit: LimitOption = 50,
+    offset: OffsetOption = 0,
     sort_by: Annotated[
         str | None,
         typer.Option("--sort-by", help="Field to sort by."),
     ] = None,
-    sort_desc: Annotated[
-        bool, typer.Option("--sort-desc", help="Sort descending.")
-    ] = False,
-    output_json: Annotated[
-        bool | None,
-        typer.Option(
-            "--json/--no-json",
-            help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
-        ),
-    ] = None,
-    no_cache: Annotated[
-        bool,
-        typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
-    ] = False,
-    validate: Annotated[
-        bool,
-        typer.Option(
-            "--validate/--no-validate",
-            help="Validate and normalize the query string (default: on).",
-        ),
-    ] = True,
-    verbose: Annotated[
-        bool,
-        typer.Option(
-            "--verbose",
-            "-v",
-            help="Attach the full raw API response to parse errors (useful for debugging).",
-        ),
-    ] = False,
+    sort_desc: SortDescOption = False,
+    output_json: JsonOption = None,
+    no_cache: NoCacheOption = False,
+    validate: ValidateOption = True,
+    verbose: VerboseOption = False,
 ) -> None:
     """Search HLT triggers via GET /searchTrigger.
 
@@ -180,11 +180,9 @@ def triggers_search(
     [bold]API reference[/bold]
       https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-Trigger-searchTrigger
     """
-    if output_json is None:
-        output_json = not stdout_is_interactive()
-    g = utils.make_glance(no_cache=no_cache)
-    try:
-        result = g.triggers.search(
+    run_search(
+        _SEARCH_SPEC,
+        SearchOptions(
             query=query,
             limit=limit,
             offset=offset,
@@ -192,25 +190,7 @@ def triggers_search(
             sort_desc=sort_desc,
             validate_query=validate,
             verbose=verbose,
-        )
-    except DSLError as exc:
-        raise typer.BadParameter(str(exc), param_hint="--query") from exc
-    except StareError as exc:
-        utils.handle_error(exc)
-        raise typer.Exit(1) from exc
-
-    if output_json:
-        typer.echo(result.model_dump_json(by_alias=True))
-        return
-
-    table = Table(title=f"Triggers ({result.number_of_results} total)")
-    table.add_column("Name")
-    table.add_column("Year")
-    table.add_column("Category")
-    for trigger in result.results:
-        table.add_row(
-            _render_trigger_name(trigger.name or ""),
-            trigger.year or "",
-            _render_category(trigger.category.name),
-        )
-    utils.console.print(table)
+        ),
+        output_json=output_json,
+        no_cache=no_cache,
+    )

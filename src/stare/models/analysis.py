@@ -35,7 +35,7 @@ from stare.models.enums import (
     LenientAnalysisStatus,
     MeetingType,
 )
-from stare.settings import StareSettings
+from stare.settings import get_settings
 from stare.urls import analysis_url
 
 _logger = logging.getLogger("stare")
@@ -229,7 +229,7 @@ class Analysis(_Base):
             people_cols.append(self.phase0.editorial_board)
 
         # --- Header ---
-        settings = StareSettings()
+        settings = get_settings()
         url = analysis_url(self.reference_code, web_base=settings.web_base_url)
         header = _build_header(self.reference_code, url, self.status)
 

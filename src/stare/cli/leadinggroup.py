@@ -2,18 +2,43 @@
 
 from __future__ import annotations
 
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated
 
 import typer
 from rich.table import Table
 
-from stare._output import stdout_is_interactive
 from stare.cli import utils
-from stare.dsl.errors import DSLError
-from stare.exceptions import StareError
+from stare.cli._params import (
+    JsonOption,
+    LimitOption,
+    NoCacheOption,
+    OffsetOption,
+    SortDescOption,
+    ValidateOption,
+    VerboseOption,
+)
+from stare.cli._shared import SearchOptions, SearchSpec, run_search
+
+if TYPE_CHECKING:
+    from stare.models import LeadingGroupSearchResult
 
 leadinggroup_app = typer.Typer(
     help="Leading-group search commands.", rich_markup_mode="rich"
+)
+
+
+def _render_search_table(result: LeadingGroupSearchResult) -> None:
+    table = Table(title=f"Leading Groups ({result.number_of_results} total)")
+    table.add_column("Name", style="cyan")
+    for item in result.results:
+        table.add_row(item.name or "")
+    utils.console.print(table)
+
+
+_SEARCH_SPEC = SearchSpec(
+    accessor=lambda g: g.leadinggroups,
+    render=_render_search_table,
+    check_offset=False,
 )
 
 
@@ -27,48 +52,17 @@ def leadinggroup_search(
             help="Filter query (e.g. 'name = SUSY'; ops: =, !=, contain, not-contain).",
         ),
     ] = None,
-    limit: Annotated[
-        int,
-        typer.Option(
-            "--limit", "-n", help="Max results to return (server default: 50)."
-        ),
-    ] = 50,
-    offset: Annotated[
-        int, typer.Option("--offset", help="Result offset for pagination.")
-    ] = 0,
+    limit: LimitOption = 50,
+    offset: OffsetOption = 0,
     sort_by: Annotated[
         str | None,
         typer.Option("--sort-by", help="Field to sort by."),
     ] = None,
-    sort_desc: Annotated[
-        bool, typer.Option("--sort-desc", help="Sort descending.")
-    ] = False,
-    output_json: Annotated[
-        bool | None,
-        typer.Option(
-            "--json/--no-json",
-            help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
-        ),
-    ] = None,
-    no_cache: Annotated[
-        bool,
-        typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
-    ] = False,
-    validate: Annotated[
-        bool,
-        typer.Option(
-            "--validate/--no-validate",
-            help="Validate and normalize the query string (default: on).",
-        ),
-    ] = True,
-    verbose: Annotated[
-        bool,
-        typer.Option(
-            "--verbose",
-            "-v",
-            help="Attach the full raw API response to parse errors (useful for debugging).",
-        ),
-    ] = False,
+    sort_desc: SortDescOption = False,
+    output_json: JsonOption = None,
+    no_cache: NoCacheOption = False,
+    validate: ValidateOption = True,
+    verbose: VerboseOption = False,
 ) -> None:
     """Search leading groups via GET /searchLeadingGroup.
 
@@ -83,11 +77,9 @@ def leadinggroup_search(
     [bold]API reference[/bold]
       https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-LeadingGroup-searchLeadingGroup
     """
-    if output_json is None:
-        output_json = not stdout_is_interactive()
-    g = utils.make_glance(no_cache=no_cache)
-    try:
-        result = g.leadinggroups.search(
+    run_search(
+        _SEARCH_SPEC,
+        SearchOptions(
             query=query,
             limit=limit,
             offset=offset,
@@ -95,19 +87,7 @@ def leadinggroup_search(
             sort_desc=sort_desc,
             validate_query=validate,
             verbose=verbose,
-        )
-    except DSLError as exc:
-        raise typer.BadParameter(str(exc), param_hint="--query") from exc
-    except StareError as exc:
-        utils.handle_error(exc)
-        raise typer.Exit(1) from exc
-
-    if output_json:
-        typer.echo(result.model_dump_json(by_alias=True))
-        return
-
-    table = Table(title=f"Leading Groups ({result.number_of_results} total)")
-    table.add_column("Name", style="cyan")
-    for item in result.results:
-        table.add_row(item.name or "")
-    utils.console.print(table)
+        ),
+        output_json=output_json,
+        no_cache=no_cache,
+    )
