@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import date
+
 from pydantic import Field
 from rich.columns import Columns
 from rich.console import Group, RenderableType
@@ -25,7 +27,7 @@ class PlotPhase1(_Base):
     """Phase 1 lifecycle metadata for a plot."""
 
     state: str | None = None
-    start_date: str | None = None
+    start_date: date | None = None
     draft_cds_url: str | None = None
     group_coordinator_sign_off: str | None = None
     final_cds_report: str | None = None
@@ -88,7 +90,7 @@ class Plot(_Base):
             timeline_has_rows = False
 
             if p1.start_date:
-                timeline.add_row("Start", p1.start_date)
+                timeline.add_row("Start", str(p1.start_date))
                 timeline_has_rows = True
             if p1.group_coordinator_sign_off:
                 timeline.add_row("Coord Sign-off", p1.group_coordinator_sign_off)

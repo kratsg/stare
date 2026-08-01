@@ -1746,7 +1746,7 @@ class TestPlotPhase1:
                 "finalCdsReport": "https://cds.cern.ch/record/0000203",
             }
         )
-        assert p.start_date == "2018-05-14"
+        assert p.start_date == date(2018, 5, 14)
         assert p.state == "phase1_closed"
         assert p.draft_cds_url == "https://cds.cern.ch/record/0000202"
         assert p.group_coordinator_sign_off == "Approved"
