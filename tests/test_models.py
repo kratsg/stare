@@ -1394,6 +1394,47 @@ class TestRichRendering:
         result = pn.__rich__()
         assert isinstance(result, Panel)
 
+    def test_plot_rich(self) -> None:
+        pl = Plot.model_validate(
+            {
+                "referenceCode": "PLOT-MUON-2018-08",
+                "status": "phase1_closed",
+                "shortTitle": "Plot test",
+                "groups": {
+                    "leadingGroup": {"name": "MUON"},
+                    "otherGroups": [],
+                },
+                "metadata": {
+                    "collisions": [
+                        {
+                            "type": "p-p",
+                            "run": "Run 2",
+                            "year": "2018",
+                            "ecmValue": "13",
+                            "ecmUnit": "TeV",
+                            "luminosityValue": "140",
+                            "luminosityUnit": "fb-1",
+                        }
+                    ],
+                },
+                "phase1": {
+                    "startDate": "2018-05-14",
+                    "state": "phase1_closed",
+                    "groupCoordinatorSignOff": "Approved",
+                },
+                "analysisTeam": [
+                    {
+                        "cernCcid": "u3",
+                        "firstName": "Han",
+                        "lastName": "Solo",
+                        "isContactEditor": True,
+                    }
+                ],
+            }
+        )
+        result = pl.__rich__()
+        assert isinstance(result, Panel)
+
     def test_publication_phase_rich_returns_none_when_empty(self) -> None:
         s = PublicationPhase.model_validate({})
         assert s.__rich__() is None
@@ -1476,7 +1517,7 @@ class TestRichRendering:
         assert isinstance(result, Panel)
 
     def test_rich_renders_without_crash(self) -> None:
-        """End-to-end: render all four models through a real Console without errors."""
+        """End-to-end: render all five models through a real Console without errors."""
         cn = ConfNote.model_validate(
             {"temporaryReferenceCode": "CONF-HION-2024-01", "status": "Phase 1 Active"}
         )
@@ -1492,9 +1533,12 @@ class TestRichRendering:
                 "status": "Phase 1 Active",
             }
         )
+        pl = Plot.model_validate(
+            {"referenceCode": "PLOT-MUON-2018-08", "status": "phase1_closed"}
+        )
 
         console = _make_console()
-        for model in (cn, a, p, pn):
+        for model in (cn, a, p, pn, pl):
             console.print(model)
 
 
