@@ -74,5 +74,9 @@ def get_settings() -> StareSettings:
     live client/auth path — ``Glance``, ``TokenManager``, and
     ``cli.utils.make_settings()`` construct ``StareSettings()`` directly so
     they keep observing env changes (e.g. ``--no-cache``) per call.
+
+    ``lru_cache`` populates under a lock, so concurrent first calls (e.g. from
+    multiple threads within one process) can't race to construct two
+    instances — safe under the GIL.
     """
     return StareSettings()

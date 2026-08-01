@@ -151,6 +151,9 @@ def publications_get(
     [bold]API reference[/bold]
       https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-Publication-searchPublication
     """
+    # Built per-call (not a module-level _GET_SPEC like the other resources)
+    # because render needs ref_code in its closure: _render_get_table falls
+    # back to the requested ref_code when the response has no reference code.
     run_get(
         GetSpec(
             accessor=lambda g, ref, verbose: g.publications.get(ref, verbose=verbose),

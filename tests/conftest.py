@@ -18,7 +18,13 @@ from stare.settings import StareSettings, get_settings
 
 @pytest.fixture(autouse=True)
 def _clear_settings_cache() -> None:
-    """Reset the lru_cache'd get_settings() so tests don't leak state via env vars."""
+    """Reset the lru_cache'd get_settings() so tests don't leak state via env vars.
+
+    This only guarantees a fresh StareSettings() per test *function* (cleared
+    before each test runs). It does NOT help within a single test that
+    monkeypatches a STARE_* env var and calls get_settings() more than
+    once — the second call still returns the cached first result.
+    """
     get_settings.cache_clear()
 
 
