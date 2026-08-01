@@ -66,7 +66,8 @@ def _load_ssl_context(ca_bundle: str) -> ssl.SSLContext:
     so the resource is available as a real filesystem path inside a wheel.
     Also loading the system default certs means a server-side CA rotation
     degrades gracefully instead of breaking every installed client until a
-    release ships an updated bundle.
+    release ships an updated bundle, at the cost of trusting the full OS CA
+    store rather than only the pinned chain.
     """
     filename = _BUNDLE_FILE.get(ca_bundle, f"{ca_bundle}_chain.pem")
     with as_file(files("stare.data").joinpath(filename)) as cert_path:
