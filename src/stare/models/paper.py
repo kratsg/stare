@@ -33,7 +33,7 @@ from stare.models.enums import (
     LenientPaperPublicationphaseState,
     LenientPaperStatus,
 )
-from stare.settings import StareSettings
+from stare.settings import get_settings
 from stare.urls import paper_url
 
 if TYPE_CHECKING:
@@ -249,7 +249,7 @@ class Paper(_Base):
                 extra_sections.append(pub_panel)
 
         # --- Header ---
-        settings = StareSettings()
+        settings = get_settings()
         url = paper_url(self.reference_code, web_base=settings.web_base_url)
         header = _build_header(self.reference_code, url, self.status)
 

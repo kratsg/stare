@@ -22,7 +22,7 @@ from stare.models.common import (
     _document_panel,
 )
 from stare.models.enums import LenientPlotPhase1State, LenientPlotStatus
-from stare.settings import StareSettings
+from stare.settings import get_settings
 from stare.urls import plot_url
 
 
@@ -92,7 +92,7 @@ class Plot(_Base):
         people_cols = _base_people_cols(self.analysis_team)
 
         # --- Header ---
-        settings = StareSettings()
+        settings = get_settings()
         url = (
             plot_url(self.reference_code, web_base=settings.web_base_url)
             if self.reference_code

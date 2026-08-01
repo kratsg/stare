@@ -2,20 +2,54 @@
 
 from __future__ import annotations
 
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated
 
 import typer
 from rich.table import Table
 
-from stare._output import stdout_is_interactive
 from stare.cli import utils
-from stare.dsl.errors import DSLError
-from stare.exceptions import StareError
-from stare.settings import StareSettings
+from stare.cli._params import (
+    JsonOption,
+    LimitOption,
+    NoCacheOption,
+    OffsetOption,
+    SortDescOption,
+    ValidateOption,
+    VerboseOption,
+)
+from stare.cli._shared import GetSpec, SearchOptions, SearchSpec, run_get, run_search
+from stare.settings import get_settings
 from stare.urls import analysis_url
+
+if TYPE_CHECKING:
+    from stare.models import AnalysisSearchResult
 
 analysis_app = typer.Typer(
     help="Analysis commands (search and get).", rich_markup_mode="rich"
+)
+
+
+def _render_search_table(result: AnalysisSearchResult) -> None:
+    settings = get_settings()
+    table = Table(title=f"Analyses ({result.number_of_results} total)")
+    table.add_column("Reference Code", style="cyan")
+    table.add_column("Status")
+    table.add_column("Short Title")
+    for item in result.results:
+        ref = item.reference_code or ""
+        ref_cell = (
+            f"[link={analysis_url(ref, web_base=settings.web_base_url)}]{ref}[/link]"
+            if ref
+            else ""
+        )
+        table.add_row(ref_cell, item.status or "", item.short_title or "")
+    utils.console.print(table)
+
+
+_SEARCH_SPEC = SearchSpec(accessor=lambda g: g.analyses, render=_render_search_table)
+_GET_SPEC = GetSpec(
+    accessor=lambda g, ref, verbose: g.analyses.get(ref, verbose=verbose),
+    render=utils.console.print,
 )
 
 
@@ -29,15 +63,8 @@ def analysis_search(
             help="Filter query (e.g. 'referenceCode = HION'; ops: =, !=, contain, not-contain; combine with and/or; quote values with spaces: 'shortTitle = \"Phase Closed\"'). See docs/query-dsl.md.",
         ),
     ] = None,
-    limit: Annotated[
-        int,
-        typer.Option(
-            "--limit", "-n", help="Max results to return (server default: 50)."
-        ),
-    ] = 50,
-    offset: Annotated[
-        int, typer.Option("--offset", help="Result offset for pagination.")
-    ] = 0,
+    limit: LimitOption = 50,
+    offset: OffsetOption = 0,
     sort_by: Annotated[
         str | None,
         typer.Option(
@@ -45,35 +72,11 @@ def analysis_search(
             help="camelCase API field to sort by (e.g. referenceCode, creationDate).",
         ),
     ] = None,
-    sort_desc: Annotated[
-        bool, typer.Option("--sort-desc", help="Sort descending.")
-    ] = False,
-    output_json: Annotated[
-        bool | None,
-        typer.Option(
-            "--json/--no-json",
-            help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
-        ),
-    ] = None,
-    no_cache: Annotated[
-        bool,
-        typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
-    ] = False,
-    validate: Annotated[
-        bool,
-        typer.Option(
-            "--validate/--no-validate",
-            help="Validate and normalize the query string (default: on).",
-        ),
-    ] = True,
-    verbose: Annotated[
-        bool,
-        typer.Option(
-            "--verbose",
-            "-v",
-            help="Attach the full raw API response to parse errors (useful for debugging).",
-        ),
-    ] = False,
+    sort_desc: SortDescOption = False,
+    output_json: JsonOption = None,
+    no_cache: NoCacheOption = False,
+    validate: ValidateOption = True,
+    verbose: VerboseOption = False,
 ) -> None:
     """Search analyses via GET /searchAnalysis.
 
@@ -90,11 +93,9 @@ def analysis_search(
     [bold]API reference[/bold]
       https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-analysis-searchAnalysis
     """
-    if output_json is None:
-        output_json = not stdout_is_interactive()
-    g = utils.make_glance(no_cache=no_cache)
-    try:
-        result = g.analyses.search(
+    run_search(
+        _SEARCH_SPEC,
+        SearchOptions(
             query=query,
             limit=limit,
             offset=offset,
@@ -102,66 +103,18 @@ def analysis_search(
             sort_desc=sort_desc,
             validate_query=validate,
             verbose=verbose,
-        )
-    except DSLError as exc:
-        raise typer.BadParameter(str(exc), param_hint="--query") from exc
-    except StareError as exc:
-        utils.handle_error(exc)
-        raise typer.Exit(1) from exc
-
-    if (result.number_of_results == 0 and offset > 0) or (
-        result.number_of_results > 0 and offset >= result.number_of_results
-    ):
-        typer.echo(
-            f"Invalid offset: {offset}. Maximum allowed offset is "
-            f"{max(result.number_of_results - 1, 0)} for "
-            f"{result.number_of_results} total results.",
-            err=True,
-        )
-        raise typer.Exit(2)
-
-    if output_json:
-        typer.echo(result.model_dump_json(by_alias=True))
-        return
-
-    settings = StareSettings()
-    table = Table(title=f"Analyses ({result.number_of_results} total)")
-    table.add_column("Reference Code", style="cyan")
-    table.add_column("Status")
-    table.add_column("Short Title")
-    for item in result.results:
-        ref = item.reference_code or ""
-        ref_cell = (
-            f"[link={analysis_url(ref, web_base=settings.web_base_url)}]{ref}[/link]"
-            if ref
-            else ""
-        )
-        table.add_row(ref_cell, item.status or "", item.short_title or "")
-    utils.console.print(table)
+        ),
+        output_json=output_json,
+        no_cache=no_cache,
+    )
 
 
 @analysis_app.command("get")
 def analysis_get(
     ref_code: Annotated[str, typer.Argument(help="Analysis reference code")],
-    output_json: Annotated[
-        bool | None,
-        typer.Option(
-            "--json/--no-json",
-            help="Emit JSON. Default: auto (JSON when piped, Rich table when interactive).",
-        ),
-    ] = None,
-    no_cache: Annotated[
-        bool,
-        typer.Option("--no-cache", help="Bypass the HTTP cache for this invocation."),
-    ] = False,
-    verbose: Annotated[
-        bool,
-        typer.Option(
-            "--verbose",
-            "-v",
-            help="Attach the full raw API response to parse errors (useful for debugging).",
-        ),
-    ] = False,
+    output_json: JsonOption = None,
+    no_cache: NoCacheOption = False,
+    verbose: VerboseOption = False,
 ) -> None:
     """Fetch a single analysis by reference code via GET /searchAnalysis.
 
@@ -172,17 +125,6 @@ def analysis_get(
     [bold]API reference[/bold]
       https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-analysis-searchAnalysis
     """
-    if output_json is None:
-        output_json = not stdout_is_interactive()
-    g = utils.make_glance(no_cache=no_cache)
-    try:
-        result = g.analyses.get(ref_code, verbose=verbose)
-    except StareError as exc:
-        utils.handle_error(exc)
-        raise typer.Exit(1) from exc
-
-    if output_json:
-        typer.echo(result.model_dump_json(by_alias=True))
-        return
-
-    utils.console.print(result)
+    run_get(
+        _GET_SPEC, ref_code, output_json=output_json, no_cache=no_cache, verbose=verbose
+    )
