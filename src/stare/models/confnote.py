@@ -24,7 +24,7 @@ from stare.models.common import (
     _document_panel,
 )
 from stare.models.enums import LenientConfnotePhase1State, LenientConfnoteStatus
-from stare.settings import StareSettings
+from stare.settings import get_settings
 from stare.urls import confnote_url
 
 
@@ -110,7 +110,7 @@ class ConfNote(_Base):
             people_cols.append(self.phase1.editorial_board)
 
         # --- Header ---
-        settings = StareSettings()
+        settings = get_settings()
         url = confnote_url(self.temp_reference_code, web_base=settings.web_base_url)
         header = _build_header(
             self.temp_reference_code,

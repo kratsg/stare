@@ -183,6 +183,7 @@ ignore = [
 # _Base is the project-level base model (inherits pydantic.BaseModel) — listed explicitly
 # because ruff does not follow transitive inheritance chains across modules.
 runtime-evaluated-base-classes = ["pydantic.BaseModel", "stare.models.common._Base"]
+runtime-evaluated-decorators = ["typer.Typer.command"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["T20"]

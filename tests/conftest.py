@@ -13,7 +13,13 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 from stare.auth import TokenManager
-from stare.settings import StareSettings
+from stare.settings import StareSettings, get_settings
+
+
+@pytest.fixture(autouse=True)
+def _clear_settings_cache() -> None:
+    """Reset the lru_cache'd get_settings() so tests don't leak state via env vars."""
+    get_settings.cache_clear()
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
