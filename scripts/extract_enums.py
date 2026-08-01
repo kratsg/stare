@@ -84,6 +84,8 @@ def class_name(section: str, variant: str | None) -> str:
             return f"Confnote{base}"
         if "analysis" in v:
             return f"Analysis{base}"
+        if "plot" in v:
+            return f"Plot{base}"
 
     return base
 

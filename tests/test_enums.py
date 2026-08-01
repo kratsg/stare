@@ -16,6 +16,8 @@ from stare.models.enums import (
     LenientCollisionType,
     LenientConfnotePhase1State,
     LenientConfnoteStatus,
+    LenientPlotPhase1State,
+    LenientPlotStatus,
     LenientPublicationType,
     LenientPubnotePhase1State,
     LenientRepositoryType,
@@ -23,6 +25,8 @@ from stare.models.enums import (
     PaperPhase2State,
     PaperPublicationphaseState,
     PaperStatus,
+    PlotPhase1State,
+    PlotStatus,
     PublicationType,
     PubnotePhase1State,
     RepositoryType,
@@ -112,6 +116,28 @@ class TestConfnoteStatus:
             result = M.model_validate({"value": "Unknown Confnote Status"})
         assert result.value == "Unknown Confnote Status"
         assert "ConfnoteStatus" in caplog.text
+
+
+# ---------------------------------------------------------------------------
+# PlotStatus
+# ---------------------------------------------------------------------------
+
+
+class TestPlotStatus:
+    def test_known_values_parse(self) -> None:
+        M = _model(PlotStatus)
+        assert M.model_validate({"value": "Created"}).value == PlotStatus.CREATED
+        assert (
+            M.model_validate({"value": "Phase 1 Active"}).value
+            == PlotStatus.PHASE1_ACTIVE
+        )
+
+    def test_unknown_falls_back(self, caplog) -> None:
+        M = _model(LenientPlotStatus)
+        with caplog.at_level(logging.WARNING, logger="stare"):
+            result = M.model_validate({"value": "Unknown Plot Status"})
+        assert result.value == "Unknown Plot Status"
+        assert "PlotStatus" in caplog.text
 
 
 # ---------------------------------------------------------------------------
@@ -361,6 +387,26 @@ class TestConfnotePhase1State:
             result = M.model_validate({"value": "Some Future State"})
         assert result.value == "Some Future State"
         assert "ConfnotePhase1State" in caplog.text
+
+
+class TestPlotPhase1State:
+    def test_human_readable_states(self) -> None:
+        M = _model(PlotPhase1State)
+        assert (
+            M.model_validate({"value": "ATLAS Circulation"}).value
+            == PlotPhase1State.ATLAS_CIRCULATION
+        )
+        assert (
+            M.model_validate({"value": "Phase 1 Finished"}).value
+            == PlotPhase1State.FINISHED
+        )
+
+    def test_unknown_falls_back(self, caplog) -> None:
+        M = _model(LenientPlotPhase1State)
+        with caplog.at_level(logging.WARNING, logger="stare"):
+            result = M.model_validate({"value": "Some Future State"})
+        assert result.value == "Some Future State"
+        assert "PlotPhase1State" in caplog.text
 
 
 # ---------------------------------------------------------------------------

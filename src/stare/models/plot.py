@@ -19,6 +19,7 @@ from stare.models.common import (
     Team,
     _Base,
 )
+from stare.models.enums import LenientPlotPhase1State, LenientPlotStatus
 from stare.settings import StareSettings
 from stare.urls import plot_url
 
@@ -26,7 +27,7 @@ from stare.urls import plot_url
 class PlotPhase1(_Base):
     """Phase 1 lifecycle metadata for a plot."""
 
-    state: str | None = None
+    state: LenientPlotPhase1State | None = None
     start_date: date | None = None
     draft_cds_url: str | None = None
     group_coordinator_sign_off: str | None = None
@@ -37,7 +38,7 @@ class Plot(_Base):
     """An ATLAS approval plot."""
 
     reference_code: str | None = None
-    status: str | None = None
+    status: LenientPlotStatus | None = None
     short_title: str | None = None
     full_title: str | None = None
     groups: Groups | None = None

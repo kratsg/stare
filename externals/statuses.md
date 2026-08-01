@@ -41,6 +41,14 @@ API.
 | `phase1_active`   | Phase 1 Active   |
 | `phase1_closed`   | Phase 1 Finished |
 
+### `status` — Plot
+
+| Raw Value       | Display Label    |
+| --------------- | ---------------- |
+| `created`       | Created          |
+| `phase1_active` | Phase 1 Active   |
+| `phase1_closed` | Phase 1 Finished |
+
 ---
 
 ### `phase0.state` — Phase 0 (Analysis)
@@ -151,3 +159,13 @@ API.
 | `first_signed`          | Readers Sign-Off Dates and Final Sign-Off            |
 | `second_signed`         | Finish Phase                                         |
 | `finished`              | Phase 1 Finished                                     |
+
+### `phase1.state` — Phase 1 (Plot)
+
+| Raw Value           | Display Label     |
+| ------------------- | ----------------- |
+| `atlas_circulation` | ATLAS Circulation |
+| `finish_phase`      | Finish Phase      |
+| `finished`          | Phase 1 Finished  |
+| `review_approval`   | Review Approval   |
+| `sign_off`          | Sign-Off          |

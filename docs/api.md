@@ -96,6 +96,8 @@ validation error.
 
 ::: stare.models.enums.ConfnoteStatus
 
+::: stare.models.enums.PlotStatus
+
 ::: stare.models.enums.AnalysisPhase0State
 
 ::: stare.models.enums.PaperPhase1State
@@ -105,6 +107,8 @@ validation error.
 ::: stare.models.enums.PaperPublicationphaseState
 
 ::: stare.models.enums.ConfnotePhase1State
+
+::: stare.models.enums.PlotPhase1State
 
 ::: stare.models.enums.CollisionType
 
