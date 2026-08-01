@@ -162,14 +162,14 @@ def paper_get(
         ),
     ] = False,
 ) -> None:
-    """Fetch a single paper by reference code via GET /papers/{ref_code}.
+    """Fetch a single paper by reference code via GET /searchPaper.
 
     [bold]Examples[/bold]
       [green]stare paper get HDBS-2018-33[/green]
       [green]stare paper get HDBS-2018-33 | jq '.phase1.state'[/green]
 
     [bold]API reference[/bold]
-      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-paper-getPaper
+      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-paper-searchPaper
     """
     if output_json is None:
         output_json = not stdout_is_interactive()

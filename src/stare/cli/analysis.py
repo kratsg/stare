@@ -163,14 +163,14 @@ def analysis_get(
         ),
     ] = False,
 ) -> None:
-    """Fetch a single analysis by reference code via GET /analyses/{ref_code}.
+    """Fetch a single analysis by reference code via GET /searchAnalysis.
 
     [bold]Examples[/bold]
       [green]stare analysis get ANA-HION-2018-01[/green]
       [green]stare analysis get ANA-HION-2018-01 | jq '.phase0.state'[/green]
 
     [bold]API reference[/bold]
-      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-analysis-getAnalysis
+      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-analysis-searchAnalysis
     """
     if output_json is None:
         output_json = not stdout_is_interactive()
