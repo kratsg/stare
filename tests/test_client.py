@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import ssl
 from importlib.resources import as_file, files
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -15,7 +16,7 @@ from pydantic import BaseModel as PydanticBase
 from pydantic import ValidationError
 
 from stare._version import version as _stare_version
-from stare.client import Glance
+from stare.client import Glance, _load_ssl_context
 from stare.dsl import DSLValidationError
 from stare.dsl.models import Condition, Operator
 from stare.exceptions import (
@@ -133,6 +134,18 @@ def test_cern_cert_bundle_is_file() -> None:
     with as_file(files("stare.data").joinpath("CERN_chain.pem")) as p:
         assert p.is_file(), f"Expected cert bundle at {p}"
         assert "BEGIN CERTIFICATE" in p.read_text()
+
+
+def test_load_ssl_context_also_trusts_system_certs(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A CA rotation on the server side must not brick every installed client:
+    the context needs the system trust store in addition to the bundled chain.
+    """
+    load_default_certs = MagicMock()
+    monkeypatch.setattr(ssl.SSLContext, "load_default_certs", load_default_certs)
+    _load_ssl_context("CERN")
+    load_default_certs.assert_called_once()
 
 
 # ---------------------------------------------------------------------------
