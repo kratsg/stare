@@ -159,8 +159,6 @@ hyperlinks in CLI output; also available for library callers.
 
 ::: stare.models.Plot
 
-::: stare.models.PlotPhase1
-
 ::: stare.models.PlotSearchResult
 
 ### Publications
