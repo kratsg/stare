@@ -7,8 +7,6 @@ from datetime import date, datetime
 from typing import Any
 
 from pydantic import Field, SerializationInfo, model_serializer, model_validator
-from rich.columns import Columns
-from rich.console import Group, RenderableType
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
@@ -26,6 +24,11 @@ from stare.models.common import (
     Trigger,
     TypedMeeting,
     _Base,
+    _base_people_cols,
+    _base_summary_cols,
+    _build_header,
+    _build_title_lines,
+    _document_panel,
 )
 from stare.models.enums import (
     LenientAnalysisPhase0State,
@@ -156,44 +159,19 @@ class Analysis(_Base):
 
     def __rich__(self) -> Panel:
         """Return a Rich Panel summarising the analysis for terminal display."""
-        sections: list[RenderableType] = []
-
         # --- Titles ---
-        title_lines: list[RenderableType] = []
-
-        if self.short_title:
-            title_lines.append(Text(f"Title: {self.short_title}", style="bold"))
-
-        if self.public_short_title:
-            title_lines.append(Text(f"Public: {self.public_short_title}", style="dim"))
-
-        if self.documentation and self.documentation.supporting_internal_documents:
-            title_lines.extend(
-                Text.from_markup(f"Support: [link={d.url}]{d.label or d.url}[/link]")
-                for d in self.documentation.supporting_internal_documents
-                if d.url
-            )
-
-        if self.metadata and self.metadata.keywords:
-            kw = ", ".join(
-                k.name for k in self.metadata.keywords if k.name and k.name != "None"
-            )
-            if kw:
-                title_lines.append(Text(f"Keywords: {kw}", style="cyan"))
-
-        sections.append(Group(*title_lines))
+        title_lines = _build_title_lines(
+            short_title=self.short_title,
+            public_short_title=self.public_short_title,
+            documentation=self.documentation,
+            keywords=self.metadata.keywords if self.metadata else None,
+        )
 
         # ================================
         # --- 3 COLUMN SUMMARY ---
         # ================================
 
-        summary_cols: list[RenderableType] = []
-
-        if self.metadata and self.metadata.collisions:
-            summary_cols.append(self.metadata.collisions)
-
-        if self.groups:
-            summary_cols.append(self.groups)
+        summary_cols = _base_summary_cols(self.metadata, self.groups)
 
         if self.phase0:
             p0 = self.phase0
@@ -241,38 +219,18 @@ class Analysis(_Base):
             if timeline_has_rows:
                 summary_cols.append(Panel(timeline, title="Timeline", expand=True))
 
-        if summary_cols:
-            sections.append(Columns(summary_cols, expand=True))
-
         # ================================
         # --- PEOPLE ---
         # ================================
 
-        people_cols: list[RenderableType] = []
-
-        if self.analysis_team:
-            people_cols.append(self.analysis_team)
+        people_cols = _base_people_cols(self.analysis_team)
 
         if self.phase0 and self.phase0.editorial_board:
             people_cols.append(self.phase0.editorial_board)
 
-        if people_cols:
-            sections.append(Columns(people_cols, expand=True))
-
         # --- Header ---
         settings = StareSettings()
         url = analysis_url(self.reference_code, web_base=settings.web_base_url)
+        header = _build_header(self.reference_code, url, self.status)
 
-        header = Text.from_markup(
-            f"[bold cyan][link={url}]{self.reference_code}[/link][/bold cyan]"
-        )
-
-        if self.status:
-            header.append(f"\n{self.status}", style="yellow")
-
-        return Panel(
-            Group(*sections),
-            title=header,
-            expand=True,
-            border_style="blue",
-        )
+        return _document_panel(title_lines, summary_cols, people_cols, header)

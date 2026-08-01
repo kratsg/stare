@@ -6,8 +6,6 @@ from datetime import date
 from typing import TYPE_CHECKING
 
 from pydantic import AwareDatetime, Field, field_validator
-from rich.columns import Columns
-from rich.console import Group
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
@@ -23,6 +21,11 @@ from stare.models.common import (
     RequiredLink,
     Team,
     _Base,
+    _base_people_cols,
+    _base_summary_cols,
+    _build_header,
+    _build_title_lines,
+    _document_panel,
 )
 from stare.models.enums import (
     LenientPaperPhase1State,
@@ -173,47 +176,20 @@ class Paper(_Base):
 
     def __rich__(self) -> Panel:
         """Return a Rich Panel summarising the paper for terminal display."""
-        sections: list[RenderableType] = []
-
         # --- Titles ---
-        title_lines: list[RenderableType] = []
-
-        if self.short_title:
-            title_lines.append(Text(f"Title: {self.short_title}", style="bold"))
-
-        if self.public_short_title:
-            title_lines.append(Text(f"Public: {self.public_short_title}", style="dim"))
-
-        if self.full_title:
-            title_lines.append(Text(f"Full: {self.full_title}", style="italic"))
-
-        if self.documentation and self.documentation.supporting_internal_documents:
-            title_lines.extend(
-                Text.from_markup(f"Support: [link={d.url}]{d.label or d.url}[/link]")
-                for d in self.documentation.supporting_internal_documents
-                if d.url
-            )
-
-        if self.metadata and self.metadata.keywords:
-            kw = ", ".join(
-                k.name for k in self.metadata.keywords if k.name and k.name != "None"
-            )
-            if kw:
-                title_lines.append(Text(f"Keywords: {kw}", style="cyan"))
-
-        sections.append(Group(*title_lines))
+        title_lines = _build_title_lines(
+            short_title=self.short_title,
+            public_short_title=self.public_short_title,
+            full_title=self.full_title,
+            documentation=self.documentation,
+            keywords=self.metadata.keywords if self.metadata else None,
+        )
 
         # ================================
         # --- 3 COLUMN SUMMARY ---
         # ================================
 
-        summary_cols: list[RenderableType] = []
-
-        if self.metadata and self.metadata.collisions:
-            summary_cols.append(self.metadata.collisions)
-
-        if self.groups:
-            summary_cols.append(self.groups)
+        summary_cols = _base_summary_cols(self.metadata, self.groups)
 
         timeline = Table.grid(padding=(0, 1))
         timeline.add_column(style="bold cyan", justify="right")
@@ -256,44 +232,31 @@ class Paper(_Base):
         if timeline_has_rows:
             summary_cols.append(Panel(timeline, title="Timeline", expand=True))
 
-        if summary_cols:
-            sections.append(Columns(summary_cols, expand=True))
-
         # ================================
         # --- PEOPLE ---
         # ================================
 
-        people_cols: list[RenderableType] = []
-
-        if self.analysis_team:
-            people_cols.append(self.analysis_team)
+        people_cols = _base_people_cols(self.analysis_team)
 
         if self.phase1 and self.phase1.editorial_board:
             people_cols.append(self.phase1.editorial_board)
 
-        if people_cols:
-            sections.append(Columns(people_cols, expand=True))
-
         # --- Publication Phase section ---
+        extra_sections: list[RenderableType] = []
         if self.publication_phase:
             pub_panel = self.publication_phase.__rich__()  # pylint: disable=no-member
             if pub_panel is not None:
-                sections.append(pub_panel)
+                extra_sections.append(pub_panel)
 
         # --- Header ---
         settings = StareSettings()
         url = paper_url(self.reference_code, web_base=settings.web_base_url)
+        header = _build_header(self.reference_code, url, self.status)
 
-        header = Text.from_markup(
-            f"[bold cyan][link={url}]{self.reference_code}[/link][/bold cyan]"
-        )
-
-        if self.status:
-            header.append(f"\n{self.status}", style="yellow")
-
-        return Panel(
-            Group(*sections),
-            title=header,
-            expand=True,
-            border_style="blue",
+        return _document_panel(
+            title_lines,
+            summary_cols,
+            people_cols,
+            header,
+            extra_sections=extra_sections,
         )
