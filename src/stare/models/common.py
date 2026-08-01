@@ -14,6 +14,8 @@ from pydantic import (
     model_validator,
 )
 from pydantic.alias_generators import to_camel
+from rich.columns import Columns
+from rich.console import Group as RichGroup
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
@@ -24,12 +26,14 @@ from stare.models.enums import (
     LenientMeetingType,
     LenientPublicationType,
     LenientRepositoryType,
+    StrEnum,
 )
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
     from typing import Any, NoReturn
 
+    from rich.console import RenderableType
     from typing_extensions import Self
 
 
@@ -516,3 +520,120 @@ class RelatedPublication(_Base):
 
     reference_code: str | None = None
     type: LenientPublicationType
+
+
+def _build_title_lines(
+    *,
+    short_title: str | None,
+    public_short_title: str | None = None,
+    full_title: str | None = None,
+    documentation: Documentation | None = None,
+    keywords: list[Keyword] | None = None,
+) -> list[RenderableType]:
+    """Build the title/support-doc/keywords lines shared by document ``__rich__`` panels.
+
+    Fields absent for a given resource type (e.g. Plot has no ``keywords``) are
+    simply passed as ``None`` and contribute no line, matching per-model behavior.
+    """
+    title_lines: list[RenderableType] = []
+
+    if short_title:
+        title_lines.append(Text(f"Title: {short_title}", style="bold"))
+
+    if public_short_title:
+        title_lines.append(Text(f"Public: {public_short_title}", style="dim"))
+
+    if full_title:
+        title_lines.append(Text(f"Full: {full_title}", style="italic"))
+
+    # --- Support docs (top, inline links) ---
+    if documentation and documentation.supporting_internal_documents:
+        title_lines.extend(
+            Text.from_markup(f"Support: [link={d.url}]{d.label or d.url}[/link]")
+            for d in documentation.supporting_internal_documents
+            if d.url
+        )
+
+    # --- Keywords (inline, no panel) ---
+    if keywords:
+        kw = ", ".join(k.name for k in keywords if k.name and k.name != "None")
+        if kw:
+            title_lines.append(Text(f"Keywords: {kw}", style="cyan"))
+
+    return title_lines
+
+
+def _base_summary_cols(
+    metadata: Metadata | None, groups: Groups | None
+) -> list[RenderableType]:
+    """Return the Physics + Groups columns shared by all document summary panels."""
+    cols: list[RenderableType] = []
+    if metadata and metadata.collisions:
+        cols.append(metadata.collisions)
+    if groups:
+        cols.append(groups)
+    return cols
+
+
+def _base_people_cols(team: Team | AnalysisTeam) -> list[RenderableType]:
+    """Return the Team column shared by all document people panels."""
+    cols: list[RenderableType] = []
+    if team:
+        cols.append(team)
+    return cols
+
+
+def _build_header(
+    display_code: str,
+    url: str | None,
+    status: StrEnum | str | None,
+    *,
+    secondary_code: str | None = None,
+) -> Text:
+    """Build the hyperlinked reference-code + status header shared by document panels.
+
+    *url* is None only when the resource has no reference code yet (e.g. an
+    unpublished Plot), in which case *display_code* is shown as plain text.
+    """
+    if url:
+        header = Text.from_markup(
+            f"[bold cyan][link={url}]{display_code}[/link][/bold cyan]"
+        )
+    else:
+        header = Text(display_code, style="bold cyan")
+
+    if secondary_code:
+        header.append(f" ({secondary_code})", style="bold")
+
+    if status:
+        header.append(f"\n{status}", style="yellow")
+
+    return header
+
+
+def _document_panel(
+    title_lines: list[RenderableType],
+    summary_cols: list[RenderableType],
+    people_cols: list[RenderableType],
+    header: Text,
+    *,
+    extra_sections: list[RenderableType] | None = None,
+) -> Panel:
+    """Assemble the title/summary/people sections and header shared by document panels."""
+    sections: list[RenderableType] = [RichGroup(*title_lines)]
+
+    if summary_cols:
+        sections.append(Columns(summary_cols, expand=True))
+
+    if people_cols:
+        sections.append(Columns(people_cols, expand=True))
+
+    if extra_sections:
+        sections.extend(extra_sections)
+
+    return Panel(
+        RichGroup(*sections),
+        title=header,
+        expand=True,
+        border_style="blue",
+    )
