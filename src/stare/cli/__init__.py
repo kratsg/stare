@@ -12,6 +12,7 @@ from stare.cli.cache import cache_app
 from stare.cli.confnote import confnote_app
 from stare.cli.leadinggroup import leadinggroup_app
 from stare.cli.paper import paper_app
+from stare.cli.plot import plot_app
 from stare.cli.publications import publications_app
 from stare.cli.pubnote import pubnote_app
 from stare.cli.subgroup import subgroup_app
@@ -42,6 +43,7 @@ app.add_typer(analysis_app, name="analysis")
 app.add_typer(paper_app, name="paper")
 app.add_typer(confnote_app, name="confnote")
 app.add_typer(pubnote_app, name="pubnote")
+app.add_typer(plot_app, name="plot")
 app.add_typer(publications_app, name="publications")
 app.add_typer(leadinggroup_app, name="leadinggroups")
 app.add_typer(subgroup_app, name="subgroups")
