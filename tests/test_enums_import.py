@@ -16,5 +16,7 @@ def test_enums_module_imports_cleanly():
         "LenientPaperStatus",
         "LenientConfnoteStatus",
         "LenientConfnotePhase1State",
+        "LenientPlotStatus",
+        "LenientPlotPhase1State",
     ):
         assert hasattr(enums, name), f"Missing Lenient alias: {name}"

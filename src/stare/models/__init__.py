@@ -51,6 +51,7 @@ from stare.models.enums import (
 )
 from stare.models.errors import ApiErrorResponse
 from stare.models.paper import Paper, PaperPhase1, PaperPhase2, PublicationPhase
+from stare.models.plot import Plot, PlotPhase1
 from stare.models.pubnote import PubNote, PubNotePhase1, PubNoteReader, Readers
 from stare.models.search import (
     AnalysisSearchResult,
@@ -58,6 +59,7 @@ from stare.models.search import (
     LeadingGroup,
     LeadingGroupSearchResult,
     PaperSearchResult,
+    PlotSearchResult,
     PublicationSearchResult,
     PublicationSummary,
     PubNoteSearchResult,
@@ -113,6 +115,9 @@ __all__ = [
     "PaperSearchResult",
     "PaperStatus",
     "Person",
+    "Plot",
+    "PlotPhase1",
+    "PlotSearchResult",
     "PubNote",
     "PubNotePhase1",
     "PubNoteReader",

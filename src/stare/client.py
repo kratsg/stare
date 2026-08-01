@@ -27,6 +27,8 @@ from stare.models import (
     ConfNoteSearchResult,
     Paper,
     PaperSearchResult,
+    Plot,
+    PlotSearchResult,
     PublicationSearchResult,
     PublicationSummary,
     PubNote,
@@ -195,6 +197,15 @@ class PubNoteResource(_GettableResource[PubNoteSearchResult, PubNote]):
     _get_field = "temporaryReferenceCode"
 
 
+class PlotResource(_GettableResource[PlotSearchResult, Plot]):
+    """Accessor for /searchPlot endpoint."""
+
+    _endpoint = "/searchPlot"
+    _mode = "plot"
+    _result_model = PlotSearchResult
+    _get_field = "referenceCode"
+
+
 class PublicationResource(_Resource[PublicationSearchResult]):
     """Accessor for the /searchPublication endpoint."""
 
@@ -284,6 +295,7 @@ class Glance:
         self.papers = PaperResource(self._http)
         self.confnotes = ConfNoteResource(self._http)
         self.pubnotes = PubNoteResource(self._http)
+        self.plots = PlotResource(self._http)
         self.publications = PublicationResource(self._http)
         self.leadinggroups = LeadingGroupResource(self._http)
         self.subgroups = SubgroupResource(self._http)

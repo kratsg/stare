@@ -183,6 +183,19 @@ def test_trigger_mode_has_fields() -> None:
     assert "category.name" in reg.fields()
 
 
+def test_plot_mode_has_fields() -> None:
+    reg = FieldRegistry.for_mode("plot")
+    assert "referenceCode" in reg.fields()
+    assert "phase1.state" in reg.fields()
+    assert "groups.leadingGroup.name" in reg.fields()
+
+
+def test_plot_boolean_fields_operator_restriction() -> None:
+    reg = FieldRegistry.for_mode("plot")
+    with pytest.raises(DSLValidationError):
+        reg.validate_operator("analysisTeam.isContactEditor", Operator.CONTAIN)
+
+
 def test_for_mode_caches_toml_parse() -> None:
     """The bundled TOML is parsed once and reused across for_mode() calls."""
     _load_fields_toml.cache_clear()

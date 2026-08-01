@@ -13,6 +13,7 @@ Mode = Literal[
     "confnote",
     "leadinggroup",
     "paper",
+    "plot",
     "publication",
     "pubnote",
     "subgroup",

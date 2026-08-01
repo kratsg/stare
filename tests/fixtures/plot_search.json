@@ -1,0 +1,67 @@
+{
+  "numberOfResults": 1,
+  "results": [
+    {
+      "referenceCode": "PLOT-MUON-2018-08",
+      "status": "phase1_closed",
+      "shortTitle": "Muon momentum resolution plots",
+      "fullTitle": "Approval plots for the muon momentum resolution measurement using Run 2 data",
+      "groups": {
+        "leadingGroup": {
+          "name": "MUON"
+        },
+        "otherGroups": []
+      },
+      "documentation": {
+        "supportingInternalDocuments": [
+          {
+            "label": "INT note",
+            "url": "https://cds.cern.ch/record/0000201"
+          }
+        ]
+      },
+      "analysisTeam": [
+        {
+          "cernCcid": "100201",
+          "firstName": "Pilot201",
+          "lastName": "Squadron",
+          "email": "pilot201.squadron@star.wars",
+          "isContactEditor": true
+        },
+        {
+          "cernCcid": "100202",
+          "firstName": "Pilot202",
+          "lastName": "Squadron",
+          "email": "pilot202.squadron@star.wars",
+          "isContactEditor": false
+        }
+      ],
+      "metadata": {
+        "collisions": [
+          {
+            "type": "p-p",
+            "year": "2015+2016+2017+2018",
+            "run": "Run 2",
+            "ecmValue": "13",
+            "ecmUnit": "TeV",
+            "luminosityValue": "139",
+            "luminosityUnit": "femtobarn-1"
+          }
+        ]
+      },
+      "supersededBy": [
+        {
+          "referenceCode": "MUON-2020-03",
+          "type": "Paper"
+        }
+      ],
+      "phase1": {
+        "startDate": "2018-05-14",
+        "state": "finished",
+        "draftCdsUrl": "https://cds.cern.ch/record/0000202",
+        "groupCoordinatorSignOff": "Approved",
+        "finalCdsReport": "https://cds.cern.ch/record/0000203"
+      }
+    }
+  ]
+}

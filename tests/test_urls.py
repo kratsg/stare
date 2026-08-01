@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from stare.urls import analysis_url, confnote_url, paper_url, pubnote_url
+from stare.urls import analysis_url, confnote_url, paper_url, plot_url, pubnote_url
 
 _BASE = "https://atlas-glance.cern.ch/atlas/analysis"
 _STAGING = "https://glance-staging01.cern.ch/atlas/analysis"
@@ -50,6 +50,16 @@ class TestPubnoteUrl:
     def test_ref_code_preserved(self) -> None:
         ref = "ATL-PHYS-PUB-2022-01"
         assert ref in pubnote_url(ref, web_base=_BASE)
+
+
+class TestPlotUrl:
+    def test_default_base(self) -> None:
+        url = plot_url("PLOT-MUON-2018-08", web_base=_BASE)
+        assert url == f"{_BASE}/plots/details.php?ref_code=PLOT-MUON-2018-08"
+
+    def test_ref_code_preserved(self) -> None:
+        ref = "PLOT-EGAM-2021-01"
+        assert ref in plot_url(ref, web_base=_BASE)
 
 
 class TestUrlsCustomBase:

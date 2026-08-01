@@ -55,7 +55,7 @@ Every resource that supports server-side search exposes a
 
 `--query`/`-q` is supported by every search subcommand: `stare analysis search`,
 `stare paper search`, `stare confnote search`, `stare pubnote search`,
-`stare publications search`, `stare leadinggroups search`,
+`stare plot search`, `stare publications search`, `stare leadinggroups search`,
 `stare subgroups search`, and `stare triggers search`.
 
 ```bash
@@ -73,6 +73,10 @@ stare analysis search --json
 # Papers work the same way
 stare paper search
 stare paper search -q 'status = Active' -n 10
+
+# Plots work the same way
+stare plot search
+stare plot search -q 'status = phase1_closed' -n 10
 ```
 
 ### Piping output
@@ -104,6 +108,7 @@ stare analysis get ANA-HION-2018-01
 stare paper get HDBS-2018-33
 stare confnote get ATLAS-CONF-2024-001
 stare pubnote get ATL-PHYS-PUB-2024-001
+stare plot get PLOT-MUON-2018-08
 ```
 
 Add `--json` to any command for JSON output, or pipe to another command or file.
@@ -170,6 +175,7 @@ analysis = g.analyses.get("ANA-HION-2018-01")
 paper = g.papers.get("HDBS-2018-33")
 conf_note = g.confnotes.get("ATLAS-CONF-2024-001")
 pub_note = g.pubnotes.get("ATL-PHYS-PUB-2024-001")
+plot = g.plots.get("PLOT-MUON-2018-08")
 
 # Publications search (live)
 pubs = g.publications.search(query="type = Paper AND groups.leadingGroup.name = HDBS")
@@ -213,6 +219,7 @@ g = Glance(token=os.environ["GLANCE_TOKEN"])
 | `GET /searchPaper`        | **Live** | `papers.search()`, `papers.get()`             |
 | `GET /searchConfnote`     | **Live** | `confnotes.search()`, `confnotes.get()`       |
 | `GET /searchPubnote`      | **Live** | `pubnotes.search()`, `pubnotes.get()`         |
+| `GET /searchPlot`         | **Live** | `plots.search()`, `plots.get()`               |
 | `GET /searchPublication`  | **Live** | `publications.search()`, `publications.get()` |
 | `GET /searchLeadingGroup` | **Live** | `leadinggroups.search()`                      |
 | `GET /searchSubgroup`     | **Live** | `subgroups.search()`                          |

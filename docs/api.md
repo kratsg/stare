@@ -18,6 +18,8 @@ icon: lucide/code-2
 
 ::: stare.client.PubNoteResource
 
+::: stare.client.PlotResource
+
 ::: stare.client.PublicationResource
 
 ::: stare.client.LeadingGroupResource
@@ -94,6 +96,8 @@ validation error.
 
 ::: stare.models.enums.ConfnoteStatus
 
+::: stare.models.enums.PlotStatus
+
 ::: stare.models.enums.AnalysisPhase0State
 
 ::: stare.models.enums.PaperPhase1State
@@ -103,6 +107,8 @@ validation error.
 ::: stare.models.enums.PaperPublicationphaseState
 
 ::: stare.models.enums.ConfnotePhase1State
+
+::: stare.models.enums.PlotPhase1State
 
 ::: stare.models.enums.CollisionType
 
@@ -124,6 +130,8 @@ hyperlinks in CLI output; also available for library callers.
 ::: stare.urls.confnote_url
 
 ::: stare.urls.pubnote_url
+
+::: stare.urls.plot_url
 
 ## Models
 
@@ -152,6 +160,10 @@ hyperlinks in CLI output; also available for library callers.
 ::: stare.models.PubNote
 
 ::: stare.models.PubNoteSearchResult
+
+::: stare.models.Plot
+
+::: stare.models.PlotSearchResult
 
 ### Publications
 

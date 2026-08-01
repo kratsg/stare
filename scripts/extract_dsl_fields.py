@@ -63,6 +63,7 @@ def main() -> None:
         ("confnote", "SearchConfnoteResponse"),
         ("leadinggroup", "SearchLeadingGroupResponse"),
         ("paper", "SearchPaperResponse"),
+        ("plot", "SearchPlotResponse"),
         ("publication", "SearchPublicationResponse"),
         ("pubnote", "SearchPubnoteResponse"),
         ("subgroup", "SearchSubgroupResponse"),

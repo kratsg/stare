@@ -20,6 +20,7 @@ tags:
   - name: LeadingGroup
   - name: Subgroup
   - name: Trigger
+  - name: Plot
 
 paths:
   /searchAnalysis:
@@ -345,6 +346,8 @@ paths:
               <li><code>publicationPhase.state</code></li>
               <li><code>publicationPhase.arXivUrls.label</code></li>
               <li><code>publicationPhase.arXivUrls.url</code></li>
+              <li><code>publicationPhase.cernPreprintUrls.label</code></li>
+              <li><code>publicationPhase.cernPreprintUrls.url</code></li>
               <li><code>publicationPhase.finalTitleTex</code></li>
               <li><code>publicationPhase.finalSubmissionJournal</code></li>
               <li><code>publicationPhase.arXivSubmissionDate</code></li>
@@ -960,6 +963,137 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SearchTriggerResponse"
+        "400":
+          description: Invalid query parameters.
+        "401":
+          description: Invalid or missing authentication token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error401"
+        "403":
+          description: Action forbidden.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error403"
+  /searchPlot:
+    get:
+      tags:
+        - Plot
+      summary: Search plots
+      description: >
+        Searches approval plots with support for filtering, sorting, and
+        pagination. Filters are passed as a DSL query string via the
+        `queryString` parameter.
+
+        The same DSL is used across the `/search...` endpoints in this API. What
+        changes between resources is the set of searchable field names
+        documented on each endpoint.
+      operationId: searchPlot
+      security:
+        - oauth2: []
+      parameters:
+        - name: offset
+          in: query
+          description: Pagination offset (number of records to skip).
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: limit
+          in: query
+          description: Maximum number of records to return.
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: sortBy
+          in: query
+          description: Field name to sort results by.
+          required: false
+          schema:
+            type: string
+        - name: sortDesc
+          in: query
+          description: Sort in descending order when true.
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - name: queryString
+          in: query
+          description: |
+            URL-encoded DSL filter string. Supports operators such as
+            `contain`, `not-contain`, `=`, and `!=` over the available
+            searchable properties.
+
+            <details>
+            <summary>See DSL syntax</summary>
+
+            <ul>
+              <li>Statements are written as <code>"fieldName" operator "value"</code>.</li>
+              <li>Supported conjunctions are uppercase <code>AND</code> and <code>OR</code>.</li>
+              <li>Parentheses <code>(</code> and <code>)</code> are supported for grouping.</li>
+              <li>Field names are case-sensitive and must match the names below exactly.</li>
+              <li>Operators are case-sensitive. This endpoint supports <code>contain</code>, <code>not-contain</code>, <code>=</code>, and <code>!=</code>.</li>
+              <li>String matching is not case-sensitive for <code>contain</code>, <code>not-contain</code>, <code>=</code>, and <code>!=</code>.</li>
+              <li>Fields and values that contain spaces or special characters must stay inside double quotes, and the whole <code>queryString</code> parameter must be URL-encoded when sent over HTTP.</li>
+              <li>The parser does not define an escape syntax for embedded double quotes. Values containing <code>"</code> are therefore not supported.</li>
+              <li>To compare against <code>NULL</code>, use the special token <code>__EMPTY__</code>, for example <code>"referenceCode" = "__EMPTY__"</code>.</li>
+            </ul>
+
+            </details>
+
+            <details>
+            <summary>See searchable fields for <code>/searchPlot</code></summary>
+
+            <ul>
+              <li><code>referenceCode</code></li>
+              <li><code>status</code></li>
+              <li><code>shortTitle</code></li>
+              <li><code>fullTitle</code></li>
+              <li><code>groups.leadingGroup.name</code></li>
+              <li><code>groups.otherGroups.name</code></li>
+              <li><code>documentation.supportingInternalDocuments.label</code></li>
+              <li><code>documentation.supportingInternalDocuments.url</code></li>
+              <li><code>analysisTeam.cernCcid</code></li>
+              <li><code>analysisTeam.firstName</code></li>
+              <li><code>analysisTeam.lastName</code></li>
+              <li><code>analysisTeam.email</code></li>
+              <li><code>analysisTeam.isContactEditor</code></li>
+              <li><code>metadata.collisions.type</code></li>
+              <li><code>metadata.collisions.year</code></li>
+              <li><code>metadata.collisions.run</code></li>
+              <li><code>metadata.collisions.ecmValue</code></li>
+              <li><code>metadata.collisions.ecmUnit</code></li>
+              <li><code>metadata.collisions.luminosityValue</code></li>
+              <li><code>metadata.collisions.luminosityUnit</code></li>
+              <li><code>supersededBy.referenceCode</code></li>
+              <li><code>supersededBy.type</code></li>
+              <li><code>phase1.startDate</code></li>
+              <li><code>phase1.state</code></li>
+              <li><code>phase1.draftCdsUrl</code></li>
+              <li><code>phase1.groupCoordinatorSignOff</code></li>
+              <li><code>phase1.finalCdsReport</code></li>
+            </ul>
+
+            </details>
+
+            Examples:
+            - `"referenceCode" contain "PLOT-MUON-2018-08"`
+            - `"groups.leadingGroup.name" = "TRIG" AND "status" = "phase1_closed"`
+            - `"analysisTeam.isContactEditor" = "true"`
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchPlotResponse"
         "400":
           description: Invalid query parameters.
         "401":
@@ -1695,6 +1829,17 @@ components:
                           type: string
                         url:
                           type: string
+                  cernPreprintUrls:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - url
+                      properties:
+                        label:
+                          type: string
+                        url:
+                          type: string
                   finalTitleTex:
                     type: string
                   finalSubmissionJournal:
@@ -2271,6 +2416,119 @@ components:
                   - name
                 properties:
                   name:
+                    type: string
+        numberOfResults:
+          type: integer
+          description: Number of matching records.
+
+    SearchPlotResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              referenceCode:
+                type: string
+              status:
+                type: string
+              shortTitle:
+                type: string
+              fullTitle:
+                type: string
+              groups:
+                type: object
+                properties:
+                  leadingGroup:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                  otherGroups:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                        - name
+                      properties:
+                        name:
+                          type: string
+              documentation:
+                type: object
+                properties:
+                  supportingInternalDocuments:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        label:
+                          type: string
+                        url:
+                          type: string
+              analysisTeam:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - isContactEditor
+                  properties:
+                    cernCcid:
+                      type: string
+                    firstName:
+                      type: string
+                    lastName:
+                      type: string
+                    email:
+                      type: string
+                    isContactEditor:
+                      type: boolean
+              metadata:
+                type: object
+                properties:
+                  collisions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                        year:
+                          type: string
+                        run:
+                          type: string
+                        ecmValue:
+                          type: string
+                        ecmUnit:
+                          type: string
+                        luminosityValue:
+                          type: string
+                        luminosityUnit:
+                          type: string
+              supersededBy:
+                type: array
+                items:
+                  type: object
+                  required:
+                    - referenceCode
+                    - type
+                  properties:
+                    referenceCode:
+                      type: string
+                    type:
+                      type: string
+              phase1:
+                type: object
+                properties:
+                  startDate:
+                    type: string
+                  state:
+                    type: string
+                  draftCdsUrl:
+                    type: string
+                  groupCoordinatorSignOff:
+                    type: string
+                  finalCdsReport:
                     type: string
         numberOfResults:
           type: integer

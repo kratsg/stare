@@ -24,6 +24,8 @@ from stare.models import (
     ConfNoteSearchResult,
     Paper,
     PaperSearchResult,
+    Plot,
+    PlotSearchResult,
     PubNote,
     PubNoteSearchResult,
 )
@@ -72,6 +74,14 @@ SAMPLE_PUB_NOTE = PubNote.model_validate(
         "finalReferenceCode": "ATL-PHYS-PUB-2024-01",
         "status": "Phase 1 Finished",
         "shortTitle": "Test pub note",
+    }
+)
+
+SAMPLE_PLOT = Plot.model_validate(
+    {
+        "referenceCode": "PLOT-MUON-2018-08",
+        "status": "phase1_closed",
+        "shortTitle": "Test plot",
     }
 )
 
@@ -129,6 +139,19 @@ SAMPLE_PUB_NOTE_SEARCH = PubNoteSearchResult.model_validate(
     }
 )
 
+SAMPLE_PLOT_SEARCH = PlotSearchResult.model_validate(
+    {
+        "numberOfResults": 1,
+        "results": [
+            {
+                "referenceCode": "PLOT-MUON-2018-08",
+                "status": "phase1_closed",
+                "shortTitle": "Test plot",
+            }
+        ],
+    }
+)
+
 SAMPLE_PUBLICATIONS = PublicationSearchResult.model_validate(
     {
         "numberOfResults": 1,
@@ -177,6 +200,8 @@ def _mock_glance(**overrides: object) -> MagicMock:
     g.confnotes.get.return_value = SAMPLE_CONF_NOTE
     g.pubnotes.search.return_value = SAMPLE_PUB_NOTE_SEARCH
     g.pubnotes.get.return_value = SAMPLE_PUB_NOTE
+    g.plots.search.return_value = SAMPLE_PLOT_SEARCH
+    g.plots.get.return_value = SAMPLE_PLOT
     g.publications.search.return_value = SAMPLE_PUBLICATIONS
     g.publications.get.return_value = SAMPLE_PUBLICATION
     g.leadinggroups.search.return_value = SAMPLE_LEADGROUPS
@@ -748,6 +773,68 @@ def test_pubnote_search_not_enough_results() -> None:
     with patch("stare.cli.utils.make_glance", return_value=g):
         result = runner.invoke(
             app, ["pubnote", "search", "--limit", "10", "--offset", "5"]
+        )
+    assert result.exit_code == 2
+    assert "Invalid offset" in result.stderr
+    assert "Invalid offset" not in result.stdout
+
+
+# ---------------------------------------------------------------------------
+# plot get
+# ---------------------------------------------------------------------------
+
+
+def test_plot_get_command() -> None:
+    g = _mock_glance()
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(app, ["plot", "get", "PLOT-MUON-2018-08"])
+    assert result.exit_code == 0
+    assert g.plots.get.call_args.args[0] == "PLOT-MUON-2018-08"
+
+
+def test_plot_get_json_output() -> None:
+    g = _mock_glance()
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(app, ["plot", "get", "PLOT-MUON-2018-08", "--json"])
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    assert data.get("referenceCode") == "PLOT-MUON-2018-08"
+
+
+# ---------------------------------------------------------------------------
+# plot search
+# ---------------------------------------------------------------------------
+
+
+def test_plot_search_default() -> None:
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
+        result = runner.invoke(app, ["plot", "search"])
+    assert result.exit_code == 0
+    assert "PLOT-MUON-2018-08" in result.output
+
+
+def test_plot_search_json_output() -> None:
+    with patch("stare.cli.utils.make_glance", return_value=_mock_glance()):
+        result = runner.invoke(app, ["plot", "search", "--json"])
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    assert "numberOfResults" in data
+
+
+def test_plot_search_with_query() -> None:
+    g = _mock_glance()
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(app, ["plot", "search", "--query", "test"])
+    assert result.exit_code == 0
+    call_kwargs = g.plots.search.call_args.kwargs
+    assert call_kwargs["query"] == "test"
+
+
+def test_plot_search_not_enough_results() -> None:
+    g = _mock_glance()
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(
+            app, ["plot", "search", "--limit", "10", "--offset", "5"]
         )
     assert result.exit_code == 2
     assert "Invalid offset" in result.stderr

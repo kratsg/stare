@@ -6,7 +6,7 @@ icon: lucide/rocket
 
 **stare** is a Python library and CLI for the
 [CERN ATLAS Glance/Fence API](https://atlas-glance.cern.ch/atlas/analysis/api/docs/).
-It provides typed access to analyses, papers, CONF notes, PUB notes,
+It provides typed access to analyses, papers, CONF notes, PUB notes, plots,
 publications, groups, subgroups, and triggers — with OAuth2 PKCE authentication
 against CERN Keycloak built in.
 

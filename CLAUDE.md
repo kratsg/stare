@@ -31,6 +31,7 @@ src/stare/
 │   ├── paper.py      # paper_app: search, get
 │   ├── confnote.py   # confnote_app: search, get
 │   ├── pubnote.py    # pubnote_app: search, get
+│   ├── plot.py       # plot_app: search, get
 │   ├── publications.py # publications_app: search, get
 │   ├── leadinggroup.py  # leadinggroup_app: search
 │   ├── subgroup.py   # subgroup_app: search
@@ -56,7 +57,8 @@ src/stare/
     ├── paper.py       # Paper, PaperPhase1, PaperPhase2, SubmissionPhase
     ├── confnote.py    # ConfNote, ConfNotePhase1
     ├── pubnote.py     # PubNote, PubNotePhase1
-    ├── search.py      # SearchResult, PaperSearchResult, ConfNoteSearchResult, PubNoteSearchResult, PublicationRef, Trigger
+    ├── plot.py        # Plot, PlotPhase1
+    ├── search.py      # SearchResult, PaperSearchResult, ConfNoteSearchResult, PubNoteSearchResult, PlotSearchResult, PublicationRef, Trigger
     ├── enums.py       # AnalysisStatus, PaperStatus, ConfnoteStatus, AnalysisPhase0State, PaperPhase1State, … (lenient StrEnums)
     ├── auth.py        # TokenInfo, ExchangeTokenInfo
     └── errors.py      # ApiErrorResponse
@@ -94,6 +96,7 @@ analysis = g.analyses.get("ANA-HION-2018-01")
 paper = g.papers.get("HDBS-2018-33")
 conf_note = g.confnotes.get("ATLAS-CONF-2024-001")
 pub_note = g.pubnotes.get("ATL-PHYS-PUB-2024-001")
+plot = g.plots.get("PLOT-MUON-2018-08")
 
 # Leading groups (live)
 leadinggroups = g.leadinggroups.search(query="name = SUSY")
@@ -293,14 +296,16 @@ stare paper search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [
 stare paper get REF_CODE [--json/--no-json] [--no-cache]
 ```
 
-CONF notes and PUB notes are sub-apps with `search` and `get` subcommands,
-mirroring analysis and paper:
+CONF notes, PUB notes, and plots are sub-apps with `search` and `get`
+subcommands, mirroring analysis and paper:
 
 ```bash
 stare confnote search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json/--no-json] [--no-cache]
 stare confnote get REF_CODE [--json/--no-json] [--no-cache]
 stare pubnote search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json/--no-json] [--no-cache]
 stare pubnote get REF_CODE [--json/--no-json] [--no-cache]
+stare plot search [--query/-q] [--limit] [--offset] [--sort-by] [--sort-desc] [--json/--no-json] [--no-cache]
+stare plot get REF_CODE [--json/--no-json] [--no-cache]
 ```
 
 Leading groups, subgroups, and triggers are search-only sub-apps (no `get`):

@@ -41,6 +41,17 @@ API.
 | `phase1_active`   | Phase 1 Active   |
 | `phase1_closed`   | Phase 1 Finished |
 
+### `status` — Plot
+
+The `/searchPlot` endpoint returns raw values (not display labels) in responses,
+so the label column intentionally mirrors the raw value.
+
+| Raw Value       | Display Label |
+| --------------- | ------------- |
+| `created`       | created       |
+| `phase1_active` | phase1_active |
+| `phase1_closed` | phase1_closed |
+
 ---
 
 ### `phase0.state` — Phase 0 (Analysis)
@@ -151,3 +162,16 @@ API.
 | `first_signed`          | Readers Sign-Off Dates and Final Sign-Off            |
 | `second_signed`         | Finish Phase                                         |
 | `finished`              | Phase 1 Finished                                     |
+
+### `phase1.state` — Phase 1 (Plot)
+
+The `/searchPlot` endpoint returns raw values (not display labels) in responses,
+so the label column intentionally mirrors the raw value.
+
+| Raw Value           | Display Label     |
+| ------------------- | ----------------- |
+| `atlas_circulation` | atlas_circulation |
+| `finish_phase`      | finish_phase      |
+| `finished`          | finished          |
+| `review_approval`   | review_approval   |
+| `sign_off`          | sign_off          |

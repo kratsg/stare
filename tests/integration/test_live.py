@@ -19,10 +19,11 @@ from stare import Glance
 from stare.dsl.models import Condition, Operator
 from stare.dsl.registry import FieldRegistry
 from stare.exceptions import StareError
-from stare.models import Analysis, AnalysisSearchResult, ConfNote, Paper, PubNote
+from stare.models import Analysis, AnalysisSearchResult, ConfNote, Paper, Plot, PubNote
 from stare.models.search import (
     ConfNoteSearchResult,
     PaperSearchResult,
+    PlotSearchResult,
     PubNoteSearchResult,
 )
 from stare.settings import StareSettings
@@ -36,11 +37,13 @@ _ANALYSIS_FIELDS = FieldRegistry.for_mode("analysis").fields()
 _PAPER_FIELDS = FieldRegistry.for_mode("paper").fields()
 _CONFNOTE_FIELDS = FieldRegistry.for_mode("confnote").fields()
 _PUBNOTE_FIELDS = FieldRegistry.for_mode("pubnote").fields()
+_PLOT_FIELDS = FieldRegistry.for_mode("plot").fields()
 
 _REFERENCE_ANALYSIS_CODE = "ANA-HION-2018-01"
 _REFERENCE_PAPER_CODE = "IDET-2010-01"
 _REFERENCE_CONFNOTE_FINAL_CODE = "ATLAS-CONF-2018-011"
 _REFERENCE_PUBNOTE_FINAL_CODE = "ATL-PHYS-PUB-2025-014"
+_REFERENCE_PLOT_CODE = "PLOT-MUON-2018-08"
 
 
 def _get_nested_value(obj: dict[str, Any], path: str) -> str | None:
@@ -381,6 +384,86 @@ def test_pubnote_field_is_searchable(field: str, reference_pubnote: PubNote) -> 
 
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.pubnotes.search(
+            query=query,
+            limit=1,
+            validate_query=False,
+        )
+    assert result.number_of_results is not None
+    assert result.number_of_results >= 1
+
+
+# ---------------------------------------------------------------------------
+# Plot fixtures and tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="session")
+def reference_plot() -> Plot:
+    try:
+        with Glance(settings=_LIVE_SETTINGS) as g:
+            result = g.plots.search(
+                query=f"referenceCode = {_REFERENCE_PLOT_CODE}", limit=1
+            )
+    except StareError as exc:
+        pytest.skip(f"Live API unavailable: {exc}")
+    assert result.number_of_results is not None
+    assert result.number_of_results >= 1
+    match = next(
+        (p for p in result.results if p.reference_code == _REFERENCE_PLOT_CODE),
+        None,
+    )
+    assert match is not None, f"{_REFERENCE_PLOT_CODE} not in results"
+    return match
+
+
+@pytest.mark.slow
+def test_search_plots_returns_results() -> None:
+    """GET /searchPlot returns a non-empty PlotSearchResult."""
+    with Glance(settings=_LIVE_SETTINGS) as g:
+        result = g.plots.search(limit=5)
+    assert isinstance(result, PlotSearchResult)
+    assert result.number_of_results is not None
+    assert result.number_of_results > 0
+    assert len(result.results) > 0
+
+
+@pytest.mark.slow
+def test_search_plots_by_reference_code() -> None:
+    """Searching by referenceCode returns the expected plot."""
+    with Glance(settings=_LIVE_SETTINGS) as g:
+        result = g.plots.search(
+            query=f"referenceCode = {_REFERENCE_PLOT_CODE}", limit=1
+        )
+    assert result.number_of_results is not None
+    assert result.number_of_results >= 1
+    assert any(p.reference_code == _REFERENCE_PLOT_CODE for p in result.results)
+
+
+@pytest.mark.slow
+def test_search_result_items_are_plot_models() -> None:
+    """All items in search results are valid Plot instances."""
+    with Glance(settings=_LIVE_SETTINGS) as g:
+        result = g.plots.search(limit=10)
+    for item in result.results:
+        assert isinstance(item, Plot)
+        assert item.reference_code is not None
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("field", _PLOT_FIELDS)
+def test_plot_field_is_searchable(field: str, reference_plot: Plot) -> None:
+    """Each catalogue field can be used in a live query without a server error."""
+    record = reference_plot.model_dump(by_alias=True)
+    value = _get_nested_value(record, field)
+    if value is None:
+        pytest.skip(f"field '{field}' has no value in reference record")
+    try:
+        query = Condition(field=field, operator=Operator.EQ, value=value).to_dsl()
+    except ValueError as exc:
+        pytest.skip(str(exc))
+
+    with Glance(settings=_LIVE_SETTINGS) as g:
+        result = g.plots.search(
             query=query,
             limit=1,
             validate_query=False,
