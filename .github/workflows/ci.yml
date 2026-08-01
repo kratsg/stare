@@ -109,3 +109,38 @@ jobs:
         uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+  checks-windows:
+    name: Check Python 3.14 on windows-latest
+    runs-on: windows-latest
+    needs: [pre-commit]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: prefix-dev/setup-pixi@v0.10.0
+        with:
+          pixi-version: v0.68.1
+          cache: true
+          cache-key: py314-windows-${{ github.ref_name }}
+          cache-write:
+            ${{ github.event_name == 'push' && github.ref_name == 'main' }}
+          environments: py314
+
+      - name: Test package
+        run: >-
+          pixi run -e py314 test-all -ra --cov-branch --cov-report=xml
+          --cov-report=term --junitxml=junit.xml -o junit_family=legacy
+          --durations=20
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

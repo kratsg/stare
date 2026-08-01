@@ -49,6 +49,13 @@ def test_file_storage_save_creates_file(tmp_path: Path) -> None:
     storage = FileTokenStorage(path)
     storage.save(_make_stored_token())
     assert path.exists()
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="POSIX permission bits")
+def test_file_storage_save_creates_file_with_0600_perms(tmp_path: Path) -> None:
+    path = tmp_path / "tokens.json"
+    storage = FileTokenStorage(path)
+    storage.save(_make_stored_token())
     assert path.stat().st_mode & 0o777 == 0o600
 
 
