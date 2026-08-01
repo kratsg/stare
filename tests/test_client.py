@@ -33,6 +33,8 @@ from stare.models import (
     ConfNoteSearchResult,
     Paper,
     PaperSearchResult,
+    Plot,
+    PlotSearchResult,
     PubNote,
     PubNoteSearchResult,
 )
@@ -86,6 +88,8 @@ SAMPLE_CONF_NOTE_SEARCH = {"numberOfResults": 1, "results": [SAMPLE_CONF_NOTE]}
 
 SAMPLE_PUB_NOTE = json.loads((_FIXTURES / "pub_note.json").read_text())
 SAMPLE_PUB_NOTE_SEARCH = {"numberOfResults": 1, "results": [SAMPLE_PUB_NOTE]}
+
+SAMPLE_PLOT_SEARCH = json.loads((_FIXTURES / "plot_search.json").read_text())
 
 SAMPLE_ERROR = {"status": 404, "title": "Not Found", "detail": "Resource not found"}
 
@@ -491,6 +495,77 @@ def test_confnotes_search_returns_search_result(glance: Glance) -> None:
     assert isinstance(result, ConfNoteSearchResult)
     assert result.number_of_results == 1
     assert result.results[0].final_reference_code == "ATLAS-CONF-2024-001"
+
+
+# ---------------------------------------------------------------------------
+# PlotResource.search
+# ---------------------------------------------------------------------------
+
+
+def test_plots_search_returns_search_result(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchPlot").mock(
+            return_value=httpx.Response(200, json=SAMPLE_PLOT_SEARCH)
+        )
+        result = glance.plots.search()
+
+    assert isinstance(result, PlotSearchResult)
+    assert result.number_of_results == 1
+    assert len(result.results) == 1
+    assert isinstance(result.results[0], Plot)
+    assert result.results[0].reference_code == "PLOT-MUON-2018-08"
+
+
+def test_plots_search_passes_query_params(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchPlot").mock(
+            return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
+        )
+        glance.plots.search(query="referenceCode = X", limit=10, offset=5)
+        params = dict(rx.calls[0].request.url.params)
+    assert params["queryString"] == "referenceCode = X"
+    assert params["limit"] == "10"
+    assert params["offset"] == "5"
+
+
+def test_plots_search_omits_none_params(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchPlot").mock(
+            return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
+        )
+        glance.plots.search()
+        params = dict(rx.calls[0].request.url.params)
+    assert "queryString" not in params
+    assert "sortBy" not in params
+    assert "sortDesc" not in params
+
+
+# ---------------------------------------------------------------------------
+# PlotResource.get (search-based via referenceCode)
+# ---------------------------------------------------------------------------
+
+
+def test_plots_get_returns_plot(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        route = rx.get("/searchPlot").mock(
+            return_value=httpx.Response(200, json=SAMPLE_PLOT_SEARCH)
+        )
+        result = glance.plots.get("PLOT-MUON-2018-08")
+
+    assert isinstance(result, Plot)
+    assert result.reference_code == "PLOT-MUON-2018-08"
+    params = dict(route.calls[0].request.url.params)
+    assert params["queryString"] == "referenceCode = PLOT-MUON-2018-08"
+    assert params["limit"] == "1"
+
+
+def test_plots_get_zero_results_raises_not_found(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchPlot").mock(
+            return_value=httpx.Response(200, json={"numberOfResults": 0, "results": []})
+        )
+        with pytest.raises(NotFoundError):
+            glance.plots.get("MISSING")
 
 
 # ---------------------------------------------------------------------------
