@@ -57,17 +57,23 @@ _BUNDLE_FILE: dict[str, str] = {
 
 
 def _load_ssl_context(ca_bundle: str) -> ssl.SSLContext:
-    """Create an SSLContext from a bundled CA chain.
+    """Create an SSLContext from a bundled CA chain plus the system trust store.
 
     Neither the production endpoint (atlas-glance.cern.ch, Sectigo cert) nor
     the staging endpoint (glance-staging01.cern.ch, CERN Grid CA cert) sends
     the full chain in the TLS handshake. The named bundle in stare.data
     provides the missing CA(s) so Python can build the chain. Uses as_file()
     so the resource is available as a real filesystem path inside a wheel.
+    Also loading the system default certs means a server-side CA rotation
+    degrades gracefully instead of breaking every installed client until a
+    release ships an updated bundle, at the cost of trusting the full OS CA
+    store rather than only the pinned chain.
     """
     filename = _BUNDLE_FILE.get(ca_bundle, f"{ca_bundle}_chain.pem")
     with as_file(files("stare.data").joinpath(filename)) as cert_path:
-        return ssl.create_default_context(cafile=str(cert_path))
+        ctx = ssl.create_default_context(cafile=str(cert_path))
+    ctx.load_default_certs()
+    return ctx
 
 
 def _raise_for_status(response: httpx.Response) -> None:
