@@ -63,10 +63,17 @@ pytest-cov = ">=3"
 respx = ">=0.21"
 
 [feature.test.activation.env]
-# Rich's Console checks FORCE_COLOR at construction time (module import), before
-# any test-level env patching can take effect. Clearing it here ensures pytest
-# runs with a non-TTY console so output contains no ANSI escape codes.
-FORCE_COLOR = ""
+# Rich's Console checks these at construction time (module import), before any
+# test-level env patching can take effect, so they must be set here rather
+# than in conftest. TTY_COMPATIBLE=0 is Rich's own escape hatch for "this
+# device cannot render escape codes" and is checked ahead of both FORCE_COLOR
+# and isatty() auto-detection. FORCE_COLOR="" alone is not reliable here: on
+# Windows, setting an env var to the empty string removes it from the
+# environment rather than keeping it defined-but-empty, so Rich falls through
+# to isatty() — which GitHub Actions' Windows runners can misreport as True
+# for captured/redirected output, re-enabling ANSI codes that split
+# substrings in test assertions (e.g. "0.4.3" -> "\x1b[1m0.4\x1b[0m.3").
+TTY_COMPATIBLE = "0"
 
 [feature.test.tasks]
 test = { cmd = "pytest -m 'not slow'", description = "Run quick tests (skip slow)" }
