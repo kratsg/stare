@@ -43,11 +43,11 @@ API.
 
 ### `status` — Plot
 
-| Raw Value       | Display Label    |
-| --------------- | ---------------- |
-| `created`       | Created          |
-| `phase1_active` | Phase 1 Active   |
-| `phase1_closed` | Phase 1 Finished |
+| Raw Value       | Display Label |
+| --------------- | ------------- |
+| `created`       | created       |
+| `phase1_active` | phase1_active |
+| `phase1_closed` | phase1_closed |
 
 ---
 
@@ -164,8 +164,8 @@ API.
 
 | Raw Value           | Display Label     |
 | ------------------- | ----------------- |
-| `atlas_circulation` | ATLAS Circulation |
-| `finish_phase`      | Finish Phase      |
-| `finished`          | Phase 1 Finished  |
-| `review_approval`   | Review Approval   |
-| `sign_off`          | Sign-Off          |
+| `atlas_circulation` | atlas_circulation |
+| `finish_phase`      | finish_phase      |
+| `finished`          | finished          |
+| `review_approval`   | review_approval   |
+| `sign_off`          | sign_off          |

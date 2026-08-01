@@ -126,11 +126,12 @@ class TestConfnoteStatus:
 class TestPlotStatus:
     def test_known_values_parse(self) -> None:
         M = _model(PlotStatus)
-        assert M.model_validate({"value": "Created"}).value == PlotStatus.CREATED
+        assert M.model_validate({"value": "created"}).value == PlotStatus.CREATED
         assert (
-            M.model_validate({"value": "Phase 1 Active"}).value
+            M.model_validate({"value": "phase1_active"}).value
             == PlotStatus.PHASE1_ACTIVE
         )
+        assert PlotStatus.PHASE1_CLOSED.value == "phase1_closed"
 
     def test_unknown_falls_back(self, caplog) -> None:
         M = _model(LenientPlotStatus)
@@ -390,16 +391,14 @@ class TestConfnotePhase1State:
 
 
 class TestPlotPhase1State:
-    def test_human_readable_states(self) -> None:
+    def test_raw_values_parse(self) -> None:
         M = _model(PlotPhase1State)
         assert (
-            M.model_validate({"value": "ATLAS Circulation"}).value
+            M.model_validate({"value": "atlas_circulation"}).value
             == PlotPhase1State.ATLAS_CIRCULATION
         )
-        assert (
-            M.model_validate({"value": "Phase 1 Finished"}).value
-            == PlotPhase1State.FINISHED
-        )
+        assert M.model_validate({"value": "finished"}).value == PlotPhase1State.FINISHED
+        assert PlotPhase1State.SIGN_OFF.value == "sign_off"
 
     def test_unknown_falls_back(self, caplog) -> None:
         M = _model(LenientPlotPhase1State)
