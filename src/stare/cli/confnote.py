@@ -160,14 +160,14 @@ def confnote_get(
         ),
     ] = False,
 ) -> None:
-    """Fetch a single conf note by temporary reference code via GET /confNotes/{ref_code}.
+    """Fetch a single conf note by temporary reference code via GET /searchConfnote.
 
     [bold]Examples[/bold]
       [green]stare confnote ATLAS-CONF-2024-01[/green]
       [green]stare confnote ATLAS-CONF-2024-01 | jq '.status'[/green]
 
     [bold]API reference[/bold]
-      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#operations-paper-getPaper
+      https://atlas-glance.cern.ch/atlas/analysis/api/docs/#/Confnote/searchConfnote
     """
     if output_json is None:
         output_json = not stdout_is_interactive()
