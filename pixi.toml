@@ -54,6 +54,9 @@ python = "<3.13,>=3.12"
 [feature.py313.dependencies]
 python = "<3.14,>=3.13"
 
+[feature.py314.dependencies]
+python = "<3.15,>=3.14"
+
 [feature.test.dependencies]
 pytest = ">=9"
 pytest-cov = ">=3"
@@ -117,6 +120,7 @@ py310 = ["test", "py310"]
 py311 = ["test", "py311"]
 py312 = ["test", "py312"]
 py313 = ["test", "py313"]
+py314 = ["test", "py314"]
 staging = ["default", "staging"]
 
 [tasks]
