@@ -43,6 +43,9 @@ API.
 
 ### `status` — Plot
 
+The `/searchPlot` endpoint returns raw values (not display labels) in responses,
+so the label column intentionally mirrors the raw value.
+
 | Raw Value       | Display Label |
 | --------------- | ------------- |
 | `created`       | created       |
@@ -161,6 +164,9 @@ API.
 | `finished`              | Phase 1 Finished                                     |
 
 ### `phase1.state` — Phase 1 (Plot)
+
+The `/searchPlot` endpoint returns raw values (not display labels) in responses,
+so the label column intentionally mirrors the raw value.
 
 | Raw Value           | Display Label     |
 | ------------------- | ----------------- |

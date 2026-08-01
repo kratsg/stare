@@ -2055,3 +2055,9 @@ class TestRealWorldPlot:
         r = PlotSearchResult.model_validate(data).results[0]
         assert len(r.superseded_by) == 1
         assert r.superseded_by[0].reference_code == "MUON-2020-03"
+
+    def test_no_lenient_fallback_warnings(self, caplog) -> None:
+        data = json.loads((_FIXTURES / "plot_search.json").read_text())
+        with caplog.at_level(logging.WARNING, logger="stare"):
+            PlotSearchResult.model_validate(data)
+        assert caplog.text == ""

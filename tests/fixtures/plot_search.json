@@ -57,7 +57,7 @@
       ],
       "phase1": {
         "startDate": "2018-05-14",
-        "state": "phase1_closed",
+        "state": "finished",
         "draftCdsUrl": "https://cds.cern.ch/record/0000202",
         "groupCoordinatorSignOff": "Approved",
         "finalCdsReport": "https://cds.cern.ch/record/0000203"
