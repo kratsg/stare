@@ -18,6 +18,8 @@ icon: lucide/code-2
 
 ::: stare.client.PubNoteResource
 
+::: stare.client.PlotResource
+
 ::: stare.client.PublicationResource
 
 ::: stare.client.LeadingGroupResource
@@ -125,6 +127,8 @@ hyperlinks in CLI output; also available for library callers.
 
 ::: stare.urls.pubnote_url
 
+::: stare.urls.plot_url
+
 ## Models
 
 ### Shared
@@ -152,6 +156,12 @@ hyperlinks in CLI output; also available for library callers.
 ::: stare.models.PubNote
 
 ::: stare.models.PubNoteSearchResult
+
+::: stare.models.Plot
+
+::: stare.models.PlotPhase1
+
+::: stare.models.PlotSearchResult
 
 ### Publications
 

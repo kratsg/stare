@@ -57,6 +57,10 @@ stare paper get HDBS-2018-33
 stare confnote get ATLAS-CONF-2024-001
 stare pubnote get ATL-PHYS-PUB-2024-001
 
+# Plots
+stare plot search --query 'referenceCode = PLOT-MUON-2018-08'
+stare plot get PLOT-MUON-2018-08
+
 # List metadata
 stare leadinggroups search
 stare subgroups search
@@ -99,6 +103,7 @@ analysis = g.analyses.get("ANA-HION-2018-01")
 paper = g.papers.get("HDBS-2018-33")
 conf_note = g.confnotes.get("ATLAS-CONF-2024-001")
 pub_note = g.pubnotes.get("ATL-PHYS-PUB-2024-001")
+plot = g.plots.get("PLOT-MUON-2018-08")
 leadinggroups = g.leadinggroups.search(query="name = SUSY")
 ```
 
