@@ -401,6 +401,10 @@ class TestPlotPhase1State:
             M.model_validate({"value": "Phase 1 Finished"}).value
             == PlotPhase1State.FINISHED
         )
+        assert (
+            M.model_validate({"value": "Plot Data"}).value
+            == PlotPhase1State.NOT_STARTED
+        )
         assert PlotPhase1State.SIGN_OFF.value == "Sign-Off or Re-circulation"
 
     def test_unknown_falls_back(self, caplog) -> None:
