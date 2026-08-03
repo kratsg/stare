@@ -3,7 +3,7 @@
   "results": [
     {
       "referenceCode": "PLOT-MUON-2018-08",
-      "status": "phase1_closed",
+      "status": "Phase 1 Finished",
       "shortTitle": "Muon momentum resolution plots",
       "fullTitle": "Approval plots for the muon momentum resolution measurement using Run 2 data",
       "groups": {
@@ -57,7 +57,7 @@
       ],
       "phase1": {
         "startDate": "2018-05-14",
-        "state": "finished",
+        "state": "Phase 1 Finished",
         "draftCdsUrl": "https://cds.cern.ch/record/0000202",
         "groupCoordinatorSignOff": "Approved",
         "finalCdsReport": "https://cds.cern.ch/record/0000203"

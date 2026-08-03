@@ -1398,7 +1398,7 @@ class TestRichRendering:
         pl = Plot.model_validate(
             {
                 "referenceCode": "PLOT-MUON-2018-08",
-                "status": "phase1_closed",
+                "status": "Phase 1 Finished",
                 "shortTitle": "Plot test",
                 "groups": {
                     "leadingGroup": {"name": "MUON"},
@@ -1419,7 +1419,7 @@ class TestRichRendering:
                 },
                 "phase1": {
                     "startDate": "2018-05-14",
-                    "state": "phase1_closed",
+                    "state": "Phase 1 Finished",
                     "groupCoordinatorSignOff": "Approved",
                 },
                 "analysisTeam": [
@@ -1534,7 +1534,7 @@ class TestRichRendering:
             }
         )
         pl = Plot.model_validate(
-            {"referenceCode": "PLOT-MUON-2018-08", "status": "phase1_closed"}
+            {"referenceCode": "PLOT-MUON-2018-08", "status": "Phase 1 Finished"}
         )
 
         console = _make_console()
@@ -1710,16 +1710,16 @@ class TestPlot:
     def test_round_trip(self) -> None:
         payload = {
             "referenceCode": "PLOT-MUON-2018-08",
-            "status": "phase1_closed",
+            "status": "Phase 1 Finished",
             "shortTitle": "Test plot",
         }
         plot = Plot.model_validate(payload)
         assert plot.reference_code == "PLOT-MUON-2018-08"
-        assert plot.status == "phase1_closed"
+        assert plot.status == "Phase 1 Finished"
         assert plot.short_title == "Test plot"
         dumped = plot.model_dump(by_alias=True, exclude_none=True)
         assert dumped["referenceCode"] == "PLOT-MUON-2018-08"
-        assert dumped["status"] == "phase1_closed"
+        assert dumped["status"] == "Phase 1 Finished"
 
     def test_optional_fields_default_none(self) -> None:
         plot = Plot.model_validate({})
@@ -1740,14 +1740,14 @@ class TestPlotPhase1:
         p = PlotPhase1.model_validate(
             {
                 "startDate": "2018-05-14",
-                "state": "phase1_closed",
+                "state": "Phase 1 Finished",
                 "draftCdsUrl": "https://cds.cern.ch/record/0000202",
                 "groupCoordinatorSignOff": "Approved",
                 "finalCdsReport": "https://cds.cern.ch/record/0000203",
             }
         )
         assert p.start_date == date(2018, 5, 14)
-        assert p.state == "phase1_closed"
+        assert p.state == "Phase 1 Finished"
         assert p.draft_cds_url == "https://cds.cern.ch/record/0000202"
         assert p.group_coordinator_sign_off == "Approved"
         assert p.final_cds_report == "https://cds.cern.ch/record/0000203"
@@ -1768,7 +1768,7 @@ class TestPlotSearchResult:
             "results": [
                 {
                     "referenceCode": "PLOT-MUON-2018-08",
-                    "status": "phase1_closed",
+                    "status": "Phase 1 Finished",
                     "shortTitle": "x",
                 }
             ],
