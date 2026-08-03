@@ -80,7 +80,7 @@ SAMPLE_PUB_NOTE = PubNote.model_validate(
 SAMPLE_PLOT = Plot.model_validate(
     {
         "referenceCode": "PLOT-MUON-2018-08",
-        "status": "phase1_closed",
+        "status": "Phase 1 Finished",
         "shortTitle": "Test plot",
     }
 )
@@ -145,7 +145,7 @@ SAMPLE_PLOT_SEARCH = PlotSearchResult.model_validate(
         "results": [
             {
                 "referenceCode": "PLOT-MUON-2018-08",
-                "status": "phase1_closed",
+                "status": "Phase 1 Finished",
                 "shortTitle": "Test plot",
             }
         ],
