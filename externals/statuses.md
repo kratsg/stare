@@ -14,7 +14,7 @@ API.
 
 | Raw Value           | Display Label              |
 | ------------------- | -------------------------- |
-| `created`           | Not Started                |
+| `created`           | Created                    |
 | `analysis_closed`   | Closed                     |
 | `phase1_active`     | Phase 1 Active             |
 | `phase1_closed`     | Phase 1 Finished           |
@@ -43,14 +43,11 @@ API.
 
 ### `status` — Plot
 
-The `/searchPlot` endpoint returns raw values (not display labels) in responses,
-so the label column intentionally mirrors the raw value.
-
-| Raw Value       | Display Label |
-| --------------- | ------------- |
-| `created`       | created       |
-| `phase1_active` | phase1_active |
-| `phase1_closed` | phase1_closed |
+| Raw Value       | Display Label    |
+| --------------- | ---------------- |
+| `created`       | Created          |
+| `phase1_active` | Phase 1 Active   |
+| `phase1_closed` | Phase 1 Finished |
 
 ---
 
@@ -137,7 +134,7 @@ so the label column intentionally mirrors the raw value.
 | ---------------------- | --------------------------------------------- |
 | `not_started`          | Phase 1 Data                                  |
 | `started`              | Editorial Board                               |
-| `approved_by_reviewer` | Analysis Review                               |
+| `approved_by_reviewer` | CONF note review and Production of Draft      |
 | `lgp_approved`         | Editorial Board Draft Sign-off                |
 | `phase1_active`        | Phase 1 Active                                |
 | `second_signed`        | CONF Release                                  |
@@ -165,13 +162,11 @@ so the label column intentionally mirrors the raw value.
 
 ### `phase1.state` — Phase 1 (Plot)
 
-The `/searchPlot` endpoint returns raw values (not display labels) in responses,
-so the label column intentionally mirrors the raw value.
-
-| Raw Value           | Display Label     |
-| ------------------- | ----------------- |
-| `atlas_circulation` | atlas_circulation |
-| `finish_phase`      | finish_phase      |
-| `finished`          | finished          |
-| `review_approval`   | review_approval   |
-| `sign_off`          | sign_off          |
+| Raw Value           | Display Label              |
+| ------------------- | -------------------------- |
+| `not_started`       | Plot Data                  |
+| `atlas_circulation` | ATLAS Circulation          |
+| `finish_phase`      | Finish Phase               |
+| `finished`          | Phase 1 Finished           |
+| `review_approval`   | Plots Review and Approval  |
+| `sign_off`          | Sign-Off or Re-circulation |
