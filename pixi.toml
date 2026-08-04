@@ -62,7 +62,7 @@ pytest = ">=9"
 pytest-cov = ">=3"
 respx = ">=0.21"
 
-[feature.test.activation.env]
+[feature.test.tasks]
 # Rich's Console checks these at construction time (module import), before any
 # test-level env patching can take effect, so they must be set here rather
 # than in conftest. TTY_COMPATIBLE=0 is Rich's own escape hatch for "this
@@ -73,13 +73,16 @@ respx = ">=0.21"
 # to isatty() — which GitHub Actions' Windows runners can misreport as True
 # for captured/redirected output, re-enabling ANSI codes that split
 # substrings in test assertions (e.g. "0.4.3" -> "\x1b[1m0.4\x1b[0m.3").
-TTY_COMPATIBLE = "0"
-
-[feature.test.tasks]
-test = { cmd = "pytest -m 'not slow'", description = "Run quick tests (skip slow)" }
-test-cov = { cmd = "pytest -m 'not slow' --cov=stare --cov-report=term --cov-report=html", description = "Run quick tests with coverage" }
-test-slow = { cmd = "pytest --runslow", description = "Run tests including slow tests" }
-test-all = { cmd = "pytest --cov=stare", description = "Run all tests with coverage" }
+# This is set as task env (not activation env): activation env applies to the
+# whole environment, and since the default environment includes the test
+# feature, an activation-scoped TTY_COMPATIBLE=0 would leak into every
+# `pixi run stare ...` invocation, disabling Rich's colors and OSC-8
+# hyperlinks on real terminals. Task-scoped env only applies while the task
+# itself runs.
+test = { cmd = "pytest -m 'not slow'", description = "Run quick tests (skip slow)", env = { TTY_COMPATIBLE = "0" } }
+test-cov = { cmd = "pytest -m 'not slow' --cov=stare --cov-report=term --cov-report=html", description = "Run quick tests with coverage", env = { TTY_COMPATIBLE = "0" } }
+test-slow = { cmd = "pytest --runslow", description = "Run tests including slow tests", env = { TTY_COMPATIBLE = "0" } }
+test-all = { cmd = "pytest --cov=stare", description = "Run all tests with coverage", env = { TTY_COMPATIBLE = "0" } }
 
 [feature.docs.dependencies]
 zensical = "*"

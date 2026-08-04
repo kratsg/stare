@@ -3,9 +3,18 @@
 from __future__ import annotations
 
 import json
+import os
+import select
+import subprocess
+import sys
+import time
 from unittest.mock import MagicMock, patch
 
+import pytest
 from typer.testing import CliRunner
+
+if sys.platform != "win32":  # pty/termios do not exist on Windows
+    import pty
 
 from stare import __version__
 from stare.cli import app
@@ -221,6 +230,60 @@ def test_version_command() -> None:
     result = runner.invoke(app, ["version"])
     assert result.exit_code == 0
     assert __version__ in result.output
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="pty module is POSIX-only")
+def test_version_command_renders_ansi_on_a_real_tty() -> None:
+    """Regression test for the v0.5.0 color/hyperlink regression.
+
+    `TTY_COMPATIBLE=0` in pixi's test feature activation env used to leak
+    into every `pixi run stare ...` invocation (the default environment
+    includes the test feature), which disabled Rich's ANSI colors and OSC-8
+    hyperlinks even on real terminals. This spawns the CLI in a subprocess
+    connected to a real pty, with `TTY_COMPATIBLE` stripped from the child
+    env, so it exercises Rich's actual isatty()-based color detection rather
+    than whatever env pytest itself happens to run under.
+    """
+    env = os.environ.copy()
+    env.pop("TTY_COMPATIBLE", None)
+
+    master_fd, slave_fd = pty.openpty()
+    try:
+        proc = subprocess.Popen(
+            [sys.executable, "-c", "from stare.cli import app; app()", "version"],
+            stdout=slave_fd,
+            stderr=slave_fd,
+            env=env,
+            close_fds=True,
+        )
+        os.close(slave_fd)
+        slave_fd = -1
+
+        chunks: list[bytes] = []
+        # Bound the reads with a deadline so a wedged child can never hang
+        # the suite: os.read on a pty blocks until the child writes or exits.
+        deadline = time.monotonic() + 10
+        while True:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0 or not select.select([master_fd], [], [], remaining)[0]:
+                proc.kill()
+                break
+            try:
+                data = os.read(master_fd, 4096)
+            except OSError:
+                break
+            if not data:
+                break
+            chunks.append(data)
+    finally:
+        if slave_fd != -1:
+            os.close(slave_fd)
+        os.close(master_fd)
+
+    proc.wait(timeout=10)
+    output = b"".join(chunks)
+    assert proc.returncode == 0
+    assert b"\x1b[" in output
 
 
 # ---------------------------------------------------------------------------
