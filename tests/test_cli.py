@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import json
 import os
+import select
 import subprocess
 import sys
+import time
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -258,7 +260,14 @@ def test_version_command_renders_ansi_on_a_real_tty() -> None:
         slave_fd = -1
 
         chunks: list[bytes] = []
+        # Bound the reads with a deadline so a wedged child can never hang
+        # the suite: os.read on a pty blocks until the child writes or exits.
+        deadline = time.monotonic() + 10
         while True:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0 or not select.select([master_fd], [], [], remaining)[0]:
+                proc.kill()
+                break
             try:
                 data = os.read(master_fd, 4096)
             except OSError:
