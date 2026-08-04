@@ -4,13 +4,15 @@ from __future__ import annotations
 
 import json
 import os
-import pty
 import subprocess
 import sys
 from unittest.mock import MagicMock, patch
 
 import pytest
 from typer.testing import CliRunner
+
+if sys.platform != "win32":  # pty/termios do not exist on Windows
+    import pty
 
 from stare import __version__
 from stare.cli import app
