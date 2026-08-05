@@ -164,7 +164,7 @@ API.
 
 | Raw Value           | Display Label              |
 | ------------------- | -------------------------- |
-| `not_started`       | Plot Data                  |
+| `not_started`       | Phase 1 Data               |
 | `atlas_circulation` | ATLAS Circulation          |
 | `finish_phase`      | Finish Phase               |
 | `finished`          | Phase 1 Finished           |

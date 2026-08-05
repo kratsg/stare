@@ -402,7 +402,7 @@ class TestPlotPhase1State:
             == PlotPhase1State.FINISHED
         )
         assert (
-            M.model_validate({"value": "Plot Data"}).value
+            M.model_validate({"value": "Phase 1 Data"}).value
             == PlotPhase1State.NOT_STARTED
         )
         assert PlotPhase1State.SIGN_OFF.value == "Sign-Off or Re-circulation"
