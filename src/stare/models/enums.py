@@ -213,7 +213,7 @@ class PubnotePhase1State(StrEnum):
 class PlotPhase1State(StrEnum):
     """Auto-generated enum."""
 
-    NOT_STARTED = "Plot Data"
+    NOT_STARTED = "Phase 1 Data"
     ATLAS_CIRCULATION = "ATLAS Circulation"
     FINISH_PHASE = "Finish Phase"
     FINISHED = "Phase 1 Finished"
