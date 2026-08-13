@@ -527,7 +527,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/tomli-2.4.1-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tomli-w-1.2.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tomlkit-0.14.0-pyha770c72_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/twine-6.2.0-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/twine-7.0.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typer-0.16.1-pyhc167863_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typer-slim-0.16.1-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typer-slim-standard-0.16.1-h810d63d_0.conda
@@ -657,7 +657,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/tomli-2.4.1-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tomli-w-1.2.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tomlkit-0.14.0-pyha770c72_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/twine-6.2.0-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/twine-7.0.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typer-0.16.1-pyhc167863_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typer-slim-0.16.1-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typer-slim-standard-0.16.1-h810d63d_0.conda
@@ -747,7 +747,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/tomli-2.4.1-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tomli-w-1.2.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tomlkit-0.14.0-pyha770c72_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/twine-6.2.0-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/twine-7.0.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typer-0.16.1-pyhc167863_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typer-slim-0.16.1-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typer-slim-standard-0.16.1-h810d63d_0.conda
@@ -867,7 +867,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/tomli-2.4.1-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tomli-w-1.2.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tomlkit-0.14.0-pyha770c72_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/noarch/twine-6.2.0-pyhcf101f3_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/twine-7.0.0-pyhcf101f3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typer-0.16.1-pyhc167863_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typer-slim-0.16.1-pyhe01879c_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/typer-slim-standard-0.16.1-h810d63d_0.conda
@@ -8736,26 +8736,6 @@ packages:
   run_exports: {}
   size: 24210
   timestamp: 1780385194431
-- conda: https://conda.anaconda.org/conda-forge/noarch/twine-6.2.0-pyhcf101f3_0.conda
-  sha256: 0370098cab22773e33755026bf78539c2f05645fce7dcc9713d01e21950756bb
-  md5: 901a86453fa6183e914b937643619a03
-  depends:
-  - id
-  - importlib-metadata >=3.6
-  - keyring >=21.2.0
-  - packaging >=24.0
-  - python >=3.10
-  - readme_renderer >=35.0
-  - requests >=2.20
-  - requests-toolbelt >=0.8.0,!=0.9.0
-  - rfc3986 >=1.4.0
-  - rich >=12.0.0
-  - urllib3 >=1.26.0
-  - python
-  license: Apache-2.0
-  license_family: APACHE
-  size: 42488
-  timestamp: 1757013705407
 - conda: https://conda.anaconda.org/conda-forge/noarch/twine-7.0.0-pyhcf101f3_0.conda
   sha256: 9abcd51d09a4d2da757861ad4684b02ae82ff721db6644e6fe477c5fd7e9278c
   md5: e1d7495efcd3d0bc79bdc6cc5a34b8ba
@@ -8772,6 +8752,7 @@ packages:
   - urllib3 >=1.26.0
   - python
   license: Apache-2.0
+  license_family: APACHE
   run_exports: {}
   size: 42936
   timestamp: 1785252141368
