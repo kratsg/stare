@@ -4,7 +4,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     groups:
       actions:
         patterns:
@@ -12,11 +12,15 @@ updates:
     labels:
       - "github-actions"
       - "dependencies"
+    cooldown:
+      default-days: 7
 
   # Ignore all pip dependencies to avoid PRs to update tests/constraints.txt
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     ignore:
       - dependency-name: "*"
+    cooldown:
+      default-days: 7
