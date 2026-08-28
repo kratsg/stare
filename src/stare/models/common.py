@@ -380,6 +380,7 @@ class Groups(_Base):
     """Leading group, subgroups, and other groups for a publication."""
 
     leading_group: Group | None = None
+    leading_subgroup: Group | None = None
     subgroups: list[Group] = Field(default_factory=list)
     other_groups: list[Group] = Field(default_factory=list)
 
@@ -390,6 +391,8 @@ class Groups(_Base):
         group_table.add_column()
         if self.leading_group and self.leading_group.name:
             group_table.add_row("Leading", f" {self.leading_group.name}")
+        if self.leading_subgroup and self.leading_subgroup.name:
+            group_table.add_row("Leading Subgroup", f" {self.leading_subgroup.name}")
         if self.subgroups:
             group_table.add_row(
                 "Subgroups",
