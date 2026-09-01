@@ -99,6 +99,7 @@ paths:
               <li><code>publicShortTitle</code></li>
               <li><code>referenceCode</code></li>
               <li><code>groups.leadingGroup.name</code></li>
+              <li><code>groups.leadingSubgroup.name</code></li>
               <li><code>groups.subgroups.name</code></li>
               <li><code>groups.otherGroups.name</code></li>
               <li><code>amiGlance.label</code></li>
@@ -275,6 +276,7 @@ paths:
               <li><code>fullTitle</code></li>
               <li><code>referenceCode</code></li>
               <li><code>groups.leadingGroup.name</code></li>
+              <li><code>groups.leadingSubgroup.name</code></li>
               <li><code>groups.subgroups.name</code></li>
               <li><code>groups.otherGroups.name</code></li>
               <li><code>documentation.supportingInternalDocuments.label</code></li>
@@ -468,6 +470,7 @@ paths:
               <li><code>temporaryReferenceCode</code></li>
               <li><code>finalReferenceCode</code></li>
               <li><code>groups.leadingGroup.name</code></li>
+              <li><code>groups.leadingSubgroup.name</code></li>
               <li><code>groups.subgroups.name</code></li>
               <li><code>groups.otherGroups.name</code></li>
               <li><code>documentation.supportingInternalDocuments.label</code></li>
@@ -630,6 +633,7 @@ paths:
               <li><code>temporaryReferenceCode</code></li>
               <li><code>finalReferenceCode</code></li>
               <li><code>groups.leadingGroup.name</code></li>
+              <li><code>groups.leadingSubgroup.name</code></li>
               <li><code>groups.subgroups.name</code></li>
               <li><code>groups.otherGroups.name</code></li>
               <li><code>documentation.supportingInternalDocuments.label</code></li>
@@ -1199,6 +1203,7 @@ paths:
               <li><code>status</code></li>
               <li><code>shortTitle</code></li>
               <li><code>groups.leadingGroup.name</code></li>
+              <li><code>groups.leadingSubgroup.name</code></li>
               <li><code>groups.subgroups.name</code></li>
             </ul>
 
@@ -1278,6 +1283,13 @@ components:
                 type: object
                 properties:
                   leadingGroup:
+                    type: object
+                    required:
+                      - name
+                    properties:
+                      name:
+                        type: string
+                  leadingSubgroup:
                     type: object
                     required:
                       - name
@@ -1572,6 +1584,13 @@ components:
                 type: object
                 properties:
                   leadingGroup:
+                    type: object
+                    required:
+                      - name
+                    properties:
+                      name:
+                        type: string
+                  leadingSubgroup:
                     type: object
                     required:
                       - name
@@ -1909,6 +1928,13 @@ components:
                     properties:
                       name:
                         type: string
+                  leadingSubgroup:
+                    type: object
+                    required:
+                      - name
+                    properties:
+                      name:
+                        type: string
                   subgroups:
                     type: array
                     items:
@@ -2152,6 +2178,13 @@ components:
                     properties:
                       name:
                         type: string
+                  leadingSubgroup:
+                    type: object
+                    required:
+                      - name
+                    properties:
+                      name:
+                        type: string
                   subgroups:
                     type: array
                     items:
@@ -2359,6 +2392,13 @@ components:
                 type: object
                 properties:
                   leadingGroup:
+                    type: object
+                    required:
+                      - name
+                    properties:
+                      name:
+                        type: string
+                  leadingSubgroup:
                     type: object
                     required:
                       - name

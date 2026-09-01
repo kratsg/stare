@@ -11,6 +11,9 @@
         "leadingGroup": {
           "name": "IDTR"
         },
+        "leadingSubgroup": {
+          "name": "IDTRACKING-Alignment"
+        },
         "subgroups": [
           {
             "name": "IDTRACKING-Alignment"

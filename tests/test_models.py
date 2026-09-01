@@ -169,22 +169,45 @@ class TestGroups:
         g = Groups.model_validate(
             {
                 "leadingGroup": {"name": "SUSY"},
+                "leadingSubgroup": {"name": "SUSY-Run2"},
                 "subgroups": [{"name": "Run2"}],
                 "otherGroups": [],
             }
         )
         assert g.leading_group is not None
         assert g.leading_group.name == "SUSY"
+        assert g.leading_subgroup is not None
+        assert g.leading_subgroup.name == "SUSY-Run2"
         assert g.subgroups[0].name == "Run2"
         assert g.other_groups == []
+
+    def test_leading_subgroup_optional(self) -> None:
+        g = Groups.model_validate({"leadingGroup": {"name": "SUSY"}})
+        assert g.leading_subgroup is None
 
     def test_all_optional(self) -> None:
         g = Groups.model_validate({})
         assert g.leading_group is None
+        assert g.leading_subgroup is None
 
     def test_group_name_required(self) -> None:
         with pytest.raises(ResponseParseError):
             Group.model_validate({})
+
+    def test_rich_includes_leading_subgroup(self) -> None:
+        g = Groups.model_validate(
+            {
+                "leadingGroup": {"name": "SUSY"},
+                "leadingSubgroup": {"name": "SUSY-Run2"},
+            }
+        )
+        result = g.__rich__()
+        assert isinstance(result, Panel)
+        console = _make_console()
+        console.print(result)
+        text = console.export_text()
+        assert "Leading Subgroup" in text
+        assert "SUSY-Run2" in text
 
 
 class TestCollision:
@@ -1944,6 +1967,14 @@ class TestRealWorldPaper:
         assert r.publication_phase is not None
         assert len(r.publication_phase.cern_preprint_urls) == 1
         assert r.publication_phase.cern_preprint_urls[0].label == "CERN-EP-2026-099"
+
+    def test_leading_subgroup(self) -> None:
+        # verifies the groups.leadingSubgroup key on the paper endpoint is parsed
+        data = json.loads((_FIXTURES / "paper_search.json").read_text())
+        r = PaperSearchResult.model_validate(data).results[0]
+        assert r.groups is not None
+        assert r.groups.leading_subgroup is not None
+        assert r.groups.leading_subgroup.name == "IDTRACKING-Alignment"
 
     def test_analysis_team_anonymized(self) -> None:
         data = json.loads((_FIXTURES / "paper_search.json").read_text())
