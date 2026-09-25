@@ -73,8 +73,9 @@ class TokenManager:
             # Explicit path → always use file storage (no keyring lookup).
             self._storage = FileTokenStorage(token_path)
         else:
-            # No explicit storage or path → auto-detect (keyring if available).
-            self._storage = get_default_storage()
+            # No explicit storage or path → honour STARE_TOKEN_STORAGE
+            # ("auto" picks the keyring when available).
+            self._storage = get_default_storage(backend=self._settings.token_storage)
         # In-memory cache for the RFC 8693 exchanged token (avoids a round-trip
         # to the token endpoint on every API call).
         self._exchanged_token: str | None = None

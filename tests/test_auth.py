@@ -1502,3 +1502,20 @@ def test_token_manager_creates_lock_parent_directory(
     token_path = tmp_path / "nested" / "tokens.json"
     manager = TokenManager(settings=test_settings, token_path=token_path)
     assert manager._storage.lock_path.parent.exists()
+
+
+# ---------------------------------------------------------------------------
+# storage backend selection
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("backend", ["auto", "keyring", "file"])
+def test_token_manager_passes_token_storage_setting_to_default_storage(
+    tmp_token_path: Path, test_settings: StareSettings, backend: str
+) -> None:
+    settings = test_settings.model_copy(update={"token_storage": backend})
+    with patch(
+        "stare.auth.get_default_storage", return_value=FileTokenStorage(tmp_token_path)
+    ) as get_default_storage:
+        TokenManager(settings=settings)
+    get_default_storage.assert_called_once_with(backend=backend)

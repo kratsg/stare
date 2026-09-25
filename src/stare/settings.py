@@ -48,6 +48,10 @@ class StareSettings(BaseSettings):
     # (glance-staging01.cern.ch) which still uses the CERN Grid CA.
     # Set STARE_CA_BUNDLE=CERN when pointing STARE_BASE_URL at staging.
     ca_bundle: Literal["Sectigo", "CERN"] = "Sectigo"
+    # Where tokens are persisted. "auto" prefers the OS keyring and falls back
+    # to a JSON file; "file" forces the file (e.g. cron jobs that cannot unlock
+    # the macOS login Keychain); "keyring" forces the keyring with no fallback.
+    token_storage: Literal["auto", "keyring", "file"] = "auto"
     # Base URL for the ATLAS Glance web UI (used to build clickable hyperlinks in
     # CLI output). Override via STARE_WEB_BASE_URL for staging or other instances.
     web_base_url: str = "https://atlas-glance.cern.ch/atlas/analysis"

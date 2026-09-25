@@ -32,6 +32,7 @@ class TestStareSettingsDefaults:
             ("client_id", "stare"),
             ("scopes", "openid"),
             ("ca_bundle", "Sectigo"),
+            ("token_storage", "auto"),
             (
                 "auth_url",
                 "https://auth.cern.ch/auth/realms/cern/protocol/openid-connect/auth",
@@ -55,6 +56,7 @@ class TestStareSettingsEnvOverrides:
             ("STARE_CLIENT_ID", "my-client", "client_id"),
             ("STARE_SCOPES", "openid profile", "scopes"),
             ("STARE_CA_BUNDLE", "CERN", "ca_bundle"),
+            ("STARE_TOKEN_STORAGE", "file", "token_storage"),
         ],
     )
     def test_env_override(

@@ -314,3 +314,35 @@ def test_get_default_storage_falls_back_to_file_when_keyring_broken_at_runtime(
     ):
         storage = get_default_storage(token_path=tmp_path / "tokens.json")
     assert isinstance(storage, FileTokenStorage)
+
+
+def test_get_default_storage_backend_file_skips_keyring(tmp_path: Path) -> None:
+    """backend="file" never consults the keyring, even when one is available."""
+    with patch("keyring.get_keyring") as get_keyring:
+        storage = get_default_storage(
+            token_path=tmp_path / "tokens.json", backend="file"
+        )
+    assert isinstance(storage, FileTokenStorage)
+    get_keyring.assert_not_called()
+
+
+def test_get_default_storage_backend_keyring_returns_keyring(tmp_path: Path) -> None:
+    with (
+        patch("keyring.get_keyring", return_value=MagicMock(spec=object)),
+        patch("keyring.get_password", return_value=None),
+    ):
+        storage = get_default_storage(
+            token_path=tmp_path / "tokens.json", backend="keyring"
+        )
+    assert isinstance(storage, KeyringTokenStorage)
+
+
+def test_get_default_storage_backend_keyring_does_not_fall_back(tmp_path: Path) -> None:
+    """An explicitly requested keyring surfaces backend errors instead of
+    silently writing tokens to a plaintext file."""
+    with (
+        patch("keyring.get_keyring", return_value=MagicMock(spec=object)),
+        patch("keyring.get_password", side_effect=RuntimeError("DBus broken")),
+        pytest.raises(RuntimeError, match="DBus broken"),
+    ):
+        get_default_storage(token_path=tmp_path / "tokens.json", backend="keyring")

@@ -7,6 +7,7 @@ import os
 import tempfile
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Literal
 
 import keyring
 import keyring.errors
@@ -140,22 +141,34 @@ class KeyringTokenStorage(TokenStorage):
         file_storage.delete()
 
 
-def get_default_storage(token_path: Path | None = None) -> TokenStorage:
-    """Return the best available storage backend.
+def get_default_storage(
+    token_path: Path | None = None,
+    backend: Literal["auto", "keyring", "file"] = "auto",
+) -> TokenStorage:
+    """Return the storage backend selected by ``backend``.
 
-    Uses :class:`KeyringTokenStorage` when the OS keyring is functional, and
-    performs a one-time migration from the plaintext file if needed.  Falls
-    back to :class:`FileTokenStorage` when no keyring backend is registered
-    (headless servers, CI environments) or when a registered backend raises
-    on first use — e.g. a Secret Service that's present but broken at the
-    D-Bus protocol level, which surfaces as unwrapped, backend-specific
-    exceptions that neither ``secretstorage`` nor ``keyring`` normalize.
+    ``"file"`` always returns :class:`FileTokenStorage`. ``"keyring"`` always
+    returns :class:`KeyringTokenStorage` and lets backend errors propagate
+    rather than silently writing tokens to a plaintext file.
+
+    ``"auto"`` uses :class:`KeyringTokenStorage` when the OS keyring is
+    functional, and performs a one-time migration from the plaintext file if
+    needed.  Falls back to :class:`FileTokenStorage` when no keyring backend
+    is registered (headless servers, CI environments) or when a registered
+    backend raises on first use — e.g. a Secret Service that's present but
+    broken at the D-Bus protocol level, which surfaces as unwrapped,
+    backend-specific exceptions that neither ``secretstorage`` nor
+    ``keyring`` normalize.
     """
     file_path = token_path or _DEFAULT_TOKEN_PATH
-    backend = keyring.get_keyring()
-    if isinstance(backend, FailKeyring):
+    if backend == "file":
         return FileTokenStorage(file_path)
     keyring_storage = KeyringTokenStorage()
+    if backend == "keyring":
+        keyring_storage.migrate_from_file(file_path)
+        return keyring_storage
+    if isinstance(keyring.get_keyring(), FailKeyring):
+        return FileTokenStorage(file_path)
     try:
         keyring_storage.migrate_from_file(file_path)
     except Exception:  # noqa: BLE001 - backend failures are unpredictable, see docstring
