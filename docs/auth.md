@@ -156,6 +156,25 @@ rejected import leaves any session already on that host untouched.
     place. Run `stare auth login --offline` again on any host that needs its
     own session.
 
+!!! warning "`--move` is not transactional"
+
+    `--move` deletes the local copy before the token reaches the other host. If
+    the transfer or the remote `stare auth import` fails, the exported session
+    stays valid server-side, but this host can no longer revoke it:
+    `stare auth logout` only revokes tokens that are still stored. Running
+    `stare auth login --offline` again creates a new, separate session; it does
+    not recover or revoke the orphaned one, which lapses only after the server's
+    offline-session idle timeout.
+
+    When the transfer might fail, export without `--move`, confirm that
+    `stare auth import` succeeded on the other host, and only then drop the
+    local copy:
+
+    ```bash
+    stare auth export | ssh cronhost 'STARE_TOKEN_STORAGE=file stare auth import'
+    stare auth export --move > /dev/null
+    ```
+
 The same operations are available from Python via
 [`TokenManager`][stare.auth.TokenManager]: `login(offline=True)`,
 `get_session_info()`, `export_refresh_token(move=...)`, and

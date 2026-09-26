@@ -335,6 +335,14 @@ class TokenManager:
 
         Keycloak rotates refresh tokens, so once the other host refreshes, any
         copy kept here may be rejected on its next refresh.
+
+        ``move=True`` is not transactional: the local copy is deleted before
+        the caller delivers the returned token. If that delivery or the remote
+        import fails, the session stays valid server-side but can no longer be
+        revoked from this host (:meth:`logout` only revokes tokens still
+        stored). A later ``login(offline=True)`` creates a separate session;
+        it neither recovers nor revokes the orphaned one, which lapses only
+        after the server's offline-session idle timeout.
         """
         with self._thread_lock, self._file_lock:
             token = self._storage.load()
