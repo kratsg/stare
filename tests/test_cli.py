@@ -38,7 +38,7 @@ from stare.models import (
     PubNote,
     PubNoteSearchResult,
 )
-from stare.models.auth import JwtClaims, TokenInfo
+from stare.models.auth import JwtClaims, SessionInfo, TokenInfo
 from stare.models.search import (
     LeadingGroupSearchResult,
     PublicationSearchResult,
@@ -307,6 +307,23 @@ def test_auth_login_shows_error_on_failure() -> None:
         result = runner.invoke(app, ["auth", "login"])
     assert result.exit_code != 0
     assert "Auth failed" in result.output
+
+
+def test_auth_login_is_not_offline_by_default() -> None:
+    mock_tm = MagicMock()
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "login"])
+    assert result.exit_code == 0
+    assert mock_tm.login.call_args.kwargs["offline"] is False
+
+
+def test_auth_login_offline_requests_offline_session() -> None:
+    mock_tm = MagicMock()
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "login", "--offline"])
+    assert result.exit_code == 0
+    assert mock_tm.login.call_args.kwargs["offline"] is True
+    assert "stare auth export" in result.output
 
 
 def test_auth_logout_command_calls_token_manager() -> None:
@@ -1264,3 +1281,122 @@ def test_analysis_search_skips_snippet_panel_when_snippet_is_none() -> None:
     assert result.exit_code == 1
     assert "Error:" in result.output
     assert "Raw API Response" not in result.output
+
+
+# ---------------------------------------------------------------------------
+# auth info session rows / auth export / auth import
+# ---------------------------------------------------------------------------
+
+
+def _info_tm(session: SessionInfo | None) -> MagicMock:
+    mock_tm = MagicMock()
+    mock_tm.get_token_info.return_value = TokenInfo(
+        is_expired=False,
+        expires_at=int(time.time()) + 3600,
+        claims=JwtClaims(preferred_username="han.solo"),
+    )
+    mock_tm.get_session_info.return_value = session
+    return mock_tm
+
+
+def test_auth_info_shows_offline_session() -> None:
+    mock_tm = _info_tm(SessionInfo(offline=True, refresh_expires_at=None))
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "info"])
+    assert result.exit_code == 0
+    assert "Session" in result.output
+    assert "offline" in result.output
+    assert "idle" in result.output
+
+
+def test_auth_info_shows_online_session_refresh_expiry() -> None:
+    exp = int(time.time()) + 7200
+    mock_tm = _info_tm(SessionInfo(offline=False, refresh_expires_at=exp))
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "info"])
+    assert result.exit_code == 0
+    assert "online" in result.output
+    assert time.strftime("%Y-%m-%d", time.gmtime(exp)) in result.output
+
+
+def test_auth_info_exchange_omits_session_row() -> None:
+    mock_tm = MagicMock()
+    mock_tm.get_exchange_token_info.return_value = TokenInfo(
+        is_expired=False,
+        expires_at=int(time.time()) + 3600,
+        claims=JwtClaims(preferred_username="han.solo"),
+    )
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "info", "--exchange"])
+    assert result.exit_code == 0
+    assert "Session" not in result.output
+    mock_tm.get_session_info.assert_not_called()
+
+
+def test_auth_export_prints_token_to_stdout_and_warning_to_stderr() -> None:
+    mock_tm = MagicMock()
+    mock_tm.export_refresh_token.return_value = "offline-refresh-token"
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "export"])
+    assert result.exit_code == 0
+    assert result.stdout == "offline-refresh-token\n"
+    assert "one host" in result.stderr
+    mock_tm.export_refresh_token.assert_called_once_with(move=False)
+
+
+def test_auth_export_move_deletes_local_copy() -> None:
+    mock_tm = MagicMock()
+    mock_tm.export_refresh_token.return_value = "offline-refresh-token"
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "export", "--move"])
+    assert result.exit_code == 0
+    assert result.stdout == "offline-refresh-token\n"
+    assert "deleted" in result.stderr.lower()
+    mock_tm.export_refresh_token.assert_called_once_with(move=True)
+
+
+def test_auth_export_shows_error_for_online_session() -> None:
+    mock_tm = MagicMock()
+    mock_tm.export_refresh_token.side_effect = AuthenticationError(
+        "The stored session is not an offline session"
+    )
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "export"])
+    assert result.exit_code == 1
+    assert result.stdout == ""
+    assert "not an offline session" in result.stderr
+
+
+def test_auth_import_reads_token_from_stdin() -> None:
+    mock_tm = MagicMock()
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "import"], input="offline-refresh-token\n")
+    assert result.exit_code == 0
+    mock_tm.import_refresh_token.assert_called_once_with("offline-refresh-token\n")
+    assert "imported" in result.output.lower()
+
+
+def test_auth_import_shows_error_on_rejected_token() -> None:
+    mock_tm = MagicMock()
+    mock_tm.import_refresh_token.side_effect = AuthenticationError(
+        "Not an offline refresh token."
+    )
+    with patch("stare.cli.utils.make_token_manager", return_value=mock_tm):
+        result = runner.invoke(app, ["auth", "import"], input="bogus\n")
+    assert result.exit_code == 1
+    assert "Not an offline refresh token" in result.output
+
+
+def test_auth_import_prompts_with_hidden_input_on_tty() -> None:
+    mock_tm = MagicMock()
+    fake_sys = MagicMock()
+    fake_sys.stdin.isatty.return_value = True
+    with (
+        patch("stare.cli.utils.make_token_manager", return_value=mock_tm),
+        patch("stare.cli.auth.sys", fake_sys),
+        patch("stare.cli.auth.typer.prompt", return_value="pasted-token") as prompt,
+    ):
+        result = runner.invoke(app, ["auth", "import"])
+    assert result.exit_code == 0
+    assert prompt.call_args.kwargs["hide_input"] is True
+    mock_tm.import_refresh_token.assert_called_once_with("pasted-token")
