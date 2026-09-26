@@ -120,7 +120,7 @@ stare analysis search -q '"phase0.state" = Active'
 
 ```bash
 # AND (both must match)
-stare analysis search -q 'status = Active and groups.leadingGroup = HDBS'
+stare analysis search -q 'status = Active and groups.leadingGroup.name = HDBS'
 
 # OR (either may match)
 stare analysis search -q 'status = Active or status = Approved'
