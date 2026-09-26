@@ -56,10 +56,10 @@ icon = "fontawesome/brands/github"
 link = "https://github.com/kratsg/stare"
 
 # mkdocstrings plugin for API reference generation
-[project.plugins.mkdocstrings.config]
+[project.plugins.mkdocstrings]
 default_handler = "python"
 
-[project.plugins.mkdocstrings.config.handlers.python.options]
+[project.plugins.mkdocstrings.handlers.python.options]
 show_source = false
 show_if_no_docstring = false
 show_root_heading = true
