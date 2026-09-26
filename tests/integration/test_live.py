@@ -42,7 +42,9 @@ _PLOT_FIELDS = FieldRegistry.for_mode("plot").fields()
 _REFERENCE_ANALYSIS_CODE = "ANA-HION-2018-01"
 _REFERENCE_PAPER_CODE = "IDET-2010-01"
 _REFERENCE_CONFNOTE_FINAL_CODE = "ATLAS-CONF-2018-011"
-_REFERENCE_PUBNOTE_FINAL_CODE = "ATL-PHYS-PUB-2025-014"
+# No final ATL-PHYS-PUB code is assigned to this note, so it is matched on its
+# temporary reference code.
+_REFERENCE_PUBNOTE_TEMP_CODE = "PUB-HIGP-2024-59"
 _REFERENCE_PLOT_CODE = "PLOT-MUON-2018-08"
 
 
@@ -317,7 +319,8 @@ def reference_pubnote() -> PubNote:
     try:
         with Glance(settings=_LIVE_SETTINGS) as g:
             result = g.pubnotes.search(
-                query=f"finalReferenceCode = {_REFERENCE_PUBNOTE_FINAL_CODE}", limit=1
+                query=f"temporaryReferenceCode = {_REFERENCE_PUBNOTE_TEMP_CODE}",
+                limit=1,
             )
     except StareError as exc:
         pytest.skip(f"Live API unavailable: {exc}")
@@ -327,11 +330,11 @@ def reference_pubnote() -> PubNote:
         (
             p
             for p in result.results
-            if p.final_reference_code == _REFERENCE_PUBNOTE_FINAL_CODE
+            if p.temp_reference_code == _REFERENCE_PUBNOTE_TEMP_CODE
         ),
         None,
     )
-    assert match is not None, f"{_REFERENCE_PUBNOTE_FINAL_CODE} not in results"
+    assert match is not None, f"{_REFERENCE_PUBNOTE_TEMP_CODE} not in results"
     return match
 
 
@@ -347,16 +350,16 @@ def test_search_pubnotes_returns_results() -> None:
 
 
 @pytest.mark.slow
-def test_search_pubnotes_by_final_reference_code() -> None:
-    """Searching by finalReferenceCode returns the expected PUB note."""
+def test_search_pubnotes_by_temporary_reference_code() -> None:
+    """Searching by temporaryReferenceCode returns the expected PUB note."""
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.pubnotes.search(
-            query=f"finalReferenceCode = {_REFERENCE_PUBNOTE_FINAL_CODE}", limit=1
+            query=f"temporaryReferenceCode = {_REFERENCE_PUBNOTE_TEMP_CODE}", limit=1
         )
     assert result.number_of_results is not None
     assert result.number_of_results >= 1
     assert any(
-        p.final_reference_code == _REFERENCE_PUBNOTE_FINAL_CODE for p in result.results
+        p.temp_reference_code == _REFERENCE_PUBNOTE_TEMP_CODE for p in result.results
     )
 
 
