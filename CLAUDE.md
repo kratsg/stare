@@ -26,7 +26,7 @@ src/stare/
 ├── cli/
 │   ├── __init__.py   # app, top-level commands (version) + sub-apps
 │   ├── utils.py      # console, err_console, make_glance/make_settings/make_token_manager, sizeof_fmt
-│   ├── auth.py       # auth_app: login, logout, status, info
+│   ├── auth.py       # auth_app: login, logout, status, info, export, import
 │   ├── analysis.py   # analysis_app: search, get
 │   ├── paper.py      # paper_app: search, get
 │   ├── confnote.py   # confnote_app: search, get

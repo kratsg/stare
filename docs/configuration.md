@@ -26,6 +26,7 @@ library.
 | `STARE_EXCHANGE_AUDIENCE`             | `atlas-glance-analysis-api-prod`                                       | RFC 8693 target audience for token exchange; set for production by default |
 | `STARE_EXCHANGE_TOKEN_BUFFER_SECONDS` | `120`                                                                  | Re-exchange the token this many seconds before expiry                      |
 | `STARE_TOKEN_EXPIRY_MARGIN_SECONDS`   | `60`                                                                   | Trigger refresh this many seconds before the access token expires          |
+| `STARE_TOKEN_STORAGE`                 | `auto`                                                                 | Token backend: `auto` (keyring, else file), `keyring`, or `file`           |
 | `STARE_CA_BUNDLE`                     | `Sectigo`                                                              | TLS CA bundle: `Sectigo` (production) or `CERN` (staging)                  |
 | `STARE_WEB_BASE_URL`                  | `https://atlas-glance.cern.ch/atlas/analysis`                          | Web UI base URL for clickable hyperlinks in CLI output                     |
 | `STARE_CACHE_ENABLED`                 | `true`                                                                 | Enable on-disk HTTP response cache                                         |
