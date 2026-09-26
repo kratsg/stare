@@ -144,6 +144,8 @@ stare auth login       # authenticate with CERN SSO
 stare auth logout      # revoke tokens and delete local storage
 stare auth status      # check whether a valid token is stored
 stare auth info        # decode and display stored JWT claims
+stare auth export      # print the offline refresh token (cron / CI)
+stare auth import      # store an offline session from stdin
 stare cache info       # show cache path, TTL, and size
 stare cache clear      # delete all cached responses
 ```

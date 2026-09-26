@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 import time
 from datetime import datetime, timezone
 from typing import Annotated
@@ -17,7 +18,15 @@ auth_app = typer.Typer(help="Authentication commands.", rich_markup_mode="rich")
 
 
 @auth_app.command("login")
-def auth_login() -> None:
+def auth_login(
+    offline: Annotated[
+        bool,
+        typer.Option(
+            "--offline",
+            help="Request an offline session that survives SSO logout, for cron/CI use",
+        ),
+    ] = False,
+) -> None:
     """Authenticate with CERN SSO using OAuth2 PKCE."""
     tm = utils.make_token_manager()
 
@@ -45,12 +54,21 @@ def auth_login() -> None:
         return raw.strip() or None
 
     try:
-        tm.login(on_url_ready=_on_url_ready, get_manual_code=_get_manual_code)
+        tm.login(
+            on_url_ready=_on_url_ready,
+            get_manual_code=_get_manual_code,
+            offline=offline,
+        )
     except StareError as exc:
         utils.handle_error(exc)
         raise typer.Exit(1) from exc
 
     utils.console.print("\n[green]✓[/green] Authenticated successfully.")
+    if offline:
+        utils.console.print(
+            "[dim]Offline session stored. To run stare on another host, use "
+            "[bold]stare auth export[/bold] | ... [bold]stare auth import[/bold].[/dim]"
+        )
 
 
 @auth_app.command("logout")
@@ -63,6 +81,50 @@ def auth_logout() -> None:
         utils.handle_error(exc)
         raise typer.Exit(1) from exc
     utils.console.print("Logged out.")
+
+
+@auth_app.command("export")
+def auth_export(
+    move: Annotated[
+        bool,
+        typer.Option("--move", help="Delete the local copy after exporting"),
+    ] = False,
+) -> None:
+    """Print the offline refresh token, for [bold]stare auth import[/bold] on another host."""
+    tm = utils.make_token_manager()
+    try:
+        token = tm.export_refresh_token(move=move)
+    except StareError as exc:
+        utils.handle_error(exc)
+        raise typer.Exit(1) from exc
+    typer.echo(token)
+    utils.err_console.print(
+        "[yellow]Keep this token secret[/yellow] — it grants API access as you. "
+        "Refresh tokens rotate, so use the session on one host only."
+    )
+    if move:
+        utils.err_console.print("Local copy deleted.")
+    else:
+        utils.err_console.print(
+            "[dim]The copy on this host may stop working once the other host "
+            "refreshes; pass [bold]--move[/bold] to delete it.[/dim]"
+        )
+
+
+@auth_app.command("import")
+def auth_import() -> None:
+    """Store an offline session from a refresh token read on stdin."""
+    tm = utils.make_token_manager()
+    if sys.stdin.isatty():
+        raw = typer.prompt("Refresh token", hide_input=True)
+    else:
+        raw = sys.stdin.read()
+    try:
+        tm.import_refresh_token(raw)
+    except StareError as exc:
+        utils.handle_error(exc)
+        raise typer.Exit(1) from exc
+    utils.console.print("[green]✓[/green] Imported offline session.")
 
 
 @auth_app.command("status")
@@ -136,6 +198,7 @@ def auth_info(
             typer.echo(raw)
         return
 
+    session = None
     if exchange:
         try:
             info = tm.get_exchange_token_info()
@@ -157,6 +220,7 @@ def auth_info(
             )
             raise typer.Exit(1)
         panel_title = "[bold]Auth Info[/bold]"
+        session = tm.get_session_info()
 
     exp: int = info.expires_at
     now = int(time.time())
@@ -200,5 +264,25 @@ def auth_info(
 
     if claims.cern_roles:
         table.add_row("Roles", ", ".join(claims.cern_roles))
+
+    if session is not None:
+        if session.offline:
+            # Keycloak offline tokens carry no exp; the server-side idle
+            # timeout (not visible to the client) decides when they lapse.
+            session_label = (
+                "[green]offline[/green] — no fixed expiry; lapses if unused "
+                "past the server's idle timeout"
+            )
+        elif session.refresh_expires_at is not None:
+            refresh_dt = datetime.fromtimestamp(
+                session.refresh_expires_at, tz=timezone.utc
+            )
+            session_label = (
+                f"online — refresh expires {refresh_dt.strftime('%Y-%m-%d %H:%M:%S %Z')} "
+                "or at SSO logout"
+            )
+        else:
+            session_label = "online — ends with your SSO session"
+        table.add_row("Session", session_label)
 
     utils.console.print(Panel(table, title=panel_title, border_style="blue"))

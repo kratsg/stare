@@ -15,7 +15,12 @@ stare auth login   # open CERN SSO in the browser, store tokens
 stare auth status  # print whether a valid token is stored
 stare auth logout  # revoke tokens server-side, then delete local storage
 stare auth info    # display decoded JWT claims from the stored token
+stare auth export  # print the offline refresh token (see Unattended use)
+stare auth import  # store an offline session from a refresh token on stdin
 ```
+
+Pass `--offline` to `stare auth login` to request an offline session for cron
+jobs and CI — see [Unattended use](#unattended-use-cron-ci).
 
 ### `auth info` flags
 
@@ -42,7 +47,9 @@ store:
 
 If no keyring backend is available (e.g. a headless CI machine), or a registered
 backend is present but non-functional (e.g. a broken D-Bus Secret Service),
-tokens fall back to a JSON file:
+tokens fall back to a JSON file. Set `STARE_TOKEN_STORAGE=file` to always use
+the file, or `STARE_TOKEN_STORAGE=keyring` to always use the keyring (backend
+errors are then raised instead of falling back):
 
 | Platform | Path                                              |
 | -------- | ------------------------------------------------- |
@@ -82,6 +89,97 @@ on use — if the Keycloak server rejects a refresh attempt (HTTP 4xx) the store
 token is deleted immediately and you are prompted to run `stare auth login`
 again.
 
+## Unattended use (cron / CI)
+
+A normal `stare auth login` session is tied to your CERN SSO session: once that
+ends, the refresh token is rejected and stare asks you to log in again. For
+scheduled jobs, request an **offline session** instead. Its refresh token
+survives SSO logout and browser restarts.
+
+### 1. Log in with an offline session
+
+```bash
+stare auth login --offline
+stare auth info   # Session: offline — no fixed expiry; lapses if unused …
+```
+
+Offline sessions have no fixed expiry. They lapse only if unused for longer than
+the offline-session idle timeout configured on CERN Keycloak (not visible to the
+client), and every run renews them — so a job that runs regularly keeps working
+indefinitely.
+
+!!! warning "An offline session outlives your SSO logout"
+
+    Treat the stored token like a password. End the session with
+    `stare auth logout` on the host that holds it, which revokes it server-side.
+    `--offline` is deliberately not the default.
+
+### 2. Store it where the job can read it
+
+On macOS, cron jobs usually cannot unlock the login Keychain. Keep the session
+in the token file instead, and set the same variable in the job:
+
+```bash
+stare auth export --move | STARE_TOKEN_STORAGE=file stare auth import
+```
+
+```cron
+0 6 * * * STARE_TOKEN_STORAGE=file stare analysis search -q 'status = Active' > active.json
+```
+
+On a headless Linux host without a keyring the file is used automatically.
+
+### 3. Move the session to another host
+
+Log in on your laptop, then transfer the session:
+
+```bash
+stare auth export --move | ssh cronhost 'STARE_TOKEN_STORAGE=file stare auth import'
+```
+
+`stare auth export` prints only the offline **refresh token** on stdout (the
+warning goes to stderr, so it pipes cleanly). It refuses online sessions, which
+would die with your SSO session. This is different from
+`stare auth info --access-token`, which prints a short-lived access token
+(minutes) that cannot be renewed.
+
+`stare auth import` reads the token from stdin — or prompts with hidden input
+when run in a terminal, for pasting — and redeems it immediately, so a bad or
+expired token fails at import time rather than on the first scheduled run. A
+rejected import leaves any session already on that host untouched.
+
+!!! note "One session, one host"
+
+    Keycloak rotates refresh tokens on every use. Once the new host refreshes,
+    the copy left behind may be rejected on its next refresh. `--move` deletes
+    the local copy (without revoking it) so the session lives in exactly one
+    place. Run `stare auth login --offline` again on any host that needs its
+    own session.
+
+!!! warning "`--move` is not transactional"
+
+    `--move` deletes the local copy before the token reaches the other host. If
+    the transfer or the remote `stare auth import` fails, the exported session
+    stays valid server-side, but this host can no longer revoke it:
+    `stare auth logout` only revokes tokens that are still stored. Running
+    `stare auth login --offline` again creates a new, separate session; it does
+    not recover or revoke the orphaned one, which lapses only after the server's
+    offline-session idle timeout.
+
+    When the transfer might fail, export without `--move`, confirm that
+    `stare auth import` succeeded on the other host, and only then drop the
+    local copy:
+
+    ```bash
+    stare auth export | ssh cronhost 'STARE_TOKEN_STORAGE=file stare auth import'
+    stare auth export --move > /dev/null
+    ```
+
+The same operations are available from Python via
+[`TokenManager`][stare.auth.TokenManager]: `login(offline=True)`,
+`get_session_info()`, `export_refresh_token(move=...)`, and
+`import_refresh_token(token)`.
+
 ## Token exchange (RFC 8693)
 
 Some Glance API endpoints require an audience-scoped token rather than the raw
@@ -105,8 +203,10 @@ only one performs the refresh and both use the new token.
 
 ## Direct token injection
 
-For CI pipelines where interactive browser login is not possible, inject a token
-directly:
+For short-lived scripts that already have an access token, inject it directly.
+Access tokens expire within minutes and are never refreshed on this path, so for
+cron jobs and recurring CI use an [offline session](#unattended-use-cron-ci)
+instead.
 
 ```python
 import os

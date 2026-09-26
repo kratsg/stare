@@ -25,7 +25,13 @@ if TYPE_CHECKING:
 from pydantic import ValidationError
 
 from stare.exceptions import AuthenticationError, TokenExpiredError
-from stare.models.auth import JwtClaims, TokenInfo, _OAuthTokenResponse, _StoredToken
+from stare.models.auth import (
+    JwtClaims,
+    SessionInfo,
+    TokenInfo,
+    _OAuthTokenResponse,
+    _StoredToken,
+)
 from stare.settings import StareSettings
 from stare.storage import (
     _DEFAULT_TOKEN_PATH,
@@ -55,6 +61,16 @@ def _decode_jwt_payload(token: str) -> JwtClaims:
     return JwtClaims()
 
 
+def _session_info(refresh_token: str | None) -> SessionInfo:
+    """Describe a refresh token's session from its (unverified) claims.
+
+    Opaque or missing refresh tokens decode to empty claims and are reported
+    as online sessions with no known expiry.
+    """
+    claims = _decode_jwt_payload(refresh_token) if refresh_token else JwtClaims()
+    return SessionInfo(offline=claims.typ == "Offline", refresh_expires_at=claims.exp)
+
+
 class TokenManager:
     """Manages OAuth2 tokens: PKCE login flow, storage, and refresh."""
 
@@ -73,8 +89,9 @@ class TokenManager:
             # Explicit path → always use file storage (no keyring lookup).
             self._storage = FileTokenStorage(token_path)
         else:
-            # No explicit storage or path → auto-detect (keyring if available).
-            self._storage = get_default_storage()
+            # No explicit storage or path → honour STARE_TOKEN_STORAGE
+            # ("auto" picks the keyring when available).
+            self._storage = get_default_storage(backend=self._settings.token_storage)
         # In-memory cache for the RFC 8693 exchanged token (avoids a round-trip
         # to the token endpoint on every API call).
         self._exchanged_token: str | None = None
@@ -98,6 +115,7 @@ class TokenManager:
         *,
         on_url_ready: Callable[[str], None] | None = None,
         get_manual_code: Callable[[], str | None] | None = None,
+        offline: bool = False,
     ) -> None:
         """Start PKCE browser flow; blocks until redirect received or manual code entered.
 
@@ -107,6 +125,9 @@ class TokenManager:
             get_manual_code: Called in a background thread to obtain a fallback
                 authorization code (e.g. via user input) when the browser
                 redirect cannot reach the local callback server.
+            offline: Also request the ``offline_access`` scope so Keycloak
+                issues an offline refresh token, which survives SSO logout
+                and suits unattended jobs (cron, CI).
         """
         code_verifier = secrets.token_urlsafe(64)
         code_challenge = _create_s256_code_challenge(code_verifier)
@@ -167,7 +188,7 @@ class TokenManager:
             "response_type": "code",
             "client_id": self._settings.client_id,
             "redirect_uri": redirect_uri,
-            "scope": self._settings.scopes,
+            "scope": self._scopes(offline=offline),
             "state": state,
             "code_challenge": code_challenge,
             "code_challenge_method": "S256",
@@ -254,6 +275,13 @@ class TokenManager:
         token = _StoredToken.from_response(oauth_resp)
         self._storage.save(token)
 
+    def _scopes(self, *, offline: bool) -> str:
+        """Return the scopes to request, adding ``offline_access`` when asked."""
+        scopes = self._settings.scopes.split()
+        if offline and "offline_access" not in scopes:
+            scopes.append("offline_access")
+        return " ".join(scopes)
+
     def _validate_id_token(self, id_token: str) -> JwtClaims:
         """Validate and decode an ID token using the JWKS endpoint (PyJWT).
 
@@ -290,9 +318,66 @@ class TokenManager:
             except Exception as exc:
                 msg = f"Failed to remove stored credentials: {exc}"
                 raise AuthenticationError(msg) from exc
-            self._exchanged_token = None
-            self._exchanged_expires_at = 0
-            self._base_token = None
+            self._clear_cached_tokens()
+
+    def _clear_cached_tokens(self) -> None:
+        """Drop the in-memory base and exchanged tokens."""
+        self._exchanged_token = None
+        self._exchanged_expires_at = 0
+        self._base_token = None
+
+    def export_refresh_token(self, *, move: bool = False) -> str:
+        """Return the stored offline refresh token for transfer to another host.
+
+        Refuses online sessions, which would die with the SSO session. With
+        ``move=True`` the local copy is deleted (without server-side
+        revocation, so the exported token stays valid).
+
+        Keycloak rotates refresh tokens, so once the other host refreshes, any
+        copy kept here may be rejected on its next refresh.
+
+        ``move=True`` is not transactional: the local copy is deleted before
+        the caller delivers the returned token. If that delivery or the remote
+        import fails, the session stays valid server-side but can no longer be
+        revoked from this host (:meth:`logout` only revokes tokens still
+        stored). A later ``login(offline=True)`` creates a separate session;
+        it neither recovers nor revokes the orphaned one, which lapses only
+        after the server's offline-session idle timeout.
+        """
+        with self._thread_lock, self._file_lock:
+            token = self._storage.load()
+            if token is None or not token.refresh_token:
+                msg = "No stored session to export. Run `stare auth login --offline` first."
+                raise AuthenticationError(msg)
+            if not _session_info(token.refresh_token).offline:
+                msg = (
+                    "The stored session is not an offline session and would expire "
+                    "with your SSO session. Run `stare auth login --offline` first."
+                )
+                raise AuthenticationError(msg)
+            if move:
+                self._storage.delete()
+                self._clear_cached_tokens()
+            return token.refresh_token
+
+    def import_refresh_token(self, refresh_token: str) -> None:
+        """Store a session from an offline refresh token exported elsewhere.
+
+        The token is redeemed immediately, so a bad or expired token fails
+        here rather than on the first unattended run. A rejected token leaves
+        any session already stored on this host untouched.
+        """
+        refresh_token = refresh_token.strip()
+        if not _session_info(refresh_token).offline:
+            msg = (
+                "Not an offline refresh token. Export one with `stare auth export` "
+                "from a session created by `stare auth login --offline`."
+            )
+            raise AuthenticationError(msg)
+        with self._thread_lock, self._file_lock:
+            token = self._refresh(refresh_token, clear_on_reject=False)
+            self._clear_cached_tokens()
+            self._base_token = token
 
     def _revoke_token(self, token: str | None, token_type_hint: str) -> None:
         """POST token to the Keycloak revocation endpoint; never raises."""
@@ -390,8 +475,14 @@ class TokenManager:
         self._exchanged_expires_at = int(time.time()) + oauth_resp.expires_in
         return self._exchanged_token
 
-    def _refresh(self, refresh_token: str) -> _StoredToken:
-        """Exchange a refresh token for new tokens and persist them."""
+    def _refresh(
+        self, refresh_token: str, *, clear_on_reject: bool = True
+    ) -> _StoredToken:
+        """Exchange a refresh token for new tokens and persist them.
+
+        With ``clear_on_reject`` (the default) a 4xx from Keycloak also deletes
+        the stored tokens, since they were the ones rejected.
+        """
         try:
             with httpx.Client() as client:
                 response = client.post(
@@ -407,10 +498,9 @@ class TokenManager:
         except httpx.HTTPStatusError as exc:
             # Keycloak rotates refresh tokens — a 4xx means the stored token
             # is already invalidated server-side, so delete it locally too.
-            self._storage.delete()
-            self._exchanged_token = None
-            self._exchanged_expires_at = 0
-            self._base_token = None
+            if clear_on_reject:
+                self._storage.delete()
+                self._clear_cached_tokens()
             msg = f"Token refresh failed ({exc.response.status_code}). Run `stare auth login` again."
             raise TokenExpiredError(msg) from exc
         except httpx.RequestError as exc:
@@ -479,6 +569,18 @@ class TokenManager:
                     expires_at=token.expires_at,
                     claims=claims,
                 )
+        return None
+
+    def get_session_info(self) -> SessionInfo | None:
+        """Return whether the stored session is offline, or None if not stored.
+
+        Decoded from the refresh token without signature verification —
+        suitable only for display purposes, not security decisions.
+        """
+        with contextlib.suppress(Exception):
+            token = self._storage.load()
+            if token is not None:
+                return _session_info(token.refresh_token)
         return None
 
     def get_exchange_token_info(self) -> TokenInfo | None:
