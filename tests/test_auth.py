@@ -21,7 +21,13 @@ import respx
 
 from stare.auth import TokenManager, _decode_jwt_payload
 from stare.exceptions import AuthenticationError, TokenExpiredError
-from stare.models.auth import JwtClaims, ResourceAccessEntry, TokenInfo, _StoredToken
+from stare.models.auth import (
+    JwtClaims,
+    ResourceAccessEntry,
+    SessionInfo,
+    TokenInfo,
+    _StoredToken,
+)
 from stare.settings import StareSettings
 from stare.storage import FileTokenStorage, TokenStorage
 
@@ -1519,3 +1525,219 @@ def test_token_manager_passes_token_storage_setting_to_default_storage(
     ) as get_default_storage:
         TokenManager(settings=settings)
     get_default_storage.assert_called_once_with(backend=backend)
+
+
+# ---------------------------------------------------------------------------
+# offline sessions: login(offline=True), get_session_info, export / import
+# ---------------------------------------------------------------------------
+
+# Keycloak offline refresh tokens carry typ="Offline" and no exp claim; their
+# lifetime is governed server-side by the offline-session idle timeout.
+_OFFLINE_REFRESH = _make_jwt({"typ": "Offline", "iat": 1790380191, "azp": "stare"})
+_ONLINE_REFRESH = _make_jwt({"typ": "Refresh", "iat": 1790380191, "exp": 1790416191})
+
+
+def _write_stored(path: Path, refresh_token: str | None) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(
+            {
+                "access_token": "at",
+                "refresh_token": refresh_token,
+                "token_type": "Bearer",
+                "expires_at": int(time.time()) + 3600,
+                "id_token": "id",
+            }
+        )
+    )
+
+
+def _login_capturing_scope(
+    tmp_token_path: Path, test_settings: StareSettings, *, offline: bool = False
+) -> str:
+    """Run login() against mocks and return the ``scope`` sent to Keycloak."""
+    captured_url: dict[str, str] = {}
+
+    def _fake_browser(url: str) -> bool:
+        captured_url["url"] = url
+        return True
+
+    callback_thread = _make_callback_thread(captured_url)
+    with respx.mock:
+        respx.post(test_settings.token_url).mock(
+            return_value=httpx.Response(
+                200,
+                json={"access_token": "a", "refresh_token": "r", "expires_in": 3600},
+            )
+        )
+        with patch("stare.auth.webbrowser.open", side_effect=_fake_browser):
+            manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+            manager.login(offline=offline)
+    callback_thread.join(timeout=5.0)
+    return parse_qs(urlparse(captured_url["url"]).query)["scope"][0]
+
+
+def test_login_default_scope_is_not_offline(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    assert _login_capturing_scope(tmp_token_path, test_settings) == "openid"
+
+
+def test_login_offline_requests_offline_access_scope(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    scope = _login_capturing_scope(tmp_token_path, test_settings, offline=True)
+    assert scope.split() == ["openid", "offline_access"]
+
+
+def test_login_offline_does_not_duplicate_offline_access_scope(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    settings = test_settings.model_copy(update={"scopes": "openid offline_access"})
+    scope = _login_capturing_scope(tmp_token_path, settings, offline=True)
+    assert scope.split() == ["openid", "offline_access"]
+
+
+def test_get_session_info_none_when_not_logged_in(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+    assert manager.get_session_info() is None
+
+
+def test_get_session_info_offline(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    _write_stored(tmp_token_path, _OFFLINE_REFRESH)
+    manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+    info = manager.get_session_info()
+    assert info == SessionInfo(offline=True, refresh_expires_at=None)
+
+
+def test_get_session_info_online(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    _write_stored(tmp_token_path, _ONLINE_REFRESH)
+    manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+    info = manager.get_session_info()
+    assert info == SessionInfo(offline=False, refresh_expires_at=1790416191)
+
+
+@pytest.mark.parametrize("refresh_token", [None, "opaque-not-a-jwt"])
+def test_get_session_info_without_decodable_refresh_token_is_online(
+    tmp_token_path: Path, test_settings: StareSettings, refresh_token: str | None
+) -> None:
+    _write_stored(tmp_token_path, refresh_token)
+    manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+    assert manager.get_session_info() == SessionInfo(
+        offline=False, refresh_expires_at=None
+    )
+
+
+def test_export_refresh_token_returns_offline_token_and_keeps_local_copy(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    _write_stored(tmp_token_path, _OFFLINE_REFRESH)
+    manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+    assert manager.export_refresh_token() == _OFFLINE_REFRESH
+    assert tmp_token_path.exists()
+
+
+def test_export_refresh_token_move_deletes_local_copy_without_revoking(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    """--move hands the session to another host, so it must stay valid
+    server-side: delete locally, never call the revocation endpoint."""
+    _write_stored(tmp_token_path, _OFFLINE_REFRESH)
+    with respx.mock:
+        revoke_route = respx.post(test_settings.revocation_url).mock(
+            return_value=httpx.Response(200)
+        )
+        manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+        assert manager.export_refresh_token(move=True) == _OFFLINE_REFRESH
+    assert not tmp_token_path.exists()
+    assert not revoke_route.called
+    with pytest.raises(AuthenticationError):
+        manager.get_token()
+
+
+def test_export_refresh_token_raises_when_not_logged_in(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+    with pytest.raises(AuthenticationError, match="stare auth login --offline"):
+        manager.export_refresh_token()
+
+
+def test_export_refresh_token_refuses_online_session(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    _write_stored(tmp_token_path, _ONLINE_REFRESH)
+    manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+    with pytest.raises(AuthenticationError, match="not an offline session"):
+        manager.export_refresh_token(move=True)
+    assert tmp_token_path.exists()
+
+
+def test_import_refresh_token_refreshes_and_stores(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    rotated = _make_jwt({"typ": "Offline", "iat": 1790390000})
+    with respx.mock:
+        token_route = respx.post(test_settings.token_url).mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "access_token": "imported-access",
+                    "refresh_token": rotated,
+                    "expires_in": 1200,
+                    "id_token": "imported-id",
+                },
+            )
+        )
+        manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+        manager.import_refresh_token(f"  {_OFFLINE_REFRESH}\n")
+        assert manager.get_token() == "imported-access"
+
+    sent = {
+        k: v[0]
+        for k, v in parse_qs(token_route.calls[0].request.content.decode()).items()
+    }
+    assert sent["grant_type"] == "refresh_token"
+    assert sent["refresh_token"] == _OFFLINE_REFRESH
+    assert sent["client_id"] == test_settings.client_id
+    stored = json.loads(tmp_token_path.read_text())
+    assert stored["refresh_token"] == rotated
+    assert stored["access_token"] == "imported-access"
+
+
+@pytest.mark.parametrize("bad", ["", "   ", "opaque-not-a-jwt", _ONLINE_REFRESH])
+def test_import_refresh_token_rejects_non_offline_tokens(
+    tmp_token_path: Path, test_settings: StareSettings, bad: str
+) -> None:
+    with respx.mock:
+        token_route = respx.post(test_settings.token_url).mock(
+            return_value=httpx.Response(200, json={"access_token": "a"})
+        )
+        manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+        with pytest.raises(AuthenticationError, match="offline refresh token"):
+            manager.import_refresh_token(bad)
+    assert not token_route.called
+    assert not tmp_token_path.exists()
+
+
+def test_import_refresh_token_rejected_by_server_keeps_existing_session(
+    tmp_token_path: Path, test_settings: StareSettings
+) -> None:
+    """A failed import must not destroy the session already stored here."""
+    _write_stored(tmp_token_path, _OFFLINE_REFRESH)
+    before = tmp_token_path.read_text()
+    stale = _make_jwt({"typ": "Offline", "iat": 1})
+    with respx.mock:
+        respx.post(test_settings.token_url).mock(
+            return_value=httpx.Response(400, json={"error": "invalid_grant"})
+        )
+        manager = TokenManager(settings=test_settings, token_path=tmp_token_path)
+        with pytest.raises(TokenExpiredError):
+            manager.import_refresh_token(stale)
+    assert tmp_token_path.read_text() == before

@@ -102,3 +102,17 @@ class TokenInfo(_Base):
     is_expired: bool
     expires_at: int
     claims: JwtClaims
+
+
+class SessionInfo(_Base):
+    """Refresh-token session metadata returned by :meth:`~stare.auth.TokenManager.get_session_info`.
+
+    ``offline`` is True for Keycloak offline sessions (``typ: "Offline"``),
+    which survive SSO logout and are suited to unattended jobs.
+    ``refresh_expires_at`` is the refresh token's ``exp`` claim; Keycloak
+    omits it for offline tokens, whose lifetime is instead governed by the
+    server-side offline-session idle timeout.
+    """
+
+    offline: bool
+    refresh_expires_at: int | None = None
