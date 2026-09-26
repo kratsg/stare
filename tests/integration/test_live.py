@@ -11,6 +11,7 @@ or pass ``--runslow`` directly to pytest.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import pytest
@@ -62,6 +63,39 @@ def _get_nested_value(obj: dict[str, Any], path: str) -> str | None:
     if isinstance(current, str):
         return current
     return None
+
+
+_ISO_DATETIME = re.compile(r"^\d{4}-\d{2}-\d{2}T")
+_ATGLANCE_8333 = "https://its.cern.ch/jira/browse/ATGLANCE-8333"
+
+
+def _field_query(field: str, value: str | None, request: pytest.FixtureRequest) -> str:
+    """Build the equality query for a live field-searchability test.
+
+    Works around two server quirks tracked in ATGLANCE-8333:
+
+    - Date filters match ``YYYY-MM-DD`` only, although the API returns ISO
+      datetimes, so datetime values are truncated to their date.
+    - ``queryString`` is URL-decoded twice (``+`` becomes a space) and some
+      stored text is returned as literal ``??``, so values containing ``+``
+      or ``?`` cannot match. These are marked strict-xfail so the test starts
+      failing once the server is fixed, flagging the marker for removal.
+    """
+    if value is None:
+        pytest.skip(f"field '{field}' has no value in reference record")
+    if _ISO_DATETIME.match(value):
+        value = value[:10]
+    if "+" in value or "?" in value:
+        request.applymarker(
+            pytest.mark.xfail(
+                reason=f"server cannot match '+' or '?' in values: {_ATGLANCE_8333}",
+                strict=True,
+            )
+        )
+    try:
+        return Condition(field=field, operator=Operator.EQ, value=value).to_dsl()
+    except ValueError as exc:
+        pytest.skip(str(exc))
 
 
 # ---------------------------------------------------------------------------
@@ -123,16 +157,13 @@ def test_search_result_items_are_analysis_models() -> None:
 
 @pytest.mark.slow
 @pytest.mark.parametrize("field", _ANALYSIS_FIELDS)
-def test_analysis_field_is_searchable(field: str, reference_analysis: Analysis) -> None:
+def test_analysis_field_is_searchable(
+    field: str, reference_analysis: Analysis, request: pytest.FixtureRequest
+) -> None:
     """Each catalogue field can be used in a live query without a server error."""
     record = reference_analysis.model_dump(by_alias=True)
     value = _get_nested_value(record, field)
-    if value is None:
-        pytest.skip(f"field '{field}' has no value in reference record")
-    try:
-        query = Condition(field=field, operator=Operator.EQ, value=value).to_dsl()
-    except ValueError as exc:
-        pytest.skip(str(exc))
+    query = _field_query(field, value, request)
 
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.analyses.search(
@@ -203,16 +234,13 @@ def test_search_result_items_are_paper_models() -> None:
 
 @pytest.mark.slow
 @pytest.mark.parametrize("field", _PAPER_FIELDS)
-def test_paper_field_is_searchable(field: str, reference_paper: Paper) -> None:
+def test_paper_field_is_searchable(
+    field: str, reference_paper: Paper, request: pytest.FixtureRequest
+) -> None:
     """Each catalogue field can be used in a live query without a server error."""
     record = reference_paper.model_dump(by_alias=True)
     value = _get_nested_value(record, field)
-    if value is None:
-        pytest.skip(f"field '{field}' has no value in reference record")
-    try:
-        query = Condition(field=field, operator=Operator.EQ, value=value).to_dsl()
-    except ValueError as exc:
-        pytest.skip(str(exc))
+    query = _field_query(field, value, request)
 
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.papers.search(
@@ -288,16 +316,13 @@ def test_search_result_items_are_confnote_models() -> None:
 
 @pytest.mark.slow
 @pytest.mark.parametrize("field", _CONFNOTE_FIELDS)
-def test_confnote_field_is_searchable(field: str, reference_confnote: ConfNote) -> None:
+def test_confnote_field_is_searchable(
+    field: str, reference_confnote: ConfNote, request: pytest.FixtureRequest
+) -> None:
     """Each catalogue field can be used in a live query without a server error."""
     record = reference_confnote.model_dump(by_alias=True)
     value = _get_nested_value(record, field)
-    if value is None:
-        pytest.skip(f"field '{field}' has no value in reference record")
-    try:
-        query = Condition(field=field, operator=Operator.EQ, value=value).to_dsl()
-    except ValueError as exc:
-        pytest.skip(str(exc))
+    query = _field_query(field, value, request)
 
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.confnotes.search(
@@ -374,16 +399,13 @@ def test_search_result_items_are_pubnote_models() -> None:
 
 @pytest.mark.slow
 @pytest.mark.parametrize("field", _PUBNOTE_FIELDS)
-def test_pubnote_field_is_searchable(field: str, reference_pubnote: PubNote) -> None:
+def test_pubnote_field_is_searchable(
+    field: str, reference_pubnote: PubNote, request: pytest.FixtureRequest
+) -> None:
     """Each catalogue field can be used in a live query without a server error."""
     record = reference_pubnote.model_dump(by_alias=True)
     value = _get_nested_value(record, field)
-    if value is None:
-        pytest.skip(f"field '{field}' has no value in reference record")
-    try:
-        query = Condition(field=field, operator=Operator.EQ, value=value).to_dsl()
-    except ValueError as exc:
-        pytest.skip(str(exc))
+    query = _field_query(field, value, request)
 
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.pubnotes.search(
@@ -454,16 +476,13 @@ def test_search_result_items_are_plot_models() -> None:
 
 @pytest.mark.slow
 @pytest.mark.parametrize("field", _PLOT_FIELDS)
-def test_plot_field_is_searchable(field: str, reference_plot: Plot) -> None:
+def test_plot_field_is_searchable(
+    field: str, reference_plot: Plot, request: pytest.FixtureRequest
+) -> None:
     """Each catalogue field can be used in a live query without a server error."""
     record = reference_plot.model_dump(by_alias=True)
     value = _get_nested_value(record, field)
-    if value is None:
-        pytest.skip(f"field '{field}' has no value in reference record")
-    try:
-        query = Condition(field=field, operator=Operator.EQ, value=value).to_dsl()
-    except ValueError as exc:
-        pytest.skip(str(exc))
+    query = _field_query(field, value, request)
 
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.plots.search(
