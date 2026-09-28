@@ -18,6 +18,8 @@ need to be set explicitly.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
 from stare import Glance
@@ -26,15 +28,24 @@ from stare.models import Analysis, Paper
 from stare.models.enums import MeetingType
 from stare.settings import StareSettings
 
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
 _LIVE = StareSettings(cache_enabled=False)
 _REF_ANALYSIS = "ANA-HION-2018-01"
 _REF_PAPER = "EXOT-2018-14"
 
 
 @pytest.fixture(scope="session")
-def glance() -> Glance:
-    """Session-scoped Glance client."""
-    return Glance(settings=_LIVE)
+def glance() -> Iterator[Glance]:
+    """Session-scoped Glance client, closed at session end.
+
+    Closing matters: otherwise its pooled SSL sockets are garbage-collected at
+    an arbitrary later point, and the resulting unraisable-exception warning
+    (an error under ``filterwarnings = error``) fails whichever test is running.
+    """
+    with Glance(settings=_LIVE) as g:
+        yield g
 
 
 # ---------------------------------------------------------------------------
@@ -56,7 +67,7 @@ def test_search_analyses(glance: Glance) -> None:
 def test_filter_with_dsl(glance: Glance) -> None:
     """docs/examples.md — Filter with the DSL."""
     result = glance.analyses.search(
-        query="groups.leadingGroup = HIGG",
+        query="groups.leadingGroup.name = HIGG",
         limit=10,
         sort_by="creationDate",
         sort_desc=True,
@@ -113,7 +124,7 @@ def test_inspect_phase0_meetings(glance: Glance) -> None:
 @pytest.mark.slow
 def test_search_papers(glance: Glance) -> None:
     """docs/examples.md — Search papers."""
-    result = glance.papers.search(query="groups.leadingGroup = HDBS", limit=10)
+    result = glance.papers.search(query="groups.leadingGroup.name = HDBS", limit=10)
     assert result.number_of_results is not None
     assert result.number_of_results > 0
     for paper in result.results:
@@ -149,7 +160,7 @@ def test_paginate_through_results(glance: Glance) -> None:
 
     while True:
         result = glance.analyses.search(
-            query="groups.leadingGroup = HIGG",
+            query="groups.leadingGroup.name = HIGG",
             limit=limit,
             offset=offset,
         )
@@ -171,8 +182,8 @@ def test_paginate_through_results(glance: Glance) -> None:
 @pytest.mark.slow
 def test_disable_cache() -> None:
     """docs/examples.md — Disable the cache (uses its own Glance instance)."""
-    g = Glance(settings=StareSettings(cache_enabled=False))
-    result = g.analyses.search(limit=5)
+    with Glance(settings=StareSettings(cache_enabled=False)) as g:
+        result = g.analyses.search(limit=5)
     assert result.number_of_results is not None
     assert result.number_of_results > 0
 

@@ -49,7 +49,7 @@ handled automatically from your stored token (run `stare auth login` once). See
 
     g = Glance()
     result = g.analyses.search(
-        query="groups.leadingGroup = HIGG",  # (1)!
+        query="groups.leadingGroup.name = HIGG",  # (1)!
         limit=10,
         sort_by="creationDate",  # (2)!
         sort_desc=True,
@@ -68,14 +68,14 @@ handled automatically from your stored token (run `stare auth login` once). See
 
     ```bash
     # Filter by leading group
-    stare analysis search -q 'groups.leadingGroup = HIGG' -n 10
+    stare analysis search -q 'groups.leadingGroup.name = HIGG' -n 10
 
     # Sort by creation date, most recent first
-    stare analysis search -q 'groups.leadingGroup = HIGG' \
+    stare analysis search -q 'groups.leadingGroup.name = HIGG' \
       --sort-by creationDate --sort-desc --limit 10
 
     # Pipe to jq for field extraction
-    stare analysis search -q 'groups.leadingGroup = HIGG' \
+    stare analysis search -q 'groups.leadingGroup.name = HIGG' \
       | jq -r '.results[] | select(.status == "Active") | .referenceCode'
     ```
 
@@ -198,7 +198,7 @@ if analysis.phase0:
 
     g = Glance()
     result = g.papers.search(
-        query="groups.leadingGroup = HDBS",
+        query="groups.leadingGroup.name = HDBS",
         limit=10,
     )
     print(f"{result.number_of_results} papers total, showing {len(result.results)}")
@@ -209,10 +209,10 @@ if analysis.phase0:
 === "CLI"
 
     ```bash
-    stare paper search -q 'groups.leadingGroup = HDBS' -n 10
+    stare paper search -q 'groups.leadingGroup.name = HDBS' -n 10
 
     # Emit (reference_code, status) pairs as TSV
-    stare paper search -q 'groups.leadingGroup = HDBS' \
+    stare paper search -q 'groups.leadingGroup.name = HDBS' \
       | jq -r '.results[] | [.referenceCode, .status] | @tsv'
     ```
 
@@ -271,7 +271,7 @@ if analysis.phase0:
 
     while True:
         result = g.analyses.search(
-            query="groups.leadingGroup = HIGG",
+            query="groups.leadingGroup.name = HIGG",
             limit=limit,
             offset=offset,
         )
@@ -291,13 +291,13 @@ if analysis.phase0:
 
     ```bash
     # First page of 25
-    stare analysis search -q 'groups.leadingGroup = HIGG' --limit 25
+    stare analysis search -q 'groups.leadingGroup.name = HIGG' --limit 25
 
     # Second page of 25
-    stare analysis search -q 'groups.leadingGroup = HIGG' --limit 25 --offset 25
+    stare analysis search -q 'groups.leadingGroup.name = HIGG' --limit 25 --offset 25
 
     # Save a full result set to disk (auto-JSON when redirected)
-    stare analysis search -q 'groups.leadingGroup = HIGG' > higg_analyses.json
+    stare analysis search -q 'groups.leadingGroup.name = HIGG' > higg_analyses.json
     jq '.results | length' higg_analyses.json
     ```
 
@@ -327,7 +327,7 @@ if analysis.phase0:
     stare analysis search --no-cache
 
     # All HDBS papers, fresh data
-    stare paper search -q 'groups.leadingGroup = HDBS' --no-cache
+    stare paper search -q 'groups.leadingGroup.name = HDBS' --no-cache
     ```
 
 ---
