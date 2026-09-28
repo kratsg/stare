@@ -1,4 +1,4 @@
-"""Every DSL query shown in the docs, README and CLI help must return results live.
+"""Every query and `get` in the docs, README, CLAUDE.md and CLI help must work live.
 
 Complements ``tests/test_doc_examples.py``: that check only parses the queries,
 so it cannot catch a *value* that does not exist on the server, such as a
@@ -14,8 +14,9 @@ from typing import TYPE_CHECKING
 import pytest
 
 from stare import Glance
+from stare.exceptions import NotFoundError
 from stare.settings import StareSettings
-from tests.test_doc_examples import _EXAMPLES
+from tests.test_doc_examples import _EXAMPLES, _GET_EXAMPLES
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -53,3 +54,18 @@ def test_documented_query_returns_results(
 ) -> None:
     result = getattr(glance, _ACCESSOR[mode]).search(query=query, limit=1)
     assert result.number_of_results, f"{source}: {query!r} matches nothing"
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize(
+    ("source", "accessor", "ref_code"),
+    _GET_EXAMPLES,
+    ids=[f"{s}:{a}.get({r})" for s, a, r in _GET_EXAMPLES],
+)
+def test_documented_get_finds_record(
+    glance: Glance, source: str, accessor: str, ref_code: str
+) -> None:
+    try:
+        getattr(glance, accessor).get(ref_code)
+    except NotFoundError:
+        pytest.fail(f"{source}: {accessor}.get({ref_code!r}) finds nothing")

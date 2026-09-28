@@ -54,8 +54,8 @@ stare analysis get ANA-HION-2018-01
 stare paper get HDBS-2018-33
 
 # CONF notes / PUB notes
-stare confnote get ATLAS-CONF-2024-001
-stare pubnote get ATL-PHYS-PUB-2024-001
+stare confnote get CONF-HDBS-2018-48
+stare pubnote get PUB-HIGP-2024-59
 
 # Plots
 stare plot search --query 'referenceCode = PLOT-MUON-2018-08'
@@ -101,8 +101,8 @@ for paper in paper_result.results:
 # Fetch individual records (search-based under the hood)
 analysis = g.analyses.get("ANA-HION-2018-01")
 paper = g.papers.get("HDBS-2018-33")
-conf_note = g.confnotes.get("ATLAS-CONF-2024-001")
-pub_note = g.pubnotes.get("ATL-PHYS-PUB-2024-001")
+conf_note = g.confnotes.get("CONF-HDBS-2018-48")
+pub_note = g.pubnotes.get("PUB-HIGP-2024-59")
 plot = g.plots.get("PLOT-MUON-2018-08")
 leadinggroups = g.leadinggroups.search(query="name = HMBS")
 ```

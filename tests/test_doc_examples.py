@@ -1,4 +1,4 @@
-"""Every DSL query shown in the docs, README and CLI help must parse and validate.
+"""Every DSL query shown in the docs, README, CLAUDE.md and CLI help must parse.
 
 Examples drift as the field registry changes (e.g. ``metadata.keywords`` ->
 ``metadata.keywords.name``) and then fail for anyone who copies them. This
@@ -45,15 +45,32 @@ _INTENTIONALLY_INVALID = {"someNewField = value"}
 _CLI = re.compile(r"stare (\w+) search[^\n]*?-q '([^']+)'")
 _PY = re.compile(r"""g\.(\w+)\.search\(\s*query=(?:"([^"]+)"|'([^']+)')""")
 
+# `get` examples; a reference code always contains a digit, which skips
+# placeholders such as `stare analysis get REF`.
+_GET_CLI = re.compile(r"stare (\w+) get ([A-Za-z-]*\d[\w-]*)")
+_GET_PY = re.compile(r"""g\.(\w+)\.get\("([^"]+)"\)""")
+
+# CLI resource name -> Glance accessor, for `get` examples
+_ACCESSOR = {
+    "analysis": "analyses",
+    "paper": "papers",
+    "confnote": "confnotes",
+    "pubnote": "pubnotes",
+    "plot": "plots",
+    "publications": "publications",
+}
+
+_FILES = [
+    *sorted((_ROOT / "docs").glob("*.md")),
+    _ROOT / "README.md",
+    _ROOT / "CLAUDE.md",
+    *sorted((_ROOT / "src" / "stare" / "cli").glob("*.py")),
+]
+
 
 def _examples() -> list[tuple[str, Mode, str]]:
-    files = [
-        *sorted((_ROOT / "docs").glob("*.md")),
-        _ROOT / "README.md",
-        *sorted((_ROOT / "src" / "stare" / "cli").glob("*.py")),
-    ]
     found: list[tuple[str, Mode, str]] = []
-    for path in files:
+    for path in _FILES:
         text = path.read_text(encoding="utf-8")
         matches = [(m.group(1), m.group(2)) for m in _CLI.finditer(text)]
         matches += [(m.group(1), m.group(2) or m.group(3)) for m in _PY.finditer(text)]
@@ -64,12 +81,29 @@ def _examples() -> list[tuple[str, Mode, str]]:
     return found
 
 
+def _get_examples() -> list[tuple[str, str, str]]:
+    """Return sorted, de-duplicated (source, accessor, ref_code) `get` examples."""
+    found: set[tuple[str, str, str]] = set()
+    for path in _FILES:
+        text = path.read_text(encoding="utf-8")
+        source = str(path.relative_to(_ROOT))
+        for m in _GET_CLI.finditer(text):
+            if m.group(1) in _ACCESSOR:
+                found.add((source, _ACCESSOR[m.group(1)], m.group(2)))
+        for m in _GET_PY.finditer(text):
+            if m.group(1) in _ACCESSOR.values():
+                found.add((source, m.group(1), m.group(2)))
+    return sorted(found)
+
+
 _EXAMPLES = _examples()
+_GET_EXAMPLES = _get_examples()
 
 
 def test_examples_are_found() -> None:
     """Guard against the extraction regexes silently matching nothing."""
     assert len(_EXAMPLES) >= 20
+    assert len(_GET_EXAMPLES) >= 10
 
 
 @pytest.mark.parametrize(

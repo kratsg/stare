@@ -116,8 +116,8 @@ def pubnote_get(
     """Fetch a single PUB note by final reference code via GET /searchPubnote.
 
     [bold]Examples[/bold]
-      [green]stare pubnote get ATL-PHYS-PUB-2024-01[/green]
-      [green]stare pubnote get ATL-PHYS-PUB-2024-01 | jq '.status'[/green]
+      [green]stare pubnote get PUB-HIGP-2024-59[/green]
+      [green]stare pubnote get PUB-HIGP-2024-59 | jq '.status'[/green]
 
     [bold]API reference[/bold]
       https://atlas-glance.cern.ch/atlas/analysis/api/docs/#/Pubnote/searchPubnote
