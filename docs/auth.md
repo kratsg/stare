@@ -124,7 +124,7 @@ stare auth export --move | STARE_TOKEN_STORAGE=file stare auth import
 ```
 
 ```cron
-0 6 * * * STARE_TOKEN_STORAGE=file stare analysis search -q 'status = Active' > active.json
+0 6 * * * STARE_TOKEN_STORAGE=file stare analysis search -q 'status = "Phase 0 Active"' > active.json
 ```
 
 On a headless Linux host without a keyring the file is used automatically.

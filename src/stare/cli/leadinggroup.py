@@ -49,7 +49,7 @@ def leadinggroup_search(
         typer.Option(
             "--query",
             "-q",
-            help="Filter query (e.g. 'name = SUSY'; ops: =, !=, contain, not-contain).",
+            help="Filter query (e.g. 'name = HMBS'; ops: =, !=, contain, not-contain).",
         ),
     ] = None,
     limit: LimitOption = 50,
@@ -71,7 +71,7 @@ def leadinggroup_search(
 
     [bold]Examples[/bold]
       [green]stare leadinggroups search[/green]
-      [green]stare leadinggroups search -q 'name = SUSY'[/green]
+      [green]stare leadinggroups search -q 'name = HMBS'[/green]
       [green]stare leadinggroups search | jq '[.results[].name]'[/green]
 
     [bold]API reference[/bold]

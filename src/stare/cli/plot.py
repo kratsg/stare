@@ -81,7 +81,7 @@ def plot_search(
 
     [bold]Examples[/bold]
       [green]stare plot search -q 'referenceCode contain PLOT-MUON'[/green]
-      [green]stare plot search -q 'groups.leadingGroup.name = TRIG AND status = phase1_closed'[/green]
+      [green]stare plot search -q 'groups.leadingGroup.name = TRIG AND status = "Phase 1 Finished"'[/green]
       [green]stare plot search | jq '.results[].referenceCode'[/green]
 
     [bold]API reference[/bold]

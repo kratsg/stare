@@ -85,7 +85,7 @@ g = Glance()
 # Currently live: GET /searchAnalysis
 result = g.analyses.search(query="referenceCode = ANA-HION-2018-01")
 result = g.analyses.search(
-    query='shortTitle = "Phase Closed"'
+    query='shortTitle = "Low-mass single diffraction"'
 )  # multi-word value → quotes
 
 # Currently live: GET /searchPaper
@@ -94,12 +94,12 @@ paper_result = g.papers.search(query="referenceCode = HDBS-2018-33")
 # Search-based get() — builds a Condition, calls search, returns first hit
 analysis = g.analyses.get("ANA-HION-2018-01")
 paper = g.papers.get("HDBS-2018-33")
-conf_note = g.confnotes.get("ATLAS-CONF-2024-001")
-pub_note = g.pubnotes.get("ATL-PHYS-PUB-2024-001")
+conf_note = g.confnotes.get("CONF-HDBS-2018-48")
+pub_note = g.pubnotes.get("PUB-HIGP-2024-59")
 plot = g.plots.get("PLOT-MUON-2018-08")
 
 # Leading groups (live)
-leadinggroups = g.leadinggroups.search(query="name = SUSY")
+leadinggroups = g.leadinggroups.search(query="name = HMBS")
 ```
 
 ## Settings

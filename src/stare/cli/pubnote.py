@@ -58,7 +58,7 @@ def pubnote_search(
         typer.Option(
             "--query",
             "-q",
-            help="Filter query (e.g. 'finalReferenceCode = ATL-PHYS-PUB-2024-01'; ops: =, !=, contain, not-contain; combine with and/or; quote values with spaces: 'phase1.state = \"Phase Closed\"'). See docs/query-dsl.md.",
+            help="Filter query (e.g. 'temporaryReferenceCode = PUB-HIGP-2024-59'; ops: =, !=, contain, not-contain; combine with and/or; quote values with spaces: 'phase1.state = \"Phase Closed\"'). See docs/query-dsl.md.",
         ),
     ] = None,
     limit: LimitOption = 50,
@@ -82,9 +82,9 @@ def pubnote_search(
     Override with [cyan]--json[/cyan] or [cyan]--no-json[/cyan].
 
     [bold]Examples[/bold]
-      [green]stare pubnote search -q 'finalReferenceCode = ATL-PHYS-PUB-2024-01'[/green]
+      [green]stare pubnote search -q 'temporaryReferenceCode = PUB-HIGP-2024-59'[/green]
       [green]stare pubnote search -q 'fullTitle contain Higgs'[/green]
-      [green]stare pubnote search -q 'phase1.state = "Phase Closed"'[/green]
+      [green]stare pubnote search -q 'phase1.state = "Phase 1 Finished"'[/green]
       [green]stare pubnote search | jq '.results[].finalReferenceCode'[/green]
 
     [bold]API reference[/bold]
@@ -116,8 +116,8 @@ def pubnote_get(
     """Fetch a single PUB note by final reference code via GET /searchPubnote.
 
     [bold]Examples[/bold]
-      [green]stare pubnote get ATL-PHYS-PUB-2024-01[/green]
-      [green]stare pubnote get ATL-PHYS-PUB-2024-01 | jq '.status'[/green]
+      [green]stare pubnote get PUB-HIGP-2024-59[/green]
+      [green]stare pubnote get PUB-HIGP-2024-59 | jq '.status'[/green]
 
     [bold]API reference[/bold]
       https://atlas-glance.cern.ch/atlas/analysis/api/docs/#/Pubnote/searchPubnote

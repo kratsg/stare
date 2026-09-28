@@ -58,7 +58,7 @@ def confnote_search(
         typer.Option(
             "--query",
             "-q",
-            help="Filter query (e.g. 'referenceCode = HDBS'; ops: =, !=, contain, not-contain; combine with and/or; quote values with spaces: 'phase2.state = \"Phase Closed\"'). See docs/query-dsl.md.",
+            help="Filter query (e.g. 'temporaryReferenceCode contain HDBS'; ops: =, !=, contain, not-contain; combine with and/or; quote values with spaces: 'phase2.state = \"Phase Closed\"'). See docs/query-dsl.md.",
         ),
     ] = None,
     limit: LimitOption = 50,
@@ -82,9 +82,9 @@ def confnote_search(
     Override with [cyan]--json[/cyan] or [cyan]--no-json[/cyan].
 
     [bold]Examples[/bold]
-      [green]stare confnote search -q 'temporaryReferenceCode = HDBS'[/green]
+      [green]stare confnote search -q 'temporaryReferenceCode contain HDBS'[/green]
       [green]stare confnote search -q 'fullTitle contain Higgs'[/green]
-      [green]stare confnote search -q 'phase1.state = "Phase Closed"'[/green]
+      [green]stare confnote search -q 'phase1.state = "Phase 1 Finished"'[/green]
       [green]stare confnote search | jq '.results[].finalReferenceCode'[/green]
 
     [bold]API reference[/bold]

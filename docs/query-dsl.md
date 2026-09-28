@@ -65,7 +65,7 @@ stare analysis search -q 'referenceCode = ANA-HION-2018-01'
 stare analysis search -q 'reference_code = ANA-HION-2018-01'
 ```
 
-Nested fields use a dot separator: `metadata.keywords`, `phase0.state`.
+Nested fields use a dot separator: `metadata.keywords.name`, `phase0.state`.
 
 !!! note "Field catalogue is generated"
 
@@ -86,13 +86,13 @@ substring instead; escaped-quote support is not yet implemented.
 
 ```bash
 # These are equivalent:
-stare analysis search -q 'referenceCode = HION'
-stare analysis search -q '"referenceCode" = HION'
-stare analysis search -q 'referenceCode = "HION"'
+stare analysis search -q 'referenceCode = ANA-HION-2018-01'
+stare analysis search -q '"referenceCode" = ANA-HION-2018-01'
+stare analysis search -q 'referenceCode = "ANA-HION-2018-01"'
 
 # Multi-word values require quotes:
-stare analysis search -q 'shortTitle = "Phase Closed"'
-stare paper search -q '"phase2.state" = "Phase Closed"'
+stare analysis search -q 'shortTitle = "Low-mass single diffraction"'
+stare paper search -q '"phase2.state" = "Phase 2 Finished"'
 ```
 
 Canonical output (`to_dsl()`) emits quotes on the value only when they are
@@ -104,28 +104,28 @@ Only `"` (double quotes) are accepted — single quotes are not special.
 ## Values
 
 Values are bare tokens or double-quoted strings. A bare value like
-`ANA-HION-2018-01` or `Active` works without quotes. Double quotes are required
+`ANA-HION-2018-01` or `Closed` works without quotes. Double quotes are required
 when the value is empty or contains spaces, parentheses, or square brackets:
 
 ```bash
 # bare value — no quotes needed
-stare analysis search -q 'metadata.keywords contain jets'
+stare analysis search -q 'metadata.keywords.name contain jets'
 
 # space in value — quotes required
-stare analysis search -q 'shortTitle = "Phase Closed"'
+stare analysis search -q 'shortTitle = "Low-mass single diffraction"'
 
 # quoted field, bare value — both forms mix freely
-stare analysis search -q '"phase0.state" = Active'
+stare analysis search -q '"status" = Closed'
 ```
 
 ## Combining conditions
 
 ```bash
 # AND (both must match)
-stare analysis search -q 'status = Active and groups.leadingGroup.name = HDBS'
+stare analysis search -q 'status = "Phase 0 Active" and groups.leadingGroup.name = HMBS'
 
 # OR (either may match)
-stare analysis search -q 'status = Active or status = Approved'
+stare analysis search -q 'status = "Phase 0 Active" or status = Created'
 ```
 
 `AND` binds tighter than `OR`: `a = 1 AND b = 2 OR c = 3` is parsed as
@@ -152,7 +152,7 @@ are dropped.
 
 ```bash
 stare analysis search -q 'status != Closed AND groups.leadingGroup.name in [EGAM, MUON, JETM]'
-stare analysis search -q 'status not in [Closed, Archived]'
+stare analysis search -q 'status not in [Closed, "Phase 0 Finished"]'
 ```
 
 The Glance API has no list operator, so `stare` expands these before sending:
@@ -174,7 +174,7 @@ syntax error.
 any search command:
 
 ```bash
-stare analysis search -q 'status = Active' --sort-by creationDate --sort-desc
+stare analysis search -q 'status = "Phase 0 Active"' --sort-by creationDate --sort-desc
 stare paper search --sort-by referenceCode
 ```
 

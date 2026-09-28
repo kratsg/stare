@@ -60,7 +60,7 @@ def analysis_search(
         typer.Option(
             "--query",
             "-q",
-            help="Filter query (e.g. 'referenceCode = HION'; ops: =, !=, contain, not-contain; combine with and/or; quote values with spaces: 'shortTitle = \"Phase Closed\"'). See docs/query-dsl.md.",
+            help="Filter query (e.g. 'referenceCode contain HION'; ops: =, !=, contain, not-contain; combine with and/or; quote values with spaces: 'shortTitle = \"Phase Closed\"'). See docs/query-dsl.md.",
         ),
     ] = None,
     limit: LimitOption = 50,
@@ -84,9 +84,9 @@ def analysis_search(
     Override with [cyan]--json[/cyan] or [cyan]--no-json[/cyan].
 
     [bold]Examples[/bold]
-      [green]stare analysis search -q 'referenceCode = HION'[/green]
-      [green]stare analysis search -q 'metadata.keywords contain jets and status = Active'[/green]
-      [green]stare analysis search -q 'shortTitle = "Phase Closed"'[/green]
+      [green]stare analysis search -q 'referenceCode contain HION'[/green]
+      [green]stare analysis search -q 'metadata.keywords.name contain jets and status = "Phase 0 Active"'[/green]
+      [green]stare analysis search -q 'shortTitle = "Low-mass single diffraction"'[/green]
       [green]stare analysis search | jq '.results[].referenceCode'[/green]
       [green]stare analysis search | jq '[.results[] | select(.status=="Active")] | length'[/green]
 

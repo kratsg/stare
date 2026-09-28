@@ -62,7 +62,7 @@ Every resource that supports server-side search exposes a
 # List recent analyses (default limit: 50)
 stare analysis search
 stare analysis search -q 'referenceCode = ANA-HION-2018-01'
-stare analysis search -q 'keywords contain Higgs' -n 20
+stare analysis search -q 'metadata.keywords.name contain Higgs' -n 20
 
 # Paginate
 stare analysis search --offset 50 --limit 25
@@ -72,11 +72,11 @@ stare analysis search --json
 
 # Papers work the same way
 stare paper search
-stare paper search -q 'status = Active' -n 10
+stare paper search -q 'status = "Phase 1 Active"' -n 10
 
 # Plots work the same way
 stare plot search
-stare plot search -q 'status = phase1_closed' -n 10
+stare plot search -q 'status = "Phase 1 Finished"' -n 10
 ```
 
 ### Piping output
@@ -106,8 +106,8 @@ Override the auto-detection with `--json` (force JSON in a terminal) or
 ```bash
 stare analysis get ANA-HION-2018-01
 stare paper get HDBS-2018-33
-stare confnote get ATLAS-CONF-2024-001
-stare pubnote get ATL-PHYS-PUB-2024-001
+stare confnote get CONF-HDBS-2018-48
+stare pubnote get PUB-HIGP-2024-59
 stare plot get PLOT-MUON-2018-08
 ```
 
@@ -126,14 +126,14 @@ stare publications get HDBS-2018-33
 
 # Search leading groups / subgroups (live)
 stare leadinggroups search
-stare leadinggroups search -q 'name = SUSY'
+stare leadinggroups search -q 'name = HMBS'
 stare subgroups search
 stare subgroups search -q 'name contain HIGG'
 
 # Search triggers (live)
 stare triggers search
 stare triggers search -q 'year = 2024'
-stare triggers search -q 'category.name = electron AND year = 2022'
+stare triggers search -q 'category.name = primary AND year = 2018'
 ```
 
 ### Utility commands
@@ -168,15 +168,15 @@ for analysis in result.results:
     print(analysis.reference_code, analysis.short_title)
 
 # Search papers (live)
-paper_result = g.papers.search(query="status = Active")
+paper_result = g.papers.search(query='status = "Phase 1 Active"')
 for paper in paper_result.results:
     print(paper.reference_code, paper.status)
 
 # Individual resource lookups (search-based)
 analysis = g.analyses.get("ANA-HION-2018-01")
 paper = g.papers.get("HDBS-2018-33")
-conf_note = g.confnotes.get("ATLAS-CONF-2024-001")
-pub_note = g.pubnotes.get("ATL-PHYS-PUB-2024-001")
+conf_note = g.confnotes.get("CONF-HDBS-2018-48")
+pub_note = g.pubnotes.get("PUB-HIGP-2024-59")
 plot = g.plots.get("PLOT-MUON-2018-08")
 
 # Publications search (live)
@@ -184,7 +184,7 @@ pubs = g.publications.search(query="type = Paper AND groups.leadingGroup.name = 
 pub = g.publications.get("HDBS-2018-33")
 
 # Leading groups / subgroups / triggers (live)
-leadinggroups = g.leadinggroups.search(query="name = SUSY")
+leadinggroups = g.leadinggroups.search(query="name = HMBS")
 subgroups = g.subgroups.search()
 triggers = g.triggers.search(query="year = 2024")
 ```
@@ -196,7 +196,7 @@ connection lifecycle:
 
 ```python
 with Glance() as g:
-    result = g.analyses.search(query="status = Active")
+    result = g.analyses.search(query='status = "Phase 0 Active"')
     for a in result.results:
         print(a.reference_code)
 ```

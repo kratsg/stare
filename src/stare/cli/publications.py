@@ -112,7 +112,7 @@ def publications_search(
 
     [bold]Examples[/bold]
       [green]stare publications search -q 'type = Paper'[/green]
-      [green]stare publications search -q 'groups.leadingGroup.name = HDBS AND status = Active'[/green]
+      [green]stare publications search -q 'groups.leadingGroup.name = HMBS AND status = "Phase 0 Active"'[/green]
       [green]stare publications search -q 'referenceCode = ATLAS-CONF-2021-010'[/green]
       [green]stare publications search | jq '.results[].referenceCode'[/green]
 
