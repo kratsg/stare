@@ -4,6 +4,10 @@
 // NULL sentinel: the API-defined token __EMPTY__ (quoted or bare) is used to
 // compare a field against NULL, e.g.  "publicShortTitle" = "__EMPTY__".
 // It is matched as an ordinary VALUE (bare) or STRING (quoted) — no special rule.
+//
+// List membership (`field in [a, b]`, `field not in [a, b]`) is stare-only
+// syntax: the server has no such operator, so the parser expands it into an
+// OR of `=` (or an AND of `!=`) before anything is sent.
 
 ?expression: or_expr
 ?or_expr: and_expr
@@ -11,18 +15,25 @@
 ?and_expr: term
          | and_expr _AND term           -> and_expr
 ?term: condition
+     | list_condition
      | "(" expression ")"
 condition: field OP value              -> condition
+list_condition: field LIST_OP "[" list_value ("," list_value)* "]"
 
 field: IDENT | STRING
 value: VALUE | STRING
+list_value: LIST_VALUE | STRING
 
 OP: "=" | "!=" | "contain"i | "not-contain"i
+LIST_OP: /(not\s+)?in/i
 _AND: /[Aa][Nn][Dd]/
 _OR:  /[Oo][Rr]/
 
 IDENT: /[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*/
 VALUE: /[^\s()"]+/
+// Unlike VALUE, a bare list item stops at commas and square brackets; quote
+// an item that contains them.
+LIST_VALUE: /[^\s()",\[\]]+/
 STRING: /"[^"\n\r\t\f\v]*"/
 
 %import common.WS

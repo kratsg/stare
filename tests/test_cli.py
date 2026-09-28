@@ -201,6 +201,8 @@ SAMPLE_TRIGGERS = TriggerSearchResult.model_validate(
 def _mock_glance(**overrides: object) -> MagicMock:
     """Return a MagicMock shaped like a Glance instance."""
     g = MagicMock()
+    # Like the real Glance, entering the context manager yields the same client.
+    g.__enter__.return_value = g
     g.analyses.search.return_value = SAMPLE_SEARCH
     g.analyses.get.return_value = SAMPLE_ANALYSIS
     g.papers.search.return_value = SAMPLE_PAPER_SEARCH
@@ -606,6 +608,56 @@ def test_analysis_search_not_enough_results() -> None:
     assert result.exit_code == 2
     assert "Invalid offset" in result.stderr
     assert "Invalid offset" not in result.stdout
+
+
+# ---------------------------------------------------------------------------
+# Glance client lifecycle
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "args",
+    [
+        ["analysis", "search"],
+        ["analysis", "get", "ANA-TEST-2024-01"],
+        ["paper", "search", "--json"],
+        ["leadinggroups", "search"],
+    ],
+)
+def test_cli_closes_glance_client(args: list[str]) -> None:
+    """Each command closes its Glance so pooled SSL sockets are not leaked."""
+    g = _mock_glance()
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(app, args)
+    assert result.exit_code == 0, result.output
+    g.__exit__.assert_called_once()
+
+
+def test_cli_closes_glance_client_on_api_error() -> None:
+    g = _mock_glance()
+    g.analyses.search.side_effect = AuthenticationError("Not authenticated")
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(app, ["analysis", "search"])
+    assert result.exit_code == 1
+    g.__exit__.assert_called_once()
+
+
+def test_cli_closes_glance_client_on_invalid_query() -> None:
+    g = _mock_glance()
+    g.analyses.search.side_effect = DSLValidationError("unknown field 'foo'")
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(app, ["analysis", "search", "-q", "foo = bar"])
+    assert result.exit_code == 2
+    g.__exit__.assert_called_once()
+
+
+def test_cli_closes_glance_client_on_get_error() -> None:
+    g = _mock_glance()
+    g.analyses.get.side_effect = NotFoundError(404, "Not Found", "No such analysis")
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(app, ["analysis", "get", "ANA-NOPE-2024-01"])
+    assert result.exit_code == 1
+    g.__exit__.assert_called_once()
 
 
 # ---------------------------------------------------------------------------

@@ -69,15 +69,28 @@ class Condition(BaseModel):
         return f"{self.field} {self.operator} {value}"
 
 
+def _and_operand_to_dsl(expr: Expression) -> str:
+    """Serialize an operand of AND, grouping it when it is an Or.
+
+    AND binds tighter than OR on the server, so an unparenthesized Or operand
+    would change the query's meaning. The parentheses are space-padded because
+    the server glues a parenthesis onto an adjacent bare token and fails with
+    HTTP 500 (ATGLANCE-8337).
+    """
+    if isinstance(expr, Or):
+        return f"( {expr.to_dsl()} )"
+    return expr.to_dsl()
+
+
 class And(BaseModel):
     """Logical conjunction of exactly two sub-expressions."""
 
     clauses: tuple[Expression, Expression]
 
     def to_dsl(self) -> str:
-        """Serialize to DSL string."""
+        """Serialize to DSL string, parenthesizing Or operands."""
         left, right = self.clauses
-        return f"{left.to_dsl()} AND {right.to_dsl()}"
+        return f"{_and_operand_to_dsl(left)} AND {_and_operand_to_dsl(right)}"
 
 
 class Or(BaseModel):

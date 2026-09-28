@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 import pytest
 
 from stare.dsl import parse_dsl
@@ -61,7 +63,9 @@ def test_or_two_clauses() -> None:
     assert expr.to_dsl() == "status = ACTIVE OR status = PENDING"
 
 
-def test_or_inside_and_no_parens() -> None:
+def test_or_inside_and_is_parenthesized() -> None:
+    """AND binds tighter than OR on the server, so an Or operand of an And must
+    be grouped, or the query changes meaning."""
     inner = Or(
         clauses=(
             Condition.model_validate(
@@ -82,7 +86,7 @@ def test_or_inside_and_no_parens() -> None:
     )
     assert (
         outer.to_dsl()
-        == "status = ACTIVE OR status = PENDING AND keywords contain jets"
+        == "( status = ACTIVE OR status = PENDING ) AND keywords contain jets"
     )
 
 
@@ -213,3 +217,53 @@ def test_quoted_field_round_trip(src: str, canonical: str, msg: str) -> None:
     expr = parse_dsl(src, mode="analysis")
     assert expr.to_dsl() == canonical, msg
     assert parse_dsl(expr.to_dsl(), mode="analysis").to_dsl() == canonical, msg
+
+
+def _c(field: str, value: str, op: Operator = Operator.EQ) -> Condition:
+    return Condition(field=field, operator=op, value=value)
+
+
+def test_or_on_right_of_and_is_parenthesized() -> None:
+    expr = And(clauses=(_c("a", "x"), Or(clauses=(_c("b", "y"), _c("c", "z")))))
+    assert expr.to_dsl() == "a = x AND ( b = y OR c = z )"
+
+
+def test_or_on_both_sides_of_and_is_parenthesized() -> None:
+    expr = And(
+        clauses=(
+            Or(clauses=(_c("a", "1"), _c("a", "2"))),
+            Or(clauses=(_c("b", "1"), _c("b", "2"))),
+        )
+    )
+    assert expr.to_dsl() == "( a = 1 OR a = 2 ) AND ( b = 1 OR b = 2 )"
+
+
+def test_or_nested_in_and_nested_in_and_is_parenthesized() -> None:
+    inner = And(clauses=(_c("a", "x"), Or(clauses=(_c("b", "y"), _c("c", "z")))))
+    expr = And(clauses=(inner, _c("d", "w")))
+    assert expr.to_dsl() == "a = x AND ( b = y OR c = z ) AND d = w"
+
+
+def test_or_inside_or_is_not_parenthesized() -> None:
+    expr = Or(clauses=(Or(clauses=(_c("a", "1"), _c("a", "2"))), _c("a", "3")))
+    assert expr.to_dsl() == "a = 1 OR a = 2 OR a = 3"
+
+
+def test_and_containing_grouped_or_inside_or() -> None:
+    grouped = And(clauses=(_c("a", "x"), Or(clauses=(_c("b", "y"), _c("c", "z")))))
+    expr = Or(clauses=(grouped, _c("d", "w")))
+    assert expr.to_dsl() == "a = x AND ( b = y OR c = z ) OR d = w"
+
+
+def test_parentheses_are_space_padded() -> None:
+    """Glance glues a parenthesis onto an adjacent bare token and returns HTTP
+    500 (ATGLANCE-8337), so every emitted parenthesis must be space-padded."""
+    expr = And(
+        clauses=(
+            Or(clauses=(_c("a", "1"), _c("a", "2"))),
+            Or(clauses=(_c("b", "1"), _c("b", "quoted value"))),
+        )
+    )
+    dsl = expr.to_dsl()
+    assert "(" in dsl
+    assert not re.search(r"\((?! )|(?<! )\)", dsl), dsl

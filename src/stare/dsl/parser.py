@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import difflib
 import functools
-import logging
 from importlib.resources import files
 from typing import TYPE_CHECKING, Any
 
@@ -18,8 +17,6 @@ from stare.dsl.registry import FieldRegistry
 if TYPE_CHECKING:
     from stare.typing import Mode
 
-_logger = logging.getLogger("stare")
-
 _VALID_OPS = tuple(op.value for op in Operator)
 
 
@@ -30,23 +27,30 @@ def _get_lark() -> Lark:
     return Lark(grammar, start="expression", parser="lalr")
 
 
-def _has_unquoted_paren(source: str) -> bool:
-    """Return True if '(' appears outside a STRING (double-quoted, no escapes per grammar)."""
-    in_string = False
-    for char in source:
-        if char == '"':
-            in_string = not in_string
-        elif char == "(" and not in_string:
-            return True
-    return False
-
-
 def _unquote(token: Any) -> str:
     """Strip surrounding double-quotes from a STRING token, or return bare."""
     s = str(token)
     if len(s) >= 2 and s[0] == '"' and s[-1] == '"':
         return s[1:-1]
     return s
+
+
+def _balanced(conditions: list[Expression], node: type[And | Or]) -> Expression:
+    """Join ``conditions`` with ``node`` as a balanced binary tree.
+
+    A left-nested chain (as ``functools.reduce`` builds) is one level deep per
+    item, so ``to_dsl()`` on a long list overflows the recursion limit; a
+    balanced tree is only about log2(n) deep. Splitting at ``(n + 1) // 2``
+    keeps short lists left-leaning, e.g. ``[a, b, c]`` -> ``node(node(a, b), c)``.
+    Serialization is unaffected: nested And-in-And and Or-in-Or emit no
+    parentheses.
+    """
+    if len(conditions) == 1:
+        return conditions[0]
+    mid = (len(conditions) + 1) // 2
+    return node(
+        clauses=(_balanced(conditions[:mid], node), _balanced(conditions[mid:], node))
+    )
 
 
 class _DSLTransformer(Transformer[Any, Expression]):
@@ -62,22 +66,47 @@ class _DSLTransformer(Transformer[Any, Expression]):
         """Return the value token as a plain string, stripping optional quotes."""
         return _unquote(items[0])
 
+    def list_value(self, items: list[Any]) -> str:
+        """Return a list item as a plain string, stripping optional quotes."""
+        return _unquote(items[0])
+
+    def _validated_field(self, raw_field: str, op: Operator) -> str:
+        """Normalize a field name and check it exists and accepts ``op``."""
+        normalized = self._registry.normalize(raw_field)
+        self._registry.validate_normalized(normalized)
+        self._registry.validate_operator(normalized, op)
+        return normalized
+
     def condition(self, items: list[Any]) -> Condition:
         """Build a Condition from (field_str, op_token, value_str)."""
         raw_field: str = items[0]
         op_token = items[1]
         value: str = items[2]
 
-        normalized = self._registry.normalize(raw_field)
-        self._registry.validate_normalized(normalized)
         op = Operator(str(op_token).lower())
-        self._registry.validate_operator(normalized, op)
-
         return Condition(
-            field=normalized,
+            field=self._validated_field(raw_field, op),
             operator=op,
             value=value,
         )
+
+    def list_condition(self, items: list[Any]) -> Expression:
+        """Expand ``field in [...]`` / ``field not in [...]`` into plain conditions.
+
+        The server has no list operator, so ``in`` becomes an OR of ``=`` and
+        ``not in`` an AND of ``!=``, joined as a balanced tree (see
+        :func:`_balanced`). A single item yields a single Condition.
+        """
+        raw_field: str = items[0]
+        negated = str(items[1]).lower().startswith("not")
+        values: list[str] = items[2:]
+
+        op = Operator.NE if negated else Operator.EQ
+        field = self._validated_field(raw_field, op)
+        conditions: list[Expression] = [
+            Condition(field=field, operator=op, value=value) for value in values
+        ]
+        return _balanced(conditions, And if negated else Or)
 
     def or_expr(self, items: list[Expression]) -> Or:
         """Build an Or node."""
@@ -125,11 +154,6 @@ def parse_dsl(source: str, *, mode: Mode) -> Expression:
         suffix = f"\nHint: {hint}" if hint else ""
         msg = f"Invalid query syntax near '{source[:40]}': {context}{suffix}"
         raise DSLSyntaxError(msg) from exc
-
-    if _has_unquoted_paren(source):
-        _logger.warning(
-            "parentheses in DSL query are not supported by the server and will be ignored"
-        )
 
     registry = FieldRegistry.for_mode(mode)
     try:
