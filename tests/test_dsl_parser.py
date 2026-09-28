@@ -66,11 +66,11 @@ def test_canonical_form_is_idempotent() -> None:
     assert parse_dsl(src, mode="analysis").to_dsl() == src
 
 
-def test_parentheses_warn(caplog: pytest.LogCaptureFixture) -> None:
-    """Parentheses in input trigger a warning about server incompatibility."""
+def test_parentheses_do_not_warn(caplog: pytest.LogCaptureFixture) -> None:
+    """Grouping is preserved when serialized, so parentheses are not warned about."""
     with caplog.at_level(logging.WARNING, logger="stare"):
         parse_dsl("(referenceCode = HION)", mode="analysis")
-    assert "parenthes" in caplog.text.lower()
+    assert "parenthes" not in caplog.text.lower()
 
 
 def test_parens_in_quoted_value_do_not_warn(
@@ -84,14 +84,39 @@ def test_parens_in_quoted_value_do_not_warn(
     assert expr.value == "foo (bar)"
 
 
-def test_parentheses_stripped_from_output() -> None:
-    """Parentheses affect the AST but are not emitted in to_dsl() output."""
+def test_parentheses_that_change_grouping_are_preserved() -> None:
+    """An OR grouped inside an AND keeps its (space-padded) parentheses."""
     expr = parse_dsl(
         "(status = ACTIVE OR status = PENDING) AND referenceCode = HION",
         mode="analysis",
     )
-    assert "(" not in expr.to_dsl()
-    assert ")" not in expr.to_dsl()
+    assert (
+        expr.to_dsl()
+        == "( status = ACTIVE OR status = PENDING ) AND referenceCode = HION"
+    )
+
+
+@pytest.mark.parametrize(
+    ("src", "canonical"),
+    [
+        ("(referenceCode = HION)", "referenceCode = HION"),
+        (
+            "(status = ACTIVE AND referenceCode = HION) OR status = PENDING",
+            "status = ACTIVE AND referenceCode = HION OR status = PENDING",
+        ),
+        (
+            "status = ACTIVE OR (status = PENDING OR status = CLOSED)",
+            "status = ACTIVE OR status = PENDING OR status = CLOSED",
+        ),
+    ],
+)
+def test_redundant_parentheses_are_dropped(src: str, canonical: str) -> None:
+    assert parse_dsl(src, mode="analysis").to_dsl() == canonical
+
+
+def test_grouped_canonical_form_is_idempotent() -> None:
+    src = "( status = ACTIVE OR status = PENDING ) AND referenceCode = HION"
+    assert parse_dsl(src, mode="analysis").to_dsl() == src
 
 
 def test_unknown_field_raises_validation_error() -> None:

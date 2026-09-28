@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import difflib
 import functools
-import logging
 from importlib.resources import files
 from typing import TYPE_CHECKING, Any
 
@@ -18,8 +17,6 @@ from stare.dsl.registry import FieldRegistry
 if TYPE_CHECKING:
     from stare.typing import Mode
 
-_logger = logging.getLogger("stare")
-
 _VALID_OPS = tuple(op.value for op in Operator)
 
 
@@ -28,17 +25,6 @@ def _get_lark() -> Lark:
     """Build the LALR parser lazily so importing stare stays cheap for the CLI."""
     grammar = files("stare.data").joinpath("query-grammar.lark").read_text()
     return Lark(grammar, start="expression", parser="lalr")
-
-
-def _has_unquoted_paren(source: str) -> bool:
-    """Return True if '(' appears outside a STRING (double-quoted, no escapes per grammar)."""
-    in_string = False
-    for char in source:
-        if char == '"':
-            in_string = not in_string
-        elif char == "(" and not in_string:
-            return True
-    return False
 
 
 def _unquote(token: Any) -> str:
@@ -125,11 +111,6 @@ def parse_dsl(source: str, *, mode: Mode) -> Expression:
         suffix = f"\nHint: {hint}" if hint else ""
         msg = f"Invalid query syntax near '{source[:40]}': {context}{suffix}"
         raise DSLSyntaxError(msg) from exc
-
-    if _has_unquoted_paren(source):
-        _logger.warning(
-            "parentheses in DSL query are not supported by the server and will be ignored"
-        )
 
     registry = FieldRegistry.for_mode(mode)
     try:
