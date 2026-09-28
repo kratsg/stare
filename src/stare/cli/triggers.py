@@ -174,7 +174,7 @@ def triggers_search(
 
     [bold]Examples[/bold]
       [green]stare triggers search -q 'year = 2024'[/green]
-      [green]stare triggers search -q 'category.name = electron AND year = 2022'[/green]
+      [green]stare triggers search -q 'category.name = primary AND year = 2018'[/green]
       [green]stare triggers search | jq '[.results[].name]'[/green]
 
     [bold]API reference[/bold]

@@ -93,23 +93,23 @@ with the quoted-field form.
 
     g = Glance()
     result = g.analyses.search(
-        query='shortTitle = "Phase Closed"',  # (1)!
+        query='shortTitle = "Low-mass single diffraction"',  # (1)!
     )
     for analysis in result.results:
         print(analysis.reference_code, analysis.short_title)
     ```
 
     1. Double-quote the value when it contains whitespace. Single-word values
-       can be written bare (e.g. `status = Active`).
+       can be written bare (e.g. `status = Closed`).
 
 === "CLI"
 
     ```bash
     # Double-quote values that contain spaces (outer single-quote protects the expression)
-    stare analysis search -q 'shortTitle = "Phase Closed"'
+    stare analysis search -q 'shortTitle = "Low-mass single diffraction"'
 
     # Both sides may be quoted:
-    stare paper search -q '"phase2.state" = "Phase Closed"'
+    stare paper search -q '"phase2.state" = "Phase 2 Finished"'
     ```
 
 ---
@@ -144,7 +144,7 @@ them. Parentheses group an `OR` under an `AND`.
     stare analysis search -q 'status != Closed AND groups.leadingGroup.name in [EGAM, MUON, JETM]'
 
     # Exclude values
-    stare analysis search -q 'status not in [Closed, Archived]'
+    stare analysis search -q 'status not in [Closed, "Phase 0 Finished"]'
 
     # Equivalent explicit grouping
     stare analysis search -q 'status != Closed AND (groups.leadingGroup.name = EGAM OR groups.leadingGroup.name = MUON)'

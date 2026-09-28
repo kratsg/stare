@@ -38,8 +38,8 @@ refreshed automatically.
 # Search analyses — Rich table in terminal, JSON when piped
 stare analysis search
 stare analysis search --query 'referenceCode = ANA-HION-2018-01'
-stare analysis search -q 'keywords contain Higgs' --limit 20
-stare analysis search -q 'shortTitle = "Phase Closed"'
+stare analysis search -q 'metadata.keywords.name contain Higgs' --limit 20
+stare analysis search -q 'shortTitle = "Low-mass single diffraction"'
 
 # Pipe to jq for field selection (JSON is auto-emitted)
 stare analysis search | jq '.results[].referenceCode'
@@ -104,14 +104,14 @@ paper = g.papers.get("HDBS-2018-33")
 conf_note = g.confnotes.get("ATLAS-CONF-2024-001")
 pub_note = g.pubnotes.get("ATL-PHYS-PUB-2024-001")
 plot = g.plots.get("PLOT-MUON-2018-08")
-leadinggroups = g.leadinggroups.search(query="name = SUSY")
+leadinggroups = g.leadinggroups.search(query="name = HMBS")
 ```
 
 Use as a context manager for explicit connection lifecycle:
 
 ```python
 with Glance() as g:
-    result = g.analyses.search(query="status = Active")
+    result = g.analyses.search(query='status = "Phase 0 Active"')
 ```
 
 Inject a token directly (useful in CI/automated scripts):
