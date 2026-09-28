@@ -33,6 +33,13 @@ class TokenExpiredError(AuthenticationError):
     """Stored token is expired; re-run ``stare login``."""
 
 
+class NetworkError(StareError):
+    """The Glance API could not be reached or did not respond (e.g. a timeout).
+
+    The underlying ``httpx`` transport error is kept as ``__cause__``.
+    """
+
+
 class ApiError(StareError):
     """An error response from the Glance API."""
 
