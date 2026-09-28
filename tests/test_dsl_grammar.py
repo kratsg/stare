@@ -39,6 +39,19 @@ def parser() -> Lark:
         "publicShortTitle = __EMPTY__",
         'publicShortTitle = "__EMPTY__"',
         'publicShortTitle != "__EMPTY__"',
+        # list membership, expanded client-side
+        "f in [a]",
+        "f in [a, b, c]",
+        "f in [a,b,c]",
+        "f IN [a, b]",
+        "f not in [a, b]",
+        "f NOT  IN [a]",
+        'f in ["multiple words", "comma, inside", bare]',
+        "f in [ANA-HION-2018-01, a.b]",
+        "x = y AND f in [a, b] OR g not in [c]",
+        "(f in [a, b] OR g = c) AND h = d",
+        # a bare VALUE may still contain commas outside a list
+        "f = a,b",
     ],
 )
 def test_parses_valid(parser: Lark, src: str) -> None:
@@ -61,6 +74,15 @@ def test_parses_valid(parser: Lark, src: str) -> None:
         'field = "has\nnewline"',
         'field = "has\ttab"',
         'field = "has\ffeed"',
+        # malformed lists
+        "f in []",
+        "f in [a,]",
+        "f in [,a]",
+        "f in a",
+        "f in [a b]",
+        "f in [a",
+        "f notin [a]",  # codespell:ignore notin
+        "f not-in [a]",
     ],
 )
 def test_rejects_invalid(parser: Lark, src: str) -> None:

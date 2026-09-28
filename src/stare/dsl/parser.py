@@ -48,22 +48,49 @@ class _DSLTransformer(Transformer[Any, Expression]):
         """Return the value token as a plain string, stripping optional quotes."""
         return _unquote(items[0])
 
+    def list_value(self, items: list[Any]) -> str:
+        """Return a list item as a plain string, stripping optional quotes."""
+        return _unquote(items[0])
+
+    def _validated_field(self, raw_field: str, op: Operator) -> str:
+        """Normalize a field name and check it exists and accepts ``op``."""
+        normalized = self._registry.normalize(raw_field)
+        self._registry.validate_normalized(normalized)
+        self._registry.validate_operator(normalized, op)
+        return normalized
+
     def condition(self, items: list[Any]) -> Condition:
         """Build a Condition from (field_str, op_token, value_str)."""
         raw_field: str = items[0]
         op_token = items[1]
         value: str = items[2]
 
-        normalized = self._registry.normalize(raw_field)
-        self._registry.validate_normalized(normalized)
         op = Operator(str(op_token).lower())
-        self._registry.validate_operator(normalized, op)
-
         return Condition(
-            field=normalized,
+            field=self._validated_field(raw_field, op),
             operator=op,
             value=value,
         )
+
+    def list_condition(self, items: list[Any]) -> Expression:
+        """Expand ``field in [...]`` / ``field not in [...]`` into plain conditions.
+
+        The server has no list operator, so ``in`` becomes an OR of ``=`` and
+        ``not in`` an AND of ``!=``, built left-nested like
+        ``functools.reduce``. A single item yields a single Condition.
+        """
+        raw_field: str = items[0]
+        negated = str(items[1]).lower().startswith("not")
+        values: list[str] = items[2:]
+
+        op = Operator.NE if negated else Operator.EQ
+        field = self._validated_field(raw_field, op)
+        conditions: list[Expression] = [
+            Condition(field=field, operator=op, value=value) for value in values
+        ]
+        if negated:
+            return functools.reduce(lambda a, b: And(clauses=(a, b)), conditions)
+        return functools.reduce(lambda a, b: Or(clauses=(a, b)), conditions)
 
     def or_expr(self, items: list[Expression]) -> Or:
         """Build an Or node."""

@@ -7,7 +7,7 @@ import logging
 import pytest
 
 from stare.dsl import DSLSyntaxError, DSLValidationError, parse_dsl
-from stare.dsl.models import And, Condition, Or
+from stare.dsl.models import And, Condition, Operator, Or
 
 
 def test_simple_equality() -> None:
@@ -258,3 +258,88 @@ def test_paper_boolean_field_operator_restriction() -> None:
 def test_pubnote_boolean_field_operator_restriction() -> None:
     with pytest.raises(DSLValidationError):
         parse_dsl('"phase1.readers.isFirstReader" contain "true"', mode="pubnote")
+
+
+# --- list membership: in / not in ---
+
+
+def test_in_single_value_is_plain_condition() -> None:
+    expr = parse_dsl("status in [Active]", mode="analysis")
+    assert expr == Condition(field="status", operator=Operator.EQ, value="Active")
+
+
+def test_in_expands_to_or_of_equalities() -> None:
+    expr = parse_dsl("reference_code in [A, B, C]", mode="analysis")
+    eq = [
+        Condition(field="referenceCode", operator=Operator.EQ, value=v)
+        for v in ("A", "B", "C")
+    ]
+    assert expr == Or(clauses=(Or(clauses=(eq[0], eq[1])), eq[2]))
+    assert (
+        expr.to_dsl() == "referenceCode = A OR referenceCode = B OR referenceCode = C"
+    )
+
+
+def test_not_in_expands_to_and_of_inequalities() -> None:
+    expr = parse_dsl("status NOT IN [Closed, Archived]", mode="analysis")
+    ne = [
+        Condition(field="status", operator=Operator.NE, value=v)
+        for v in ("Closed", "Archived")
+    ]
+    assert expr == And(clauses=(ne[0], ne[1]))
+    assert expr.to_dsl() == "status != Closed AND status != Archived"
+
+
+def test_in_quoted_values_keep_commas_and_spaces() -> None:
+    expr = parse_dsl('shortTitle in ["a, b", "two words", bare]', mode="analysis")
+    assert expr.to_dsl() == (
+        'shortTitle = "a, b" OR shortTitle = "two words" OR shortTitle = bare'
+    )
+
+
+def test_in_combined_with_and_is_grouped() -> None:
+    """The motivating example from #81: the Or chain is grouped under AND."""
+    groups = ["EGAM", "MUON", "JETM"]
+    expr = parse_dsl(
+        f"status != Closed AND groups.leadingGroup.name in [{', '.join(groups)}]",
+        mode="analysis",
+    )
+    assert expr.to_dsl() == (
+        "status != Closed AND ( groups.leadingGroup.name = EGAM"
+        " OR groups.leadingGroup.name = MUON OR groups.leadingGroup.name = JETM )"
+    )
+
+
+def test_not_in_combined_with_or_needs_no_grouping() -> None:
+    expr = parse_dsl(
+        "status = Active OR status not in [Closed, Archived]", mode="analysis"
+    )
+    assert expr.to_dsl() == "status = Active OR status != Closed AND status != Archived"
+
+
+def test_in_output_round_trips() -> None:
+    src = "status != Closed AND groups.leadingGroup.name in [EGAM, MUON]"
+    canonical = parse_dsl(src, mode="analysis").to_dsl()
+    assert parse_dsl(canonical, mode="analysis").to_dsl() == canonical
+
+
+def test_in_unknown_field_raises_validation_error() -> None:
+    with pytest.raises(DSLValidationError, match="unknown field 'foo'"):
+        parse_dsl("foo in [a, b]", mode="analysis")
+
+
+def test_in_on_boolean_field_is_allowed() -> None:
+    expr = parse_dsl('"analysisTeam.isContactEditor" in [true, false]', mode="analysis")
+    assert expr.to_dsl() == (
+        "analysisTeam.isContactEditor = true OR analysisTeam.isContactEditor = false"
+    )
+
+
+def test_in_empty_list_is_syntax_error() -> None:
+    with pytest.raises(DSLSyntaxError):
+        parse_dsl("status in []", mode="analysis")
+
+
+def test_bare_value_with_comma_is_unchanged() -> None:
+    expr = parse_dsl("shortTitle = a,b", mode="analysis")
+    assert expr == Condition(field="shortTitle", operator=Operator.EQ, value="a,b")
