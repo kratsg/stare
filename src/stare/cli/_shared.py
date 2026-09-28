@@ -89,17 +89,18 @@ def run_search(
     """Run a resource search command: fetch, handle errors, emit JSON or render."""
     if output_json is None:
         output_json = not stdout_is_interactive()
-    g = utils.make_glance(no_cache=no_cache)
+    # Close the client when done so its pooled SSL sockets are not leaked.
     try:
-        result = spec.accessor(g).search(
-            query=options.query,
-            limit=options.limit,
-            offset=options.offset,
-            sort_by=options.sort_by,
-            sort_desc=options.sort_desc,
-            validate_query=options.validate_query,
-            verbose=options.verbose,
-        )
+        with utils.make_glance(no_cache=no_cache) as g:
+            result = spec.accessor(g).search(
+                query=options.query,
+                limit=options.limit,
+                offset=options.offset,
+                sort_by=options.sort_by,
+                sort_desc=options.sort_desc,
+                validate_query=options.validate_query,
+                verbose=options.verbose,
+            )
     except DSLError as exc:
         raise typer.BadParameter(str(exc), param_hint="--query") from exc
     except StareError as exc:
@@ -136,9 +137,10 @@ def run_get(
     """Run a resource get command: fetch by ref code, handle errors, emit JSON or render."""
     if output_json is None:
         output_json = not stdout_is_interactive()
-    g = utils.make_glance(no_cache=no_cache)
+    # Close the client when done so its pooled SSL sockets are not leaked.
     try:
-        result = spec.accessor(g, ref_code, verbose)
+        with utils.make_glance(no_cache=no_cache) as g:
+            result = spec.accessor(g, ref_code, verbose)
     except StareError as exc:
         utils.handle_error(exc)
         raise typer.Exit(1) from exc

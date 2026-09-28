@@ -166,6 +166,8 @@ class TestCacheClearCommand:
 class TestNoCacheFlag:
     def test_no_cache_flag_is_accepted(self) -> None:
         g = MagicMock()
+        # Like the real Glance, entering the context manager yields the same client.
+        g.__enter__.return_value = g
         g.analyses.search.return_value = AnalysisSearchResult.model_validate(
             {"numberOfResults": 1, "results": []}
         )
@@ -175,6 +177,8 @@ class TestNoCacheFlag:
 
     def test_no_cache_calls_make_glance_with_flag(self) -> None:
         g = MagicMock()
+        # Like the real Glance, entering the context manager yields the same client.
+        g.__enter__.return_value = g
         g.analyses.search.return_value = AnalysisSearchResult.model_validate(
             {"numberOfResults": 1, "results": []}
         )
