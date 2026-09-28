@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import sys
 
 import pytest
 
@@ -343,3 +344,15 @@ def test_in_empty_list_is_syntax_error() -> None:
 def test_bare_value_with_comma_is_unchanged() -> None:
     expr = parse_dsl("shortTitle = a,b", mode="analysis")
     assert expr == Condition(field="shortTitle", operator=Operator.EQ, value="a,b")
+
+
+@pytest.mark.parametrize(("keyword", "joiner"), [("in", " OR "), ("not in", " AND ")])
+def test_list_longer_than_recursion_limit_serializes(keyword: str, joiner: str) -> None:
+    """Expanded lists must not nest one level per item, or to_dsl() recursion
+    overflows for long lists."""
+    n = sys.getrecursionlimit() + 1
+    items = ", ".join(f"v{i}" for i in range(n))
+    dsl = parse_dsl(f"status {keyword} [{items}]", mode="analysis").to_dsl()
+    assert dsl.count(joiner) == n - 1
+    assert dsl.startswith("status ")
+    assert dsl.endswith(f" v{n - 1}")

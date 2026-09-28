@@ -35,6 +35,24 @@ def _unquote(token: Any) -> str:
     return s
 
 
+def _balanced(conditions: list[Expression], node: type[And | Or]) -> Expression:
+    """Join ``conditions`` with ``node`` as a balanced binary tree.
+
+    A left-nested chain (as ``functools.reduce`` builds) is one level deep per
+    item, so ``to_dsl()`` on a long list overflows the recursion limit; a
+    balanced tree is only about log2(n) deep. Splitting at ``(n + 1) // 2``
+    keeps short lists left-leaning, e.g. ``[a, b, c]`` -> ``node(node(a, b), c)``.
+    Serialization is unaffected: nested And-in-And and Or-in-Or emit no
+    parentheses.
+    """
+    if len(conditions) == 1:
+        return conditions[0]
+    mid = (len(conditions) + 1) // 2
+    return node(
+        clauses=(_balanced(conditions[:mid], node), _balanced(conditions[mid:], node))
+    )
+
+
 class _DSLTransformer(Transformer[Any, Expression]):
     def __init__(self, registry: FieldRegistry) -> None:
         super().__init__()
@@ -76,8 +94,8 @@ class _DSLTransformer(Transformer[Any, Expression]):
         """Expand ``field in [...]`` / ``field not in [...]`` into plain conditions.
 
         The server has no list operator, so ``in`` becomes an OR of ``=`` and
-        ``not in`` an AND of ``!=``, built left-nested like
-        ``functools.reduce``. A single item yields a single Condition.
+        ``not in`` an AND of ``!=``, joined as a balanced tree (see
+        :func:`_balanced`). A single item yields a single Condition.
         """
         raw_field: str = items[0]
         negated = str(items[1]).lower().startswith("not")
@@ -88,9 +106,7 @@ class _DSLTransformer(Transformer[Any, Expression]):
         conditions: list[Expression] = [
             Condition(field=field, operator=op, value=value) for value in values
         ]
-        if negated:
-            return functools.reduce(lambda a, b: And(clauses=(a, b)), conditions)
-        return functools.reduce(lambda a, b: Or(clauses=(a, b)), conditions)
+        return _balanced(conditions, And if negated else Or)
 
     def or_expr(self, items: list[Expression]) -> Or:
         """Build an Or node."""
