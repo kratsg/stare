@@ -114,6 +114,44 @@ with the quoted-field form.
 
 ---
 
+## Filter by a list of values
+
+Use `in [...]` to match any of several values, and `not in [...]` to exclude
+them. Parentheses group an `OR` under an `AND`.
+
+=== "Python"
+
+    ```python
+    from stare import Glance
+
+    groups = ["EGAM", "MUON", "JETM"]
+
+    g = Glance()
+    result = g.analyses.search(
+        query=f"status != Closed AND groups.leadingGroup.name in [{', '.join(groups)}]",  # (1)!
+    )
+    for analysis in result.results:
+        print(analysis.reference_code, analysis.groups.leading_group.name)
+    ```
+
+    1. The Glance API has no list operator; `stare` expands `in` into
+       `( … = EGAM OR … = MUON OR … = JETM )` before sending. See
+       [Lists](query-dsl.md#lists).
+
+=== "CLI"
+
+    ```bash
+    stare analysis search -q 'status != Closed AND groups.leadingGroup.name in [EGAM, MUON, JETM]'
+
+    # Exclude values
+    stare analysis search -q 'status not in [Closed, Archived]'
+
+    # Equivalent explicit grouping
+    stare analysis search -q 'status != Closed AND (groups.leadingGroup.name = EGAM OR groups.leadingGroup.name = MUON)'
+    ```
+
+---
+
 ## Look up a specific analysis
 
 === "Python"

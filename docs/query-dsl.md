@@ -17,17 +17,19 @@ for which commands currently accept `--query`.
 --8<-- "src/stare/data/query-grammar.lark"
 ```
 
-`and` / `or` are case-insensitive at parse time; canonical output is uppercase
-(`AND`, `OR`).
+`and` / `or` (and `in` / `not in`) are case-insensitive at parse time; canonical
+output is uppercase (`AND`, `OR`).
 
 ## Operators
 
-| Operator      | Meaning                                                  |
-| ------------- | -------------------------------------------------------- |
-| `=`           | Exact match                                              |
-| `!=`          | Not equal                                                |
-| `contain`     | Field contains the value (array membership or substring) |
-| `not-contain` | Field does not contain the value                         |
+| Operator             | Meaning                                                   |
+| -------------------- | --------------------------------------------------------- |
+| `=`                  | Exact match                                               |
+| `!=`                 | Not equal                                                 |
+| `contain`            | Field contains the value (array membership or substring)  |
+| `not-contain`        | Field does not contain the value                          |
+| `in [a, b, ...]`     | Equals any listed value (stare-only; see [Lists](#lists)) |
+| `not in [a, b, ...]` | Equals none of the listed values (stare-only)             |
 
 !!! note "Boolean fields only support `=` and `!=`"
 
@@ -129,9 +131,42 @@ stare analysis search -q 'status = Active or status = Approved'
 `AND` binds tighter than `OR`: `a = 1 AND b = 2 OR c = 3` is parsed as
 `(a = 1 AND b = 2) OR c = 3`.
 
-!!! note "Parentheses are not supported by the server"
+Use parentheses to group an `OR` under an `AND`:
 
-    The grammar accepts parentheses, but the Glance API ignores them. `stare` will log a warning and send the query without parentheses. Rely on `AND` binding tighter than `OR` instead of explicit grouping.
+```bash
+# Not closed, and led by either EGAM or MUON
+stare analysis search -q 'status != Closed AND (groups.leadingGroup.name = EGAM OR groups.leadingGroup.name = MUON)'
+```
+
+Only the parentheses that change the meaning are sent, each padded with a space
+(`status != Closed AND ( … OR … )`), since the server rejects a parenthesis that
+touches an unquoted field or value with HTTP 500
+([ATGLANCE-8337](https://its.cern.ch/jira/browse/ATGLANCE-8337)). Redundant
+parentheses, such as around the whole query or around an `AND` inside an `OR`,
+are dropped.
+
+## Lists
+
+`field in [a, b, c]` matches any of the listed values, and
+`field not in [a, b, c]` matches none of them:
+
+```bash
+stare analysis search -q 'status != Closed AND groups.leadingGroup.name in [EGAM, MUON, JETM]'
+stare analysis search -q 'status not in [Closed, Archived]'
+```
+
+The Glance API has no list operator, so `stare` expands these before sending:
+`in` becomes an `OR` of `=` (grouped with parentheses when combined with `AND`),
+and `not in` becomes an `AND` of `!=`. The first example is sent as:
+
+```text
+status != Closed AND ( groups.leadingGroup.name = EGAM OR groups.leadingGroup.name = MUON OR groups.leadingGroup.name = JETM )
+```
+
+List items follow the usual [value](#values) rules, except that a bare item also
+ends at a comma or square bracket. Quote any item that contains spaces, commas,
+or brackets: `shortTitle in ["Flow in Xe+Xe", "a, b"]`. An empty list `[]` is a
+syntax error.
 
 ## Sorting
 

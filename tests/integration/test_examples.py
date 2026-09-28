@@ -81,6 +81,22 @@ def test_filter_with_dsl(glance: Glance) -> None:
 
 
 @pytest.mark.slow
+def test_filter_by_list_of_values(glance: Glance) -> None:
+    """docs/examples.md — Filter by a list of values."""
+    groups = ["EGAM", "MUON", "JETM"]
+    result = glance.analyses.search(
+        query=f"status != Closed AND groups.leadingGroup.name in [{', '.join(groups)}]",
+    )
+    assert result.number_of_results is not None
+    assert result.number_of_results > 0
+    for analysis in result.results:
+        assert analysis.status != "Closed"
+        assert analysis.groups is not None
+        assert analysis.groups.leading_group is not None
+        assert analysis.groups.leading_group.name in groups
+
+
+@pytest.mark.slow
 def test_look_up_specific_analysis(glance: Glance) -> None:
     """docs/examples.md — Look up a specific analysis."""
     result = glance.analyses.search(query=f"referenceCode = {_REF_ANALYSIS}", limit=1)
