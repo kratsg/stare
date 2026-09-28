@@ -50,6 +50,8 @@ icon: lucide/code-2
 
 ::: stare.exceptions.TokenExpiredError
 
+::: stare.exceptions.NetworkError
+
 ::: stare.exceptions.ApiError
 
 ::: stare.exceptions.NotFoundError

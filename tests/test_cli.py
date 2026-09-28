@@ -23,6 +23,7 @@ from stare.dsl.errors import DSLValidationError
 from stare.exceptions import (
     AuthenticationError,
     EnrichedErrorResponse,
+    NetworkError,
     NotFoundError,
     ResponseParseError,
 )
@@ -640,6 +641,20 @@ def test_cli_closes_glance_client_on_api_error() -> None:
         result = runner.invoke(app, ["analysis", "search"])
     assert result.exit_code == 1
     g.__exit__.assert_called_once()
+
+
+def test_cli_reports_network_error_cleanly() -> None:
+    """A timeout is reported as an error message and exit code 1, not a traceback."""
+    g = _mock_glance()
+    g.analyses.search.side_effect = NetworkError(
+        "Could not reach the Glance API (ReadTimeout): The read operation timed out"
+    )
+    with patch("stare.cli.utils.make_glance", return_value=g):
+        result = runner.invoke(app, ["analysis", "search"])
+    assert result.exit_code == 1
+    # Rich may wrap the message at the terminal width.
+    assert "timed out" in " ".join(result.stderr.split())
+    assert result.exception is None or isinstance(result.exception, SystemExit)
 
 
 def test_cli_closes_glance_client_on_invalid_query() -> None:

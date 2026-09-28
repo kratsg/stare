@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import re
+import socket
 import ssl
 from importlib.resources import as_file, files
 from pathlib import Path
@@ -22,6 +24,7 @@ from stare.dsl.models import Condition, Operator
 from stare.exceptions import (
     ApiError,
     ForbiddenError,
+    NetworkError,
     NotFoundError,
     ResponseParseError,
     StareError,
@@ -181,6 +184,59 @@ def test_glance_sends_user_agent_header(test_settings: StareSettings) -> None:
         with Glance(settings=test_settings, token="tok") as g:
             g.analyses.search()
         assert rx.calls[0].request.headers["user-agent"] == f"stare/{_stare_version}"
+
+
+# ---------------------------------------------------------------------------
+# Network failures
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "transport_error",
+    [
+        httpx.ReadTimeout("The read operation timed out"),
+        httpx.ConnectError("[Errno 8] nodename nor servname provided"),
+    ],
+    ids=["read-timeout", "connect-error"],
+)
+def test_search_wraps_transport_errors_in_network_error(
+    glance: Glance, transport_error: httpx.RequestError
+) -> None:
+    """Transport failures surface as NetworkError, so `except StareError`
+    handles them as documented; the httpx error is kept as the cause."""
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchAnalysis").mock(side_effect=transport_error)
+        with pytest.raises(
+            NetworkError, match=re.escape(str(transport_error))
+        ) as excinfo:
+            glance.analyses.search()
+    assert isinstance(excinfo.value, StareError)
+    assert excinfo.value.__cause__ is transport_error
+
+
+def test_unreachable_server_raises_network_error(
+    test_settings: StareSettings,
+) -> None:
+    """End to end with a real socket (no mocks): nothing listens on the port."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(("127.0.0.1", 0))
+        closed_port = sock.getsockname()[1]
+    settings = test_settings.model_copy(
+        update={"base_url": f"http://127.0.0.1:{closed_port}/api"}
+    )
+    with (
+        Glance(settings=settings, token="fake-token") as g,
+        pytest.raises(NetworkError, match="ConnectError") as excinfo,
+    ):
+        g.analyses.search()
+    assert isinstance(excinfo.value.__cause__, httpx.ConnectError)
+
+
+def test_get_wraps_transport_errors_in_network_error(glance: Glance) -> None:
+    with respx.mock(base_url=_BASE) as rx:
+        rx.get("/searchAnalysis").mock(side_effect=httpx.ReadTimeout("timed out"))
+        with pytest.raises(NetworkError, match="timed out"):
+            glance.analyses.get("ANA-HION-2018-01")
 
 
 # ---------------------------------------------------------------------------

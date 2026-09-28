@@ -17,6 +17,7 @@ from stare.dsl.models import Condition, Operator
 from stare.exceptions import (
     ApiError,
     ForbiddenError,
+    NetworkError,
     NotFoundError,
     UnauthorizedError,
 )
@@ -140,7 +141,11 @@ class _Resource(Generic[_SearchResultT]):
         if sort_by is not None:
             params["sortBy"] = sort_by
             params["sortDesc"] = str(sort_desc).lower()
-        response = self._client.get(self._endpoint, params=params)
+        try:
+            response = self._client.get(self._endpoint, params=params)
+        except httpx.RequestError as exc:
+            msg = f"Could not reach the Glance API ({type(exc).__name__}): {exc}"
+            raise NetworkError(msg) from exc
         _raise_for_status(response)
         return self._result_model.model_validate(response.json(), verbose=verbose)
 

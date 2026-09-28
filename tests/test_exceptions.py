@@ -9,6 +9,7 @@ from stare.exceptions import (
     AuthenticationError,
     EnrichedErrorResponse,
     ForbiddenError,
+    NetworkError,
     NotFoundError,
     ResponseParseError,
     StareError,
@@ -29,6 +30,9 @@ class TestExceptionHierarchy:
 
     def test_api_error_is_stare_error(self) -> None:
         assert issubclass(ApiError, StareError)
+
+    def test_network_error_is_stare_error(self) -> None:
+        assert issubclass(NetworkError, StareError)
 
     def test_not_found_is_api_error(self) -> None:
         assert issubclass(NotFoundError, ApiError)
