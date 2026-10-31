@@ -9,6 +9,7 @@ from rich.table import Table
 
 from stare.cli import utils
 from stare.cli._params import (
+    OUTPUT_HELP,
     JsonOption,
     LimitOption,
     NoCacheOption,
@@ -53,7 +54,7 @@ _GET_SPEC = GetSpec(
 )
 
 
-@analysis_app.command("search")
+@analysis_app.command("search", epilog=OUTPUT_HELP)
 def analysis_search(
     query: Annotated[
         str | None,
@@ -79,9 +80,6 @@ def analysis_search(
     verbose: VerboseOption = False,
 ) -> None:
     """Search analyses via GET /searchAnalysis.
-
-    Output auto-detects: Rich table when stdout is a terminal, JSON when piped.
-    Override with [cyan]--json[/cyan] or [cyan]--no-json[/cyan].
 
     [bold]Examples[/bold]
       [green]stare analysis search -q 'referenceCode contain HION'[/green]

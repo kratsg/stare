@@ -9,6 +9,7 @@ from rich.table import Table
 
 from stare.cli import utils
 from stare.cli._params import (
+    OUTPUT_HELP,
     JsonOption,
     LimitOption,
     NoCacheOption,
@@ -42,7 +43,7 @@ _SEARCH_SPEC = SearchSpec(
 )
 
 
-@leadinggroup_app.command("search")
+@leadinggroup_app.command("search", epilog=OUTPUT_HELP)
 def leadinggroup_search(
     query: Annotated[
         str | None,
@@ -65,9 +66,6 @@ def leadinggroup_search(
     verbose: VerboseOption = False,
 ) -> None:
     """Search leading groups via GET /searchLeadingGroup.
-
-    Output auto-detects: Rich table when stdout is a terminal, JSON when piped.
-    Override with [cyan]--json[/cyan] or [cyan]--no-json[/cyan].
 
     [bold]Examples[/bold]
       [green]stare leadinggroups search[/green]

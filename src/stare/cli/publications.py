@@ -9,6 +9,7 @@ from rich.table import Table
 
 from stare.cli import utils
 from stare.cli._params import (
+    OUTPUT_HELP,
     JsonOption,
     LimitOption,
     NoCacheOption,
@@ -83,7 +84,7 @@ _SEARCH_SPEC = SearchSpec(
 )
 
 
-@publications_app.command("search")
+@publications_app.command("search", epilog=OUTPUT_HELP)
 def publications_search(
     query: Annotated[
         str | None,
@@ -106,9 +107,6 @@ def publications_search(
     verbose: VerboseOption = False,
 ) -> None:
     """Search across all publication types via GET /searchPublication.
-
-    Output auto-detects: Rich table when stdout is a terminal, JSON when piped.
-    Override with [cyan]--json[/cyan] or [cyan]--no-json[/cyan].
 
     [bold]Examples[/bold]
       [green]stare publications search -q 'type = Paper'[/green]

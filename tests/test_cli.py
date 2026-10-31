@@ -11,6 +11,8 @@ import time
 from unittest.mock import MagicMock, patch
 
 import pytest
+import typer.core
+import typer.main
 from typer.testing import CliRunner
 
 if sys.platform != "win32":  # pty/termios do not exist on Windows
@@ -18,6 +20,7 @@ if sys.platform != "win32":  # pty/termios do not exist on Windows
 
 from stare import __version__
 from stare.cli import app
+from stare.cli._params import OUTPUT_HELP
 from stare.cli.triggers import _OBJ_RE, _render_category, _render_trigger_name
 from stare.dsl.errors import DSLValidationError
 from stare.exceptions import (
@@ -1467,3 +1470,42 @@ def test_auth_import_prompts_with_hidden_input_on_tty() -> None:
     assert result.exit_code == 0
     assert prompt.call_args.kwargs["hide_input"] is True
     mock_tm.import_refresh_token.assert_called_once_with("pasted-token")
+
+
+# ---------------------------------------------------------------------------
+# Shared help text
+# ---------------------------------------------------------------------------
+
+_SEARCH_APPS = [
+    "analysis",
+    "paper",
+    "confnote",
+    "pubnote",
+    "plot",
+    "publications",
+    "leadinggroups",
+    "subgroups",
+    "triggers",
+]
+
+
+@pytest.mark.parametrize("resource", _SEARCH_APPS)
+def test_search_command_uses_shared_output_help(resource: str) -> None:
+    """The output-format paragraph comes from one constant, not each docstring."""
+    group = typer.main.get_command(app)
+    assert isinstance(group, typer.core.TyperGroup)
+    sub = group.commands[resource]
+    assert isinstance(sub, typer.core.TyperGroup)
+    search = sub.commands["search"]
+    assert search.epilog == OUTPUT_HELP
+    assert "auto-detects" not in (search.help or "")
+
+
+@pytest.mark.parametrize("resource", _SEARCH_APPS)
+def test_search_help_shows_output_help(resource: str) -> None:
+    result = runner.invoke(app, [resource, "search", "--help"], env={"COLUMNS": "200"})
+    assert result.exit_code == 0
+    assert (
+        "Output auto-detects: Rich table when stdout is a terminal, JSON when piped."
+        in result.output
+    )
