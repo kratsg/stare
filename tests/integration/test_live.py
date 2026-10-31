@@ -49,6 +49,10 @@ _REFERENCE_PUBNOTE_TEMP_CODE = "PUB-HIGP-2024-59"
 _REFERENCE_PLOT_CODE = "PLOT-MUON-2018-08"
 
 
+class _DateOnlyFilterError(Exception):
+    """A date filter with the returned datetime matched nothing (ATGLANCE-8334)."""
+
+
 def _get_nested_value(obj: dict[str, Any], path: str) -> str | None:
     """Extract a scalar string from a camelCase nested dict using a dot-path."""
     current: Any = obj
@@ -163,7 +167,9 @@ def test_analysis_field_is_searchable(field: str, reference_analysis: Analysis) 
 
 @pytest.mark.slow
 @pytest.mark.xfail(
-    reason=f"date filters match YYYY-MM-DD only: {_ATGLANCE_8334}", strict=True
+    raises=_DateOnlyFilterError,
+    reason=f"date filters match YYYY-MM-DD only: {_ATGLANCE_8334}",
+    strict=True,
 )
 def test_date_filter_matches_returned_datetime(reference_analysis: Analysis) -> None:
     """Filtering on a date field with the datetime the API returns should match.
@@ -180,7 +186,9 @@ def test_date_filter_matches_returned_datetime(reference_analysis: Analysis) -> 
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.analyses.search(query=query, limit=1, validate_query=False)
     assert result.number_of_results is not None
-    assert result.number_of_results >= 1
+    # Only a zero-result response is the known bug; anything else must fail.
+    if result.number_of_results == 0:
+        raise _DateOnlyFilterError(query)
 
 
 # ---------------------------------------------------------------------------
