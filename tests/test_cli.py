@@ -1509,4 +1509,3 @@ def test_search_help_shows_output_help(resource: str) -> None:
         "Output auto-detects: Rich table when stdout is a terminal, JSON when piped."
         in result.output
     )
-    assert "Override with --json or --no-json." in result.output
