@@ -12,7 +12,7 @@ or pass ``--runslow`` directly to pytest.
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NamedTuple
 
 import pytest
 
@@ -56,7 +56,14 @@ class _DateOnlyFilterError(Exception):
     """A date filter with the returned datetime matched nothing (ATGLANCE-8334)."""
 
 
-def _get_nested_value(record: BaseModel, path: str) -> str | None:
+class _FieldValue(NamedTuple):
+    """A field's value in a reference record, and whether it sits in a list."""
+
+    value: str
+    in_list: bool
+
+
+def _get_nested_value(record: BaseModel, path: str) -> _FieldValue | None:
     """Extract a scalar string from a record using a camelCase dot-path.
 
     The record is dumped in JSON mode so dates and datetimes come back as the
@@ -65,16 +72,19 @@ def _get_nested_value(record: BaseModel, path: str) -> str | None:
     (``phase0.eoiMeetings.date``, ``metadata.keywords.name``).
     """
     current: Any = record.model_dump(by_alias=True, mode="json")
+    in_list = False
     for part in path.split("."):
         if isinstance(current, list):
+            in_list = True
             current = current[0] if current else None
         if not isinstance(current, dict):
             return None
         current = current.get(part)
     if isinstance(current, list):
+        in_list = True
         current = current[0] if current else None
     if isinstance(current, str):
-        return current
+        return _FieldValue(current, in_list=in_list)
     return None
 
 
@@ -82,19 +92,26 @@ _ISO_DATETIME = re.compile(r"^\d{4}-\d{2}-\d{2}T")
 _ATGLANCE_8334 = "https://its.cern.ch/jira/browse/ATGLANCE-8334"
 
 
-def _field_query(field: str, value: str | None) -> str:
-    """Build the equality query for a live field-searchability test.
+def _field_query(field: str, found: _FieldValue | None) -> str:
+    """Build the query for a live field-searchability test.
+
+    Fields inside a list are queried with ``contain``: on the server, ``=``
+    only matches a record whose list holds that value as its sole element,
+    so ``metadata.keywords.name = "5.02 TeV"`` misses a record that has the
+    keyword among several. Everything else uses ``=``.
 
     Date filters match ``YYYY-MM-DD`` only, although the API returns ISO
     datetimes, so datetime values are truncated to their date
     (ATGLANCE-8334, see ``test_date_filter_matches_returned_datetime``).
     """
-    if value is None:
+    if found is None:
         pytest.skip(f"field '{field}' has no value in reference record")
+    value = found.value
     if _ISO_DATETIME.match(value):
         value = value[:10]
     try:
-        return Condition(field=field, operator=Operator.EQ, value=value).to_dsl()
+        operator = Operator.CONTAIN if found.in_list else Operator.EQ
+        return Condition(field=field, operator=operator, value=value).to_dsl()
     except ValueError as exc:
         pytest.skip(str(exc))
 
@@ -160,8 +177,8 @@ def test_search_result_items_are_analysis_models() -> None:
 @pytest.mark.parametrize("field", _ANALYSIS_FIELDS)
 def test_analysis_field_is_searchable(field: str, reference_analysis: Analysis) -> None:
     """Each catalogue field can be used in a live query without a server error."""
-    value = _get_nested_value(reference_analysis, field)
-    query = _field_query(field, value)
+    found = _get_nested_value(reference_analysis, field)
+    query = _field_query(field, found)
 
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.analyses.search(
@@ -186,8 +203,9 @@ def test_date_filter_matches_returned_datetime(reference_analysis: Analysis) -> 
     and the datetime truncation in ``_field_query()``.
     """
     field = "phase0.eoiMeetings.date"
-    value = _get_nested_value(reference_analysis, field)
-    assert value is not None
+    found = _get_nested_value(reference_analysis, field)
+    assert found is not None
+    value = found.value
     assert _ISO_DATETIME.match(value), value
     query = Condition(field=field, operator=Operator.EQ, value=value).to_dsl()
 
@@ -260,8 +278,8 @@ def test_search_result_items_are_paper_models() -> None:
 @pytest.mark.parametrize("field", _PAPER_FIELDS)
 def test_paper_field_is_searchable(field: str, reference_paper: Paper) -> None:
     """Each catalogue field can be used in a live query without a server error."""
-    value = _get_nested_value(reference_paper, field)
-    query = _field_query(field, value)
+    found = _get_nested_value(reference_paper, field)
+    query = _field_query(field, found)
 
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.papers.search(
@@ -339,8 +357,8 @@ def test_search_result_items_are_confnote_models() -> None:
 @pytest.mark.parametrize("field", _CONFNOTE_FIELDS)
 def test_confnote_field_is_searchable(field: str, reference_confnote: ConfNote) -> None:
     """Each catalogue field can be used in a live query without a server error."""
-    value = _get_nested_value(reference_confnote, field)
-    query = _field_query(field, value)
+    found = _get_nested_value(reference_confnote, field)
+    query = _field_query(field, found)
 
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.confnotes.search(
@@ -419,8 +437,8 @@ def test_search_result_items_are_pubnote_models() -> None:
 @pytest.mark.parametrize("field", _PUBNOTE_FIELDS)
 def test_pubnote_field_is_searchable(field: str, reference_pubnote: PubNote) -> None:
     """Each catalogue field can be used in a live query without a server error."""
-    value = _get_nested_value(reference_pubnote, field)
-    query = _field_query(field, value)
+    found = _get_nested_value(reference_pubnote, field)
+    query = _field_query(field, found)
 
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.pubnotes.search(
@@ -493,8 +511,8 @@ def test_search_result_items_are_plot_models() -> None:
 @pytest.mark.parametrize("field", _PLOT_FIELDS)
 def test_plot_field_is_searchable(field: str, reference_plot: Plot) -> None:
     """Each catalogue field can be used in a live query without a server error."""
-    value = _get_nested_value(reference_plot, field)
-    query = _field_query(field, value)
+    found = _get_nested_value(reference_plot, field)
+    query = _field_query(field, found)
 
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.plots.search(
