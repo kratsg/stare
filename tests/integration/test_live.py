@@ -49,6 +49,10 @@ _REFERENCE_PUBNOTE_TEMP_CODE = "PUB-HIGP-2024-59"
 _REFERENCE_PLOT_CODE = "PLOT-MUON-2018-08"
 
 
+class _DateOnlyFilterError(Exception):
+    """A date filter with the returned datetime matched nothing (ATGLANCE-8334)."""
+
+
 def _get_nested_value(obj: dict[str, Any], path: str) -> str | None:
     """Extract a scalar string from a camelCase nested dict using a dot-path."""
     current: Any = obj
@@ -66,32 +70,20 @@ def _get_nested_value(obj: dict[str, Any], path: str) -> str | None:
 
 
 _ISO_DATETIME = re.compile(r"^\d{4}-\d{2}-\d{2}T")
-_ATGLANCE_8333 = "https://its.cern.ch/jira/browse/ATGLANCE-8333"
+_ATGLANCE_8334 = "https://its.cern.ch/jira/browse/ATGLANCE-8334"
 
 
-def _field_query(field: str, value: str | None, request: pytest.FixtureRequest) -> str:
+def _field_query(field: str, value: str | None) -> str:
     """Build the equality query for a live field-searchability test.
 
-    Works around two server quirks tracked in ATGLANCE-8333:
-
-    - Date filters match ``YYYY-MM-DD`` only, although the API returns ISO
-      datetimes, so datetime values are truncated to their date.
-    - ``queryString`` is URL-decoded twice (``+`` becomes a space) and some
-      stored text is returned as literal ``??``, so values containing ``+``
-      or ``?`` cannot match. These are marked strict-xfail so the test starts
-      failing once the server is fixed, flagging the marker for removal.
+    Date filters match ``YYYY-MM-DD`` only, although the API returns ISO
+    datetimes, so datetime values are truncated to their date
+    (ATGLANCE-8334, see ``test_date_filter_matches_returned_datetime``).
     """
     if value is None:
         pytest.skip(f"field '{field}' has no value in reference record")
     if _ISO_DATETIME.match(value):
         value = value[:10]
-    if "+" in value or "?" in value:
-        request.applymarker(
-            pytest.mark.xfail(
-                reason=f"server cannot match '+' or '?' in values: {_ATGLANCE_8333}",
-                strict=True,
-            )
-        )
     try:
         return Condition(field=field, operator=Operator.EQ, value=value).to_dsl()
     except ValueError as exc:
@@ -157,13 +149,11 @@ def test_search_result_items_are_analysis_models() -> None:
 
 @pytest.mark.slow
 @pytest.mark.parametrize("field", _ANALYSIS_FIELDS)
-def test_analysis_field_is_searchable(
-    field: str, reference_analysis: Analysis, request: pytest.FixtureRequest
-) -> None:
+def test_analysis_field_is_searchable(field: str, reference_analysis: Analysis) -> None:
     """Each catalogue field can be used in a live query without a server error."""
     record = reference_analysis.model_dump(by_alias=True)
     value = _get_nested_value(record, field)
-    query = _field_query(field, value, request)
+    query = _field_query(field, value)
 
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.analyses.search(
@@ -173,6 +163,32 @@ def test_analysis_field_is_searchable(
         )
     assert result.number_of_results is not None
     assert result.number_of_results >= 1
+
+
+@pytest.mark.slow
+@pytest.mark.xfail(
+    raises=_DateOnlyFilterError,
+    reason=f"date filters match YYYY-MM-DD only: {_ATGLANCE_8334}",
+    strict=True,
+)
+def test_date_filter_matches_returned_datetime(reference_analysis: Analysis) -> None:
+    """Filtering on a date field with the datetime the API returns should match.
+
+    Strict, so a server fix shows up as XPASS(strict): then drop this marker
+    and the datetime truncation in ``_field_query()``.
+    """
+    field = "phase0.eoiMeetings.date"
+    record = reference_analysis.model_dump(by_alias=True, mode="json")
+    value = record["phase0"]["eoiMeetings"][0]["date"]
+    assert _ISO_DATETIME.match(value), value
+    query = Condition(field=field, operator=Operator.EQ, value=value).to_dsl()
+
+    with Glance(settings=_LIVE_SETTINGS) as g:
+        result = g.analyses.search(query=query, limit=1, validate_query=False)
+    assert result.number_of_results is not None
+    # Only a zero-result response is the known bug; anything else must fail.
+    if result.number_of_results == 0:
+        raise _DateOnlyFilterError(query)
 
 
 # ---------------------------------------------------------------------------
@@ -234,13 +250,11 @@ def test_search_result_items_are_paper_models() -> None:
 
 @pytest.mark.slow
 @pytest.mark.parametrize("field", _PAPER_FIELDS)
-def test_paper_field_is_searchable(
-    field: str, reference_paper: Paper, request: pytest.FixtureRequest
-) -> None:
+def test_paper_field_is_searchable(field: str, reference_paper: Paper) -> None:
     """Each catalogue field can be used in a live query without a server error."""
     record = reference_paper.model_dump(by_alias=True)
     value = _get_nested_value(record, field)
-    query = _field_query(field, value, request)
+    query = _field_query(field, value)
 
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.papers.search(
@@ -316,13 +330,11 @@ def test_search_result_items_are_confnote_models() -> None:
 
 @pytest.mark.slow
 @pytest.mark.parametrize("field", _CONFNOTE_FIELDS)
-def test_confnote_field_is_searchable(
-    field: str, reference_confnote: ConfNote, request: pytest.FixtureRequest
-) -> None:
+def test_confnote_field_is_searchable(field: str, reference_confnote: ConfNote) -> None:
     """Each catalogue field can be used in a live query without a server error."""
     record = reference_confnote.model_dump(by_alias=True)
     value = _get_nested_value(record, field)
-    query = _field_query(field, value, request)
+    query = _field_query(field, value)
 
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.confnotes.search(
@@ -399,13 +411,11 @@ def test_search_result_items_are_pubnote_models() -> None:
 
 @pytest.mark.slow
 @pytest.mark.parametrize("field", _PUBNOTE_FIELDS)
-def test_pubnote_field_is_searchable(
-    field: str, reference_pubnote: PubNote, request: pytest.FixtureRequest
-) -> None:
+def test_pubnote_field_is_searchable(field: str, reference_pubnote: PubNote) -> None:
     """Each catalogue field can be used in a live query without a server error."""
     record = reference_pubnote.model_dump(by_alias=True)
     value = _get_nested_value(record, field)
-    query = _field_query(field, value, request)
+    query = _field_query(field, value)
 
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.pubnotes.search(
@@ -476,13 +486,11 @@ def test_search_result_items_are_plot_models() -> None:
 
 @pytest.mark.slow
 @pytest.mark.parametrize("field", _PLOT_FIELDS)
-def test_plot_field_is_searchable(
-    field: str, reference_plot: Plot, request: pytest.FixtureRequest
-) -> None:
+def test_plot_field_is_searchable(field: str, reference_plot: Plot) -> None:
     """Each catalogue field can be used in a live query without a server error."""
     record = reference_plot.model_dump(by_alias=True)
     value = _get_nested_value(record, field)
-    query = _field_query(field, value, request)
+    query = _field_query(field, value)
 
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.plots.search(

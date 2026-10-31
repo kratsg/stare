@@ -118,6 +118,16 @@ stare analysis search -q 'shortTitle = "Low-mass single diffraction"'
 stare analysis search -q '"status" = Closed'
 ```
 
+Date fields only match a `YYYY-MM-DD` value. The API returns full ISO datetimes
+(e.g. `2017-12-20T00:00:00+01:00`), but filtering on that string matches nothing
+([ATGLANCE-8334](https://its.cern.ch/jira/browse/ATGLANCE-8334)), so use only
+the date part:
+
+```bash
+# the API returns 2017-12-20T00:00:00+01:00 for this field
+stare analysis search -q 'phase0.eoiMeetings.date = 2017-12-20'
+```
+
 ## Combining conditions
 
 ```bash
@@ -138,12 +148,9 @@ Use parentheses to group an `OR` under an `AND`:
 stare analysis search -q 'status != Closed AND (groups.leadingGroup.name = EGAM OR groups.leadingGroup.name = MUON)'
 ```
 
-Only the parentheses that change the meaning are sent, each padded with a space
-(`status != Closed AND ( … OR … )`), since the server rejects a parenthesis that
-touches an unquoted field or value with HTTP 500
-([ATGLANCE-8337](https://its.cern.ch/jira/browse/ATGLANCE-8337)). Redundant
-parentheses, such as around the whole query or around an `AND` inside an `OR`,
-are dropped.
+Only the parentheses that change the meaning are sent
+(`status != Closed AND (… OR …)`). Redundant parentheses, such as around the
+whole query or around an `AND` inside an `OR`, are dropped.
 
 ## Lists
 
@@ -160,7 +167,7 @@ The Glance API has no list operator, so `stare` expands these before sending:
 and `not in` becomes an `AND` of `!=`. The first example is sent as:
 
 ```text
-status != Closed AND ( groups.leadingGroup.name = EGAM OR groups.leadingGroup.name = MUON OR groups.leadingGroup.name = JETM )
+status != Closed AND (groups.leadingGroup.name = EGAM OR groups.leadingGroup.name = MUON OR groups.leadingGroup.name = JETM)
 ```
 
 List items follow the usual [value](#values) rules, except that a bare item also
