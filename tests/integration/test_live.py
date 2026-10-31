@@ -12,7 +12,7 @@ or pass ``--runslow`` directly to pytest.
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -28,6 +28,9 @@ from stare.models.search import (
     PubNoteSearchResult,
 )
 from stare.settings import StareSettings
+
+if TYPE_CHECKING:
+    from pydantic import BaseModel
 
 # Disable the on-disk HTTP cache for all live tests so results are always
 # fetched fresh from the API rather than replayed from a stale SQLite entry.
@@ -53,17 +56,23 @@ class _DateOnlyFilterError(Exception):
     """A date filter with the returned datetime matched nothing (ATGLANCE-8334)."""
 
 
-def _get_nested_value(obj: dict[str, Any], path: str) -> str | None:
-    """Extract a scalar string from a camelCase nested dict using a dot-path."""
-    current: Any = obj
+def _get_nested_value(record: BaseModel, path: str) -> str | None:
+    """Extract a scalar string from a record using a camelCase dot-path.
+
+    The record is dumped in JSON mode so dates and datetimes come back as the
+    strings the API returns. A list anywhere along the path resolves through
+    its first element, matching how the field catalogue names list items
+    (``phase0.eoiMeetings.date``, ``metadata.keywords.name``).
+    """
+    current: Any = record.model_dump(by_alias=True, mode="json")
     for part in path.split("."):
+        if isinstance(current, list):
+            current = current[0] if current else None
         if not isinstance(current, dict):
             return None
         current = current.get(part)
-        if current is None:
-            return None
     if isinstance(current, list):
-        return str(current[0]) if current else None
+        current = current[0] if current else None
     if isinstance(current, str):
         return current
     return None
@@ -151,8 +160,7 @@ def test_search_result_items_are_analysis_models() -> None:
 @pytest.mark.parametrize("field", _ANALYSIS_FIELDS)
 def test_analysis_field_is_searchable(field: str, reference_analysis: Analysis) -> None:
     """Each catalogue field can be used in a live query without a server error."""
-    record = reference_analysis.model_dump(by_alias=True)
-    value = _get_nested_value(record, field)
+    value = _get_nested_value(reference_analysis, field)
     query = _field_query(field, value)
 
     with Glance(settings=_LIVE_SETTINGS) as g:
@@ -178,8 +186,8 @@ def test_date_filter_matches_returned_datetime(reference_analysis: Analysis) -> 
     and the datetime truncation in ``_field_query()``.
     """
     field = "phase0.eoiMeetings.date"
-    record = reference_analysis.model_dump(by_alias=True, mode="json")
-    value = record["phase0"]["eoiMeetings"][0]["date"]
+    value = _get_nested_value(reference_analysis, field)
+    assert value is not None
     assert _ISO_DATETIME.match(value), value
     query = Condition(field=field, operator=Operator.EQ, value=value).to_dsl()
 
@@ -252,8 +260,7 @@ def test_search_result_items_are_paper_models() -> None:
 @pytest.mark.parametrize("field", _PAPER_FIELDS)
 def test_paper_field_is_searchable(field: str, reference_paper: Paper) -> None:
     """Each catalogue field can be used in a live query without a server error."""
-    record = reference_paper.model_dump(by_alias=True)
-    value = _get_nested_value(record, field)
+    value = _get_nested_value(reference_paper, field)
     query = _field_query(field, value)
 
     with Glance(settings=_LIVE_SETTINGS) as g:
@@ -332,8 +339,7 @@ def test_search_result_items_are_confnote_models() -> None:
 @pytest.mark.parametrize("field", _CONFNOTE_FIELDS)
 def test_confnote_field_is_searchable(field: str, reference_confnote: ConfNote) -> None:
     """Each catalogue field can be used in a live query without a server error."""
-    record = reference_confnote.model_dump(by_alias=True)
-    value = _get_nested_value(record, field)
+    value = _get_nested_value(reference_confnote, field)
     query = _field_query(field, value)
 
     with Glance(settings=_LIVE_SETTINGS) as g:
@@ -413,8 +419,7 @@ def test_search_result_items_are_pubnote_models() -> None:
 @pytest.mark.parametrize("field", _PUBNOTE_FIELDS)
 def test_pubnote_field_is_searchable(field: str, reference_pubnote: PubNote) -> None:
     """Each catalogue field can be used in a live query without a server error."""
-    record = reference_pubnote.model_dump(by_alias=True)
-    value = _get_nested_value(record, field)
+    value = _get_nested_value(reference_pubnote, field)
     query = _field_query(field, value)
 
     with Glance(settings=_LIVE_SETTINGS) as g:
@@ -488,8 +493,7 @@ def test_search_result_items_are_plot_models() -> None:
 @pytest.mark.parametrize("field", _PLOT_FIELDS)
 def test_plot_field_is_searchable(field: str, reference_plot: Plot) -> None:
     """Each catalogue field can be used in a live query without a server error."""
-    record = reference_plot.model_dump(by_alias=True)
-    value = _get_nested_value(record, field)
+    value = _get_nested_value(reference_plot, field)
     query = _field_query(field, value)
 
     with Glance(settings=_LIVE_SETTINGS) as g:
