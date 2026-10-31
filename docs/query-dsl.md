@@ -167,7 +167,7 @@ The Glance API has no list operator, so `stare` expands these before sending:
 and `not in` becomes an `AND` of `!=`. The first example is sent as:
 
 ```text
-status != Closed AND ( groups.leadingGroup.name = EGAM OR groups.leadingGroup.name = MUON OR groups.leadingGroup.name = JETM )
+status != Closed AND (groups.leadingGroup.name = EGAM OR groups.leadingGroup.name = MUON OR groups.leadingGroup.name = JETM)
 ```
 
 List items follow the usual [value](#values) rules, except that a bare item also

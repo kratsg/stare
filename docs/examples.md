@@ -135,7 +135,7 @@ them. Parentheses group an `OR` under an `AND`.
     ```
 
     1. The Glance API has no list operator; `stare` expands `in` into
-       `( … = EGAM OR … = MUON OR … = JETM )` before sending. See
+       `(… = EGAM OR … = MUON OR … = JETM)` before sending. See
        [Lists](query-dsl.md#lists).
 
 === "CLI"
