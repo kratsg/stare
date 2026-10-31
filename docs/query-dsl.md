@@ -124,11 +124,8 @@ Date fields only match a `YYYY-MM-DD` value. The API returns full ISO datetimes
 the date part:
 
 ```bash
-# matches
+# the API returns 2017-12-20T00:00:00+01:00 for this field
 stare analysis search -q 'phase0.eoiMeetings.date = 2017-12-20'
-
-# matches nothing
-stare analysis search -q 'phase0.eoiMeetings.date = "2017-12-20T00:00:00+01:00"'
 ```
 
 ## Combining conditions
