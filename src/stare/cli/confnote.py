@@ -9,6 +9,7 @@ from rich.table import Table
 
 from stare.cli import utils
 from stare.cli._params import (
+    OUTPUT_HELP,
     JsonOption,
     LimitOption,
     NoCacheOption,
@@ -51,7 +52,7 @@ _GET_SPEC = GetSpec(
 )
 
 
-@confnote_app.command("search")
+@confnote_app.command("search", epilog=OUTPUT_HELP)
 def confnote_search(
     query: Annotated[
         str | None,
@@ -77,9 +78,6 @@ def confnote_search(
     verbose: VerboseOption = False,
 ) -> None:
     """Search ConfNotes via GET /searchConfNote.
-
-    Output auto-detects: Rich table when stdout is a terminal, JSON when piped.
-    Override with [cyan]--json[/cyan] or [cyan]--no-json[/cyan].
 
     [bold]Examples[/bold]
       [green]stare confnote search -q 'temporaryReferenceCode contain HDBS'[/green]

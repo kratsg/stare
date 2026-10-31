@@ -7,6 +7,9 @@ per-module duplication. ``--query``, ``--sort-by``, and the ``get`` command's
 ``ref_code`` argument keep resource-specific help text (e.g. field-name
 examples), so they are NOT aliased here and remain defined locally in each
 command module.
+
+``OUTPUT_HELP`` is the output-format paragraph shared by every ``search``
+command, passed as the command's ``epilog``.
 """
 
 from __future__ import annotations
@@ -14,6 +17,11 @@ from __future__ import annotations
 from typing import Annotated
 
 import typer
+
+OUTPUT_HELP = (
+    "Output auto-detects: Rich table when stdout is a terminal, JSON when piped. "
+    "Override with [cyan]--json[/cyan] or [cyan]--no-json[/cyan]."
+)
 
 LimitOption = Annotated[
     int,

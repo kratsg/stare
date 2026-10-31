@@ -11,6 +11,7 @@ from rich.panel import Panel
 
 from stare.cli import utils
 from stare.cli._params import (
+    OUTPUT_HELP,
     JsonOption,
     LimitOption,
     NoCacheOption,
@@ -50,7 +51,7 @@ _SEARCH_SPEC = SearchSpec(
 )
 
 
-@subgroup_app.command("search")
+@subgroup_app.command("search", epilog=OUTPUT_HELP)
 def subgroup_search(
     query: Annotated[
         str | None,
@@ -73,9 +74,6 @@ def subgroup_search(
     verbose: VerboseOption = False,
 ) -> None:
     """Search subgroups via GET /searchSubgroup.
-
-    Output auto-detects: Rich table when stdout is a terminal, JSON when piped.
-    Override with [cyan]--json[/cyan] or [cyan]--no-json[/cyan].
 
     [bold]Examples[/bold]
       [green]stare subgroups search[/green]
