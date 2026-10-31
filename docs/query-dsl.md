@@ -118,6 +118,18 @@ stare analysis search -q 'shortTitle = "Low-mass single diffraction"'
 stare analysis search -q '"status" = Closed'
 ```
 
+Date fields only match a `YYYY-MM-DD` value. The API returns full ISO datetimes
+(e.g. `2017-12-20T00:00:00+01:00`), but filtering on that string matches
+nothing, so use only the date part:
+
+```bash
+# matches
+stare analysis search -q 'phase0.eoiMeetings.date = 2017-12-20'
+
+# matches nothing
+stare analysis search -q 'phase0.eoiMeetings.date = "2017-12-20T00:00:00+01:00"'
+```
+
 ## Combining conditions
 
 ```bash
