@@ -66,13 +66,15 @@ def _get_nested_value(obj: dict[str, Any], path: str) -> str | None:
 
 
 _ISO_DATETIME = re.compile(r"^\d{4}-\d{2}-\d{2}T")
+_ATGLANCE_8334 = "https://its.cern.ch/jira/browse/ATGLANCE-8334"
 
 
 def _field_query(field: str, value: str | None) -> str:
     """Build the equality query for a live field-searchability test.
 
     Date filters match ``YYYY-MM-DD`` only, although the API returns ISO
-    datetimes, so datetime values are truncated to their date.
+    datetimes, so datetime values are truncated to their date
+    (ATGLANCE-8334, see ``test_date_filter_matches_returned_datetime``).
     """
     if value is None:
         pytest.skip(f"field '{field}' has no value in reference record")
@@ -155,6 +157,28 @@ def test_analysis_field_is_searchable(field: str, reference_analysis: Analysis) 
             limit=1,
             validate_query=False,
         )
+    assert result.number_of_results is not None
+    assert result.number_of_results >= 1
+
+
+@pytest.mark.slow
+@pytest.mark.xfail(
+    reason=f"date filters match YYYY-MM-DD only: {_ATGLANCE_8334}", strict=True
+)
+def test_date_filter_matches_returned_datetime(reference_analysis: Analysis) -> None:
+    """Filtering on a date field with the datetime the API returns should match.
+
+    Strict, so a server fix shows up as XPASS(strict): then drop this marker
+    and the datetime truncation in ``_field_query()``.
+    """
+    field = "phase0.eoiMeetings.date"
+    record = reference_analysis.model_dump(by_alias=True, mode="json")
+    value = record["phase0"]["eoiMeetings"][0]["date"]
+    assert _ISO_DATETIME.match(value), value
+    query = Condition(field=field, operator=Operator.EQ, value=value).to_dsl()
+
+    with Glance(settings=_LIVE_SETTINGS) as g:
+        result = g.analyses.search(query=query, limit=1, validate_query=False)
     assert result.number_of_results is not None
     assert result.number_of_results >= 1
 
