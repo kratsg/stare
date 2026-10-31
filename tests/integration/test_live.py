@@ -56,6 +56,10 @@ class _DateOnlyFilterError(Exception):
     """A date filter with the returned datetime matched nothing (ATGLANCE-8334)."""
 
 
+class _PaperDateFilterError(Exception):
+    """``=`` on a paper publicationPhase datetime field matched nothing (ATGLANCE-8411)."""
+
+
 class _FieldValue(NamedTuple):
     """A field's value in a reference record, and whether it sits in a list."""
 
@@ -90,6 +94,17 @@ def _get_nested_value(record: BaseModel, path: str) -> _FieldValue | None:
 
 _ISO_DATETIME = re.compile(r"^\d{4}-\d{2}-\d{2}T")
 _ATGLANCE_8334 = "https://its.cern.ch/jira/browse/ATGLANCE-8334"
+_ATGLANCE_8411 = "https://its.cern.ch/jira/browse/ATGLANCE-8411"
+# Paper datetime fields that "=" cannot match in any date format, although
+# date-only fields such as publicationPhase.journalAcceptanceDate can.
+_ATGLANCE_8411_FIELDS = frozenset(
+    {
+        "publicationPhase.arXivSubmissionDate",
+        "publicationPhase.firstRefereeReportDate",
+        "publicationPhase.firstProofDate",
+        "publicationPhase.publishedOnlineDate",
+    }
+)
 
 
 def _field_query(field: str, found: _FieldValue | None) -> str:
@@ -274,8 +289,23 @@ def test_search_result_items_are_paper_models() -> None:
         assert item.reference_code is not None
 
 
+_PAPER_FIELD_PARAMS = [
+    pytest.param(
+        field,
+        marks=pytest.mark.xfail(
+            raises=_PaperDateFilterError,
+            reason=f"'=' never matches this datetime field: {_ATGLANCE_8411}",
+            strict=True,
+        ),
+    )
+    if field in _ATGLANCE_8411_FIELDS
+    else field
+    for field in _PAPER_FIELDS
+]
+
+
 @pytest.mark.slow
-@pytest.mark.parametrize("field", _PAPER_FIELDS)
+@pytest.mark.parametrize("field", _PAPER_FIELD_PARAMS)
 def test_paper_field_is_searchable(field: str, reference_paper: Paper) -> None:
     """Each catalogue field can be used in a live query without a server error."""
     found = _get_nested_value(reference_paper, field)
@@ -288,6 +318,9 @@ def test_paper_field_is_searchable(field: str, reference_paper: Paper) -> None:
             validate_query=False,
         )
     assert result.number_of_results is not None
+    # Only a zero-result response is the known bug; anything else must fail.
+    if field in _ATGLANCE_8411_FIELDS and result.number_of_results == 0:
+        raise _PaperDateFilterError(query)
     assert result.number_of_results >= 1
 
 
