@@ -37,6 +37,20 @@ output is uppercase (`AND`, `OR`).
     Using `contain` or `not-contain` on these fields raises a `DSLValidationError` at parse time.
     Their values are typically `"true"` or `"false"`.
 
+!!! note "Use `contain` for fields inside a list"
+
+    Many fields sit inside a list, such as `metadata.keywords.name`,
+    `analysisTeam.lastName` or `phase0.eoiMeetings.title`. On these, the server
+    only matches `=` when the list holds that value as its *only* element, so
+    `metadata.keywords.name = "5.02 TeV"` misses every record that has the
+    keyword among several. `in [...]` expands to `=` and behaves the same way.
+    Use `contain` to match any element:
+
+    ```bash
+    # Analyses tagged with the "5.02 TeV" keyword, among others
+    stare analysis search -q 'metadata.keywords.name contain "5.02 TeV"'
+    ```
+
 !!! note "Comparing against NULL"
 
     Use the special token `__EMPTY__` as the value to test whether a field is
