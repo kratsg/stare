@@ -86,14 +86,14 @@ def test_parens_in_quoted_value_do_not_warn(
 
 
 def test_parentheses_that_change_grouping_are_preserved() -> None:
-    """An OR grouped inside an AND keeps its (space-padded) parentheses."""
+    """An OR grouped inside an AND keeps its parentheses."""
     expr = parse_dsl(
         "(status = ACTIVE OR status = PENDING) AND referenceCode = HION",
         mode="analysis",
     )
     assert (
         expr.to_dsl()
-        == "( status = ACTIVE OR status = PENDING ) AND referenceCode = HION"
+        == "(status = ACTIVE OR status = PENDING) AND referenceCode = HION"
     )
 
 
@@ -116,7 +116,7 @@ def test_redundant_parentheses_are_dropped(src: str, canonical: str) -> None:
 
 
 def test_grouped_canonical_form_is_idempotent() -> None:
-    src = "( status = ACTIVE OR status = PENDING ) AND referenceCode = HION"
+    src = "(status = ACTIVE OR status = PENDING) AND referenceCode = HION"
     assert parse_dsl(src, mode="analysis").to_dsl() == src
 
 
@@ -306,8 +306,8 @@ def test_in_combined_with_and_is_grouped() -> None:
         mode="analysis",
     )
     assert expr.to_dsl() == (
-        "status != Closed AND ( groups.leadingGroup.name = EGAM"
-        " OR groups.leadingGroup.name = MUON OR groups.leadingGroup.name = JETM )"
+        "status != Closed AND (groups.leadingGroup.name = EGAM"
+        " OR groups.leadingGroup.name = MUON OR groups.leadingGroup.name = JETM)"
     )
 
 

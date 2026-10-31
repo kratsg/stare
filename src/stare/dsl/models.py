@@ -73,12 +73,10 @@ def _and_operand_to_dsl(expr: Expression) -> str:
     """Serialize an operand of AND, grouping it when it is an Or.
 
     AND binds tighter than OR on the server, so an unparenthesized Or operand
-    would change the query's meaning. The parentheses are space-padded because
-    the server glues a parenthesis onto an adjacent bare token and fails with
-    HTTP 500 (ATGLANCE-8337).
+    would change the query's meaning.
     """
     if isinstance(expr, Or):
-        return f"( {expr.to_dsl()} )"
+        return f"({expr.to_dsl()})"
     return expr.to_dsl()
 
 

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import re
-
 import pytest
 
 from stare.dsl import parse_dsl
@@ -86,7 +84,7 @@ def test_or_inside_and_is_parenthesized() -> None:
     )
     assert (
         outer.to_dsl()
-        == "( status = ACTIVE OR status = PENDING ) AND keywords contain jets"
+        == "(status = ACTIVE OR status = PENDING) AND keywords contain jets"
     )
 
 
@@ -225,7 +223,7 @@ def _c(field: str, value: str, op: Operator = Operator.EQ) -> Condition:
 
 def test_or_on_right_of_and_is_parenthesized() -> None:
     expr = And(clauses=(_c("a", "x"), Or(clauses=(_c("b", "y"), _c("c", "z")))))
-    assert expr.to_dsl() == "a = x AND ( b = y OR c = z )"
+    assert expr.to_dsl() == "a = x AND (b = y OR c = z)"
 
 
 def test_or_on_both_sides_of_and_is_parenthesized() -> None:
@@ -235,13 +233,13 @@ def test_or_on_both_sides_of_and_is_parenthesized() -> None:
             Or(clauses=(_c("b", "1"), _c("b", "2"))),
         )
     )
-    assert expr.to_dsl() == "( a = 1 OR a = 2 ) AND ( b = 1 OR b = 2 )"
+    assert expr.to_dsl() == "(a = 1 OR a = 2) AND (b = 1 OR b = 2)"
 
 
 def test_or_nested_in_and_nested_in_and_is_parenthesized() -> None:
     inner = And(clauses=(_c("a", "x"), Or(clauses=(_c("b", "y"), _c("c", "z")))))
     expr = And(clauses=(inner, _c("d", "w")))
-    assert expr.to_dsl() == "a = x AND ( b = y OR c = z ) AND d = w"
+    assert expr.to_dsl() == "a = x AND (b = y OR c = z) AND d = w"
 
 
 def test_or_inside_or_is_not_parenthesized() -> None:
@@ -252,18 +250,15 @@ def test_or_inside_or_is_not_parenthesized() -> None:
 def test_and_containing_grouped_or_inside_or() -> None:
     grouped = And(clauses=(_c("a", "x"), Or(clauses=(_c("b", "y"), _c("c", "z")))))
     expr = Or(clauses=(grouped, _c("d", "w")))
-    assert expr.to_dsl() == "a = x AND ( b = y OR c = z ) OR d = w"
+    assert expr.to_dsl() == "a = x AND (b = y OR c = z) OR d = w"
 
 
-def test_parentheses_are_space_padded() -> None:
-    """Glance glues a parenthesis onto an adjacent bare token and returns HTTP
-    500 (ATGLANCE-8337), so every emitted parenthesis must be space-padded."""
+def test_parentheses_are_not_padded() -> None:
+    """Emitted parentheses hug their contents, including a quoted value."""
     expr = And(
         clauses=(
             Or(clauses=(_c("a", "1"), _c("a", "2"))),
             Or(clauses=(_c("b", "1"), _c("b", "quoted value"))),
         )
     )
-    dsl = expr.to_dsl()
-    assert "(" in dsl
-    assert not re.search(r"\((?! )|(?<! )\)", dsl), dsl
+    assert expr.to_dsl() == '(a = 1 OR a = 2) AND (b = 1 OR b = "quoted value")'
