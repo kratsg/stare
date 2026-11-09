@@ -132,13 +132,16 @@ stare analysis search -q 'shortTitle = "Low-mass single diffraction"'
 stare analysis search -q '"status" = Closed'
 ```
 
-Date fields take a value in the same shape the API returns, so a value read from
-a result works as a filter unchanged. Most date fields are a plain `YYYY-MM-DD`
-date. Four paper fields also carry a time, as `YYYY-MM-DDTHH:MM`:
-`publicationPhase.arXivSubmissionDate`,
+Date fields take a value in the same shape the API returns. Most date fields are
+a plain `YYYY-MM-DD` date. Four paper fields also carry a time, as
+`YYYY-MM-DDTHH:MM`: `publicationPhase.arXivSubmissionDate`,
 `publicationPhase.firstRefereeReportDate`, `publicationPhase.firstProofDate` and
 `publicationPhase.publishedOnlineDate`. A value in any other shape is rejected
 by the API with an HTTP 400 error.
+
+On those four paper fields, `=` may match nothing even with a value read from a
+result ([ATGLANCE-8411](https://its.cern.ch/jira/browse/ATGLANCE-8411)); use
+`contain` with a date prefix instead.
 
 ```bash
 # exact date
