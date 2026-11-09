@@ -132,14 +132,20 @@ stare analysis search -q 'shortTitle = "Low-mass single diffraction"'
 stare analysis search -q '"status" = Closed'
 ```
 
-Date fields only match a `YYYY-MM-DD` value. The API returns full ISO datetimes
-(e.g. `2017-12-20T00:00:00+01:00`), but filtering on that string matches nothing
-([ATGLANCE-8334](https://its.cern.ch/jira/browse/ATGLANCE-8334)), so use only
-the date part:
+Date fields take a value in the same shape the API returns, so a value read from
+a result works as a filter unchanged. Most date fields are a plain `YYYY-MM-DD`
+date. Four paper fields also carry a time, as `YYYY-MM-DDTHH:MM`:
+`publicationPhase.arXivSubmissionDate`,
+`publicationPhase.firstRefereeReportDate`, `publicationPhase.firstProofDate` and
+`publicationPhase.publishedOnlineDate`. A value in any other shape is rejected
+by the API with an HTTP 400 error.
 
 ```bash
-# the API returns 2017-12-20T00:00:00+01:00 for this field
+# exact date
 stare analysis search -q 'phase0.eoiMeetings.date = 2017-12-20'
+
+# contain with a shorter prefix matches the whole month
+stare analysis search -q 'creationDate contain 2017-12'
 ```
 
 ## Combining conditions
