@@ -67,6 +67,14 @@ class StareSettings(BaseSettings):
             return self.cache_dir
         return Path(platformdirs.user_cache_dir("stare"))
 
+    def get_cache_db_path(self) -> Path:
+        """Return the SQLite file the HTTP cache is stored in.
+
+        hishel 2.x refuses to open a database written by hishel 1.x, so its
+        cache lives in ``cache-v2.db`` rather than the 1.x ``cache.db``.
+        """
+        return self.get_cache_dir() / "cache-v2.db"
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> StareSettings:
