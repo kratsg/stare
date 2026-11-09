@@ -736,6 +736,21 @@ class TestPublicationPhase:
         dumped = s.model_dump(by_alias=True, mode="json")
         assert dumped[alias] == "2024-03-05T14:30"
 
+    @pytest.mark.parametrize(
+        "alias",
+        [
+            "arXivSubmissionDate",
+            "firstRefereeReportDate",
+            "firstProofDate",
+            "publishedOnlineDate",
+        ],
+    )
+    def test_datetime_with_offset_rejected(self, alias: str) -> None:
+        # the API holds no timezone for these fields, so an offset means the
+        # format changed underneath us; fail loudly rather than carry it along
+        with pytest.raises(ResponseParseError, match="timezone"):
+            PublicationPhase.model_validate({alias: "2024-03-05T14:30:00+01:00"})
+
     def test_all_optional(self) -> None:
         s = PublicationPhase.model_validate({})
         assert s.arxiv_urls == []

@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date
 from typing import TYPE_CHECKING, Annotated
 
-from pydantic import Field, PlainSerializer, field_validator
+from pydantic import Field, NaiveDatetime, PlainSerializer, field_validator
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
@@ -83,7 +83,7 @@ class PaperPhase2(_Base):
 # and accepts only that shape back as a filter value, so the JSON dump keeps
 # the same shape and a value read from a result works as a filter.
 _MinuteDatetime = Annotated[
-    datetime,
+    NaiveDatetime,
     PlainSerializer(lambda v: v.isoformat(timespec="minutes"), when_used="json"),
 ]
 
