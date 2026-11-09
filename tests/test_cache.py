@@ -2,16 +2,22 @@
 
 from __future__ import annotations
 
+import sqlite3
+import time
+from contextlib import closing
 from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
+import httpx
 import platformdirs
+import respx
 from typer.testing import CliRunner
 
 if TYPE_CHECKING:
     import pytest
 
+from stare import Glance
 from stare.cli import app, sizeof_fmt
 from stare.models import AnalysisSearchResult
 from stare.settings import StareSettings
@@ -84,6 +90,12 @@ class TestCacheSettings:
         s = _make_settings(cache_dir=None)
         assert s.get_cache_dir() == Path(platformdirs.user_cache_dir("stare"))
 
+    def test_get_cache_db_path(self, tmp_path: Path) -> None:
+        # hishel 2.x refuses to open a hishel 1.x database, so the 2.x cache
+        # lives in its own file next to the legacy cache.db
+        s = _make_settings(cache_dir=tmp_path / "stare_cache")
+        assert s.get_cache_db_path() == tmp_path / "stare_cache" / "cache-v2.db"
+
 
 def test_cache_dir_env_var(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     custom = str(tmp_path / "custom_cache")
@@ -114,6 +126,15 @@ class TestCacheInfoCommand:
         assert str(settings.get_cache_dir()) in normalized
         assert "28800" in result.output
 
+    def test_shows_database_path(self, tmp_path: Path) -> None:
+        settings = _cache_settings(tmp_path)
+        with patch("stare.cli.utils.make_settings", return_value=settings):
+            result = runner.invoke(app, ["cache", "info"])
+        assert result.exit_code == 0
+        # Normalize output: Rich may wrap long paths across lines.
+        normalized = result.output.replace("\n", "")
+        assert str(settings.get_cache_db_path()) in normalized
+
     def test_shows_zero_size_when_no_db(self, tmp_path: Path) -> None:
         settings = _cache_settings(tmp_path)
         with patch("stare.cli.utils.make_settings", return_value=settings):
@@ -123,7 +144,7 @@ class TestCacheInfoCommand:
 
     def test_shows_nonzero_size_when_db_exists(self, tmp_path: Path) -> None:
         settings = _cache_settings(tmp_path)
-        db_path = settings.get_cache_dir() / "cache.db"
+        db_path = settings.get_cache_db_path()
         db_path.parent.mkdir(parents=True, exist_ok=True)
         db_path.write_bytes(b"x" * 1024)
         with patch("stare.cli.utils.make_settings", return_value=settings):
@@ -141,7 +162,7 @@ class TestCacheInfoCommand:
 class TestCacheClearCommand:
     def test_clear_removes_db(self, tmp_path: Path) -> None:
         settings = _cache_settings(tmp_path)
-        db_path = settings.get_cache_dir() / "cache.db"
+        db_path = settings.get_cache_db_path()
         db_path.parent.mkdir(parents=True, exist_ok=True)
         db_path.write_bytes(b"data")
         with patch("stare.cli.utils.make_settings", return_value=settings):
@@ -149,6 +170,32 @@ class TestCacheClearCommand:
         assert result.exit_code == 0
         assert not db_path.exists()
         assert "cleared" in result.output.lower()
+
+    def test_clear_removes_legacy_db(self, tmp_path: Path) -> None:
+        # the hishel 1.x cache file is never read again, so clear drops it too
+        settings = _cache_settings(tmp_path)
+        legacy = settings.get_cache_dir() / "cache.db"
+        legacy.parent.mkdir(parents=True, exist_ok=True)
+        legacy.write_bytes(b"data")
+        with patch("stare.cli.utils.make_settings", return_value=settings):
+            result = runner.invoke(app, ["cache", "clear", "--yes"])
+        assert result.exit_code == 0
+        assert not legacy.exists()
+        assert "cleared" in result.output.lower()
+
+    def test_clear_removes_sqlite_sidecar_files(self, tmp_path: Path) -> None:
+        # SQLite in WAL mode keeps -wal/-shm files beside the database until a
+        # clean close; after a crash they stay, and a leftover WAL could be
+        # replayed into the next database created under the same name
+        settings = _cache_settings(tmp_path)
+        db_path = settings.get_cache_db_path()
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        for suffix in ("", "-wal", "-shm"):
+            Path(f"{db_path}{suffix}").write_bytes(b"data")
+        with patch("stare.cli.utils.make_settings", return_value=settings):
+            result = runner.invoke(app, ["cache", "clear", "--yes"])
+        assert result.exit_code == 0
+        assert list(settings.get_cache_dir().glob(f"{db_path.name}*")) == []
 
     def test_clear_when_no_db_is_harmless(self, tmp_path: Path) -> None:
         settings = _cache_settings(tmp_path)
@@ -185,3 +232,65 @@ class TestNoCacheFlag:
         with patch("stare.cli.utils.make_glance", return_value=g) as mock_make:
             runner.invoke(app, ["analysis", "search", "--no-cache"])
         mock_make.assert_called_once_with(no_cache=True)
+
+
+# ---------------------------------------------------------------------------
+# Response caching through the Glance client
+# ---------------------------------------------------------------------------
+
+_EMPTY_SEARCH = {"numberOfResults": 0, "results": []}
+
+
+def _search_twice(settings: StareSettings) -> int:
+    """Run the same analysis search twice; return how many reached the network."""
+    with respx.mock(base_url=settings.base_url) as rx:
+        route = rx.get("/searchAnalysis").mock(
+            return_value=httpx.Response(200, json=_EMPTY_SEARCH)
+        )
+        with Glance(settings=settings, token="fake-token") as g:
+            g.analyses.search(query="referenceCode = ANA-TEST-2026-01")
+            g.analyses.search(query="referenceCode = ANA-TEST-2026-01")
+        return route.call_count
+
+
+class TestGlanceResponseCache:
+    def test_repeated_get_is_served_from_cache(self, tmp_path: Path) -> None:
+        # Glance sends no caching headers; the cache still serves the repeat
+        assert _search_twice(_cache_settings(tmp_path)) == 1
+
+    def test_cache_written_to_db_path(self, tmp_path: Path) -> None:
+        settings = _cache_settings(tmp_path)
+        _search_twice(settings)
+        assert settings.get_cache_db_path().exists()
+
+    def test_disabled_cache_always_hits_network(self, tmp_path: Path) -> None:
+        assert _search_twice(_cache_settings(tmp_path, cache_enabled=False)) == 2
+
+    def test_entry_expires_after_ttl(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        settings = _cache_settings(tmp_path, cache_ttl_seconds=60)
+        with respx.mock(base_url=settings.base_url) as rx:
+            route = rx.get("/searchAnalysis").mock(
+                return_value=httpx.Response(200, json=_EMPTY_SEARCH)
+            )
+            with Glance(settings=settings, token="fake-token") as g:
+                g.analyses.search(query="referenceCode = ANA-TEST-2026-01")
+                # jump the wall clock past the TTL instead of sleeping
+                real_time = time.time
+                monkeypatch.setattr(time, "time", lambda: real_time() + 61)
+                g.analyses.search(query="referenceCode = ANA-TEST-2026-01")
+        assert route.call_count == 2
+
+    def test_legacy_hishel1_db_does_not_break_requests(self, tmp_path: Path) -> None:
+        # a cache.db left by hishel 1.x has a schema hishel 2.x refuses to
+        # open; it must be ignored rather than fail every request
+        settings = _cache_settings(tmp_path)
+        legacy = settings.get_cache_dir() / "cache.db"
+        legacy.parent.mkdir(parents=True, exist_ok=True)
+        with closing(sqlite3.connect(legacy)) as conn:
+            conn.execute(
+                "CREATE TABLE entries (id BLOB PRIMARY KEY, cache_key BLOB, "
+                "data BLOB, created_at REAL, deleted_at REAL)"
+            )
+        assert _search_twice(settings) == 1

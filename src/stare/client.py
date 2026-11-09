@@ -7,8 +7,8 @@ from importlib.resources import as_file, files
 from typing import TYPE_CHECKING, Any, ClassVar, Generic, TypeVar, cast
 
 import httpx
-from hishel import CacheOptions, SpecificationPolicy, SyncSqliteStorage
-from hishel.httpx import SyncCacheTransport
+from hishel import CacheOptions, SqliteStorage
+from hishel.httpx import CacheTransport
 
 from stare._version import version as __version__
 from stare.auth import TokenManager
@@ -278,20 +278,17 @@ class Glance:
         ssl_ctx = _load_ssl_context(self._settings.ca_bundle)
         base_transport = httpx.HTTPTransport(verify=ssl_ctx)
         if self._settings.cache_enabled:
-            cache_dir = self._settings.get_cache_dir()
-            cache_dir.mkdir(parents=True, exist_ok=True)
-            transport: httpx.BaseTransport = SyncCacheTransport(
+            self._settings.get_cache_dir().mkdir(parents=True, exist_ok=True)
+            transport: httpx.BaseTransport = CacheTransport(
                 next_transport=base_transport,
-                storage=SyncSqliteStorage(
-                    database_path=cache_dir / "cache.db",
+                storage=SqliteStorage(
+                    database_path=self._settings.get_cache_db_path(),
                     default_ttl=float(self._settings.cache_ttl_seconds),
                 ),
-                policy=SpecificationPolicy(
-                    cache_options=CacheOptions(
-                        shared=False,
-                        supported_methods=["GET"],
-                        allow_stale=True,
-                    )
+                rfc=CacheOptions(
+                    shared=False,
+                    supported_methods=["GET"],
+                    allow_stale=True,
                 ),
             )
         else:
