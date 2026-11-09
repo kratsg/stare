@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import date, datetime
+from datetime import date
 from typing import Any
 
 from pydantic import Field, SerializationInfo, model_serializer, model_validator
@@ -198,7 +198,7 @@ class Analysis(_Base):
                 MeetingType.APPROVAL: "Approval",
             }
             for meeting_type, label in _meeting_labels.items():
-                dated: list[tuple[datetime, TypedMeeting]] = [
+                dated: list[tuple[date, TypedMeeting]] = [
                     (m.date, m)
                     for m in p0.meetings
                     if m.meeting_type == meeting_type and m.date is not None

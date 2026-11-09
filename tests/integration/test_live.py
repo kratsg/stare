@@ -19,7 +19,7 @@ import pytest
 from stare import Glance
 from stare.dsl.models import Condition, Operator
 from stare.dsl.registry import FieldRegistry
-from stare.exceptions import StareError
+from stare.exceptions import ApiError, StareError
 from stare.models import Analysis, AnalysisSearchResult, ConfNote, Paper, Plot, PubNote
 from stare.models.search import (
     ConfNoteSearchResult,
@@ -50,10 +50,6 @@ _REFERENCE_CONFNOTE_FINAL_CODE = "ATLAS-CONF-2018-011"
 # temporary reference code.
 _REFERENCE_PUBNOTE_TEMP_CODE = "PUB-HIGP-2024-59"
 _REFERENCE_PLOT_CODE = "PLOT-MUON-2018-08"
-
-
-class _DateOnlyFilterError(Exception):
-    """A date filter with the returned datetime matched nothing (ATGLANCE-8334)."""
 
 
 class _PaperDateFilterError(Exception):
@@ -92,8 +88,6 @@ def _get_nested_value(record: BaseModel, path: str) -> _FieldValue | None:
     return None
 
 
-_ISO_DATETIME = re.compile(r"^\d{4}-\d{2}-\d{2}T")
-_ATGLANCE_8334 = "https://its.cern.ch/jira/browse/ATGLANCE-8334"
 _ATGLANCE_8411 = "https://its.cern.ch/jira/browse/ATGLANCE-8411"
 # Paper datetime fields that "=" cannot match in any date format, although
 # date-only fields such as publicationPhase.journalAcceptanceDate can.
@@ -115,18 +109,14 @@ def _field_query(field: str, found: _FieldValue | None) -> str:
     so ``metadata.keywords.name = "5.02 TeV"`` misses a record that has the
     keyword among several. Everything else uses ``=``.
 
-    Date filters match ``YYYY-MM-DD`` only, although the API returns ISO
-    datetimes, so datetime values are truncated to their date
-    (ATGLANCE-8334, see ``test_date_filter_matches_returned_datetime``).
+    The value is used exactly as the API returned it: date fields come back
+    in the same shape the API accepts as a filter value.
     """
     if found is None:
         pytest.skip(f"field '{field}' has no value in reference record")
-    value = found.value
-    if _ISO_DATETIME.match(value):
-        value = value[:10]
     try:
         operator = Operator.CONTAIN if found.in_list else Operator.EQ
-        return Condition(field=field, operator=operator, value=value).to_dsl()
+        return Condition(field=field, operator=operator, value=found.value).to_dsl()
     except ValueError as exc:
         pytest.skip(str(exc))
 
@@ -206,30 +196,51 @@ def test_analysis_field_is_searchable(field: str, reference_analysis: Analysis) 
 
 
 @pytest.mark.slow
-@pytest.mark.xfail(
-    raises=_DateOnlyFilterError,
-    reason=f"date filters match YYYY-MM-DD only: {_ATGLANCE_8334}",
-    strict=True,
-)
-def test_date_filter_matches_returned_datetime(reference_analysis: Analysis) -> None:
-    """Filtering on a date field with the datetime the API returns should match.
-
-    Strict, so a server fix shows up as XPASS(strict): then drop this marker
-    and the datetime truncation in ``_field_query()``.
-    """
+def test_date_filter_matches_returned_date(reference_analysis: Analysis) -> None:
+    """A date value read from a result works unchanged as a filter value."""
     field = "phase0.eoiMeetings.date"
     found = _get_nested_value(reference_analysis, field)
     assert found is not None
-    value = found.value
-    assert _ISO_DATETIME.match(value), value
-    query = Condition(field=field, operator=Operator.EQ, value=value).to_dsl()
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", found.value), found.value
+    query = Condition(field=field, operator=Operator.EQ, value=found.value).to_dsl()
 
     with Glance(settings=_LIVE_SETTINGS) as g:
         result = g.analyses.search(query=query, limit=1, validate_query=False)
     assert result.number_of_results is not None
-    # Only a zero-result response is the known bug; anything else must fail.
-    if result.number_of_results == 0:
-        raise _DateOnlyFilterError(query)
+    assert result.number_of_results >= 1
+
+
+@pytest.mark.slow
+def test_date_filter_contain_matches_month_prefix(
+    reference_analysis: Analysis,
+) -> None:
+    """``contain`` with a ``YYYY-MM`` prefix matches every date in that month."""
+    assert reference_analysis.creation_date is not None
+    month = reference_analysis.creation_date.strftime("%Y-%m")
+    query = Condition(
+        field="creationDate", operator=Operator.CONTAIN, value=month
+    ).to_dsl()
+
+    with Glance(settings=_LIVE_SETTINGS) as g:
+        result = g.analyses.search(query=query, limit=1, validate_query=False)
+    assert result.number_of_results is not None
+    assert result.number_of_results >= 1
+
+
+@pytest.mark.slow
+def test_date_filter_rejects_other_shapes() -> None:
+    """A date filter in any shape other than the API's own returns HTTP 400.
+
+    The API used to answer such a filter with an empty 200 response, which
+    looks the same as "no records exist".
+    """
+    query = Condition(
+        field="creationDate", operator=Operator.EQ, value="2018-11-28T00:00:00+01:00"
+    ).to_dsl()
+
+    with Glance(settings=_LIVE_SETTINGS) as g, pytest.raises(ApiError) as excinfo:
+        g.analyses.search(query=query, limit=1, validate_query=False)
+    assert excinfo.value.status_code == 400
 
 
 # ---------------------------------------------------------------------------

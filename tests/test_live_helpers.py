@@ -19,8 +19,8 @@ def analysis() -> Analysis:
             "metadata": {"keywords": [{"name": "jets"}, {"name": "flow"}]},
             "phase0": {
                 "eoiMeetings": [
-                    {"date": "2017-12-20T00:00:00+01:00", "title": "EOI meeting"},
-                    {"date": "2018-01-03T00:00:00+01:00", "title": "Follow-up"},
+                    {"date": "2017-12-20", "title": "EOI meeting"},
+                    {"date": "2018-01-03", "title": "Follow-up"},
                 ],
             },
         }
@@ -33,12 +33,9 @@ def analysis() -> Analysis:
         ("referenceCode", _FieldValue("ANA-TEST-2026-01", in_list=False)),
         ("shortTitle", _FieldValue("Flow in Xe+Xe", in_list=False)),
         ("status", _FieldValue("Phase 0 Active", in_list=False)),
-        # date and datetime fields come back in the API's JSON form
+        # date fields come back in the API's JSON form
         ("creationDate", _FieldValue("2017-11-30", in_list=False)),
-        (
-            "phase0.eoiMeetings.date",
-            _FieldValue("2017-12-20T00:00:00+01:00", in_list=True),
-        ),
+        ("phase0.eoiMeetings.date", _FieldValue("2017-12-20", in_list=True)),
         # lists along the path resolve through their first element
         ("phase0.eoiMeetings.title", _FieldValue("EOI meeting", in_list=True)),
         ("metadata.keywords.name", _FieldValue("jets", in_list=True)),
