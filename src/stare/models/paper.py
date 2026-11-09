@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import date
-from typing import TYPE_CHECKING
+from datetime import date, datetime
+from typing import TYPE_CHECKING, Annotated
 
-from pydantic import AwareDatetime, Field, field_validator
+from pydantic import Field, PlainSerializer, field_validator
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
@@ -79,6 +79,15 @@ class PaperPhase2(_Base):
     spokesperson_or_deputy_sign_off_date: date | None = None
 
 
+# Glance reports these timestamps as YYYY-MM-DDTHH:MM (no seconds, no offset)
+# and accepts only that shape back as a filter value, so the JSON dump keeps
+# the same shape and a value read from a result works as a filter.
+_MinuteDatetime = Annotated[
+    datetime,
+    PlainSerializer(lambda v: v.isoformat(timespec="minutes"), when_used="json"),
+]
+
+
 class PublicationPhase(_Base):
     """Publication phase: arXiv, journal, final publication."""
 
@@ -88,15 +97,15 @@ class PublicationPhase(_Base):
     cern_preprint_urls: list[RequiredLink] = Field(default_factory=list)
     final_title_tex: str | None = None
     final_submission_journal: str | None = None
-    arxiv_submission_date: AwareDatetime | None = Field(
+    arxiv_submission_date: _MinuteDatetime | None = Field(
         default=None, alias="arXivSubmissionDate"
     )
     physics_briefing_urls: list[RequiredLink] = Field(default_factory=list)
-    first_referee_report_date: AwareDatetime | None = None
+    first_referee_report_date: _MinuteDatetime | None = None
     journal_acceptance_date: date | None = None
-    first_proof_date: AwareDatetime | None = None
+    first_proof_date: _MinuteDatetime | None = None
     final_journal_publication_urls: list[RequiredLink] = Field(default_factory=list)
-    published_online_date: AwareDatetime | None = None
+    published_online_date: _MinuteDatetime | None = None
 
     @field_validator("arxiv_submission_date", mode="before")
     @classmethod

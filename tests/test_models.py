@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 import pytest
@@ -335,6 +335,13 @@ class TestMeeting:
         m = Meeting.model_validate({})
         assert m.title is None
         assert m.link is None
+
+    def test_date_is_plain_date(self) -> None:
+        # the API reports meeting dates as YYYY-MM-DD with no time or offset
+        m = Meeting.model_validate({"date": "2018-11-28"})
+        assert type(m.date) is date
+        assert m.date == date(2018, 11, 28)
+        assert m.model_dump(mode="json")["date"] == "2018-11-28"
 
     def test_label_only_preserves_link(self) -> None:
         m = Meeting.model_validate({"title": "EOI", "label": "Indico"})
@@ -709,6 +716,26 @@ class TestPublicationPhase:
         assert s.cern_preprint_urls[0].label == "CERN-EP-2019-132"
         assert s.cern_preprint_urls[0].url == "https://cds.cern.ch/record/2682119"
 
+    @pytest.mark.parametrize(
+        ("alias", "attr"),
+        [
+            ("arXivSubmissionDate", "arxiv_submission_date"),
+            ("firstRefereeReportDate", "first_referee_report_date"),
+            ("firstProofDate", "first_proof_date"),
+            ("publishedOnlineDate", "published_online_date"),
+        ],
+    )
+    def test_datetime_without_seconds_or_offset(self, alias: str, attr: str) -> None:
+        # these four fields are reported as YYYY-MM-DDTHH:MM, and the API only
+        # accepts that same shape back as a filter value, so the JSON dump must
+        # reproduce it exactly
+        s = PublicationPhase.model_validate({alias: "2024-03-05T14:30"})
+        # naive on purpose: the API reports no offset for these fields
+        expected = datetime(2024, 3, 5, 14, 30)  # noqa: DTZ001
+        assert getattr(s, attr) == expected
+        dumped = s.model_dump(by_alias=True, mode="json")
+        assert dumped[alias] == "2024-03-05T14:30"
+
     def test_all_optional(self) -> None:
         s = PublicationPhase.model_validate({})
         assert s.arxiv_urls == []
@@ -998,7 +1025,7 @@ def test_extracting_context():
     obj = {
         "results": [
             {
-                "creationDate": "2023-08-10T00:00:00+02:00",
+                "creationDate": "2023-08-10",
                 "referenceCode": "ANA-SUSY-2023-17",
                 "status": "Analysis Closed",
                 "shortTitle": "NUHM2 reinterpretation",
@@ -1071,7 +1098,7 @@ def test_extracting_context():
                 "relatedPublications": [],
                 "phase0": {
                     "state": "pub_contact_editors_definition",
-                    "startDate": "2023-08-10T00:00:00+02:00",
+                    "startDate": "2023-08-10",
                     "mainPhysicsAim": None,
                     "datasetUsed": None,
                     "modelTested": None,
@@ -1821,16 +1848,14 @@ class TestPaperAliases:
         assert "PaperStatus" in caplog.text
 
     def test_arxiv_submission_date_alias(self) -> None:
-        s = PublicationPhase.model_validate(
-            {"arXivSubmissionDate": "2024-01-15T00:00:00+00:00"}
-        )
+        s = PublicationPhase.model_validate({"arXivSubmissionDate": "2024-01-15T00:00"})
         assert s.arxiv_submission_date is not None
         dumped = s.model_dump(by_alias=True, exclude_none=True)
         assert "arXivSubmissionDate" in dumped
 
     def test_first_referee_report_date_alias(self) -> None:
         s = PublicationPhase.model_validate(
-            {"firstRefereeReportDate": "2024-02-01T00:00:00+00:00"}
+            {"firstRefereeReportDate": "2024-02-01T09:15"}
         )
         assert s.first_referee_report_date is not None
         dumped = s.model_dump(by_alias=True, exclude_none=True)
