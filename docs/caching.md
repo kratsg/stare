@@ -72,5 +72,8 @@ also removes a `cache.db` written by hishel 1.x, which hishel 2.x never reads.
 
 The cache directory lives under the per-user platform cache path
 (`platformdirs.user_cache_dir("stare")`), so cached responses are not shared
-across user accounts. `Authorization` headers are included in the cache key, so
-different tokens never share a cached response even if they hit the same URL.
+across user accounts. Within one account, the cache key includes the identity
+the request is made as, so switching CERN users (or passing a different `token=`
+to `Glance`) never serves another identity's cached response. A token that is a
+JWT is identified by its issuer and subject, so a refreshed token for the same
+user still hits the cache. Any other token is identified by its SHA-256 hash.
