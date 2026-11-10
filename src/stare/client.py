@@ -2,16 +2,17 @@
 
 from __future__ import annotations
 
+import hashlib
 import ssl
 from importlib.resources import as_file, files
 from typing import TYPE_CHECKING, Any, ClassVar, Generic, TypeVar, cast
 
 import httpx
 from hishel import CacheOptions, SqliteStorage
-from hishel.httpx import CacheTransport
+from hishel.httpx import CacheConfig, CacheTransport
 
 from stare._version import version as __version__
-from stare.auth import TokenManager
+from stare.auth import TokenManager, _decode_jwt_payload
 from stare.dsl import Expression, parse_dsl
 from stare.dsl.models import Condition, Operator
 from stare.exceptions import (
@@ -75,6 +76,30 @@ def _load_ssl_context(ca_bundle: str) -> ssl.SSLContext:
         ctx = ssl.create_default_context(cafile=str(cert_path))
     ctx.load_default_certs()
     return ctx
+
+
+def _cache_key(url: httpx.URL, token: str | None) -> str:
+    """Return the HTTP cache key for a request to ``url`` made with ``token``.
+
+    hishel keys entries on the URL alone and Glance sends no ``Vary``
+    header, so without this every identity would share cached responses.
+    A JWT is keyed on its issuer and subject rather than the token itself,
+    so a refreshed or re-exchanged token for the same user keeps its cache
+    hits. The claims are read unverified: the key only partitions a cache
+    that already sits in the user's own cache directory, and Glance still
+    validates every token it is sent. Any other token is keyed on its
+    hash so it never reaches the cache database.
+    """
+    identity = ""
+    if token:
+        claims = _decode_jwt_payload(token)
+        if claims.sub:
+            identity = f"{claims.iss} {claims.sub}"
+        else:
+            identity = hashlib.sha256(token.encode()).hexdigest()
+    # Every method shares the key, as in hishel's own RFC mode, so that an
+    # unsafe request still invalidates the GET entries for its URL.
+    return hashlib.sha256(f"RFC {url}\n{identity}".encode()).hexdigest()
 
 
 def _raise_for_status(response: httpx.Response) -> None:
@@ -317,6 +342,7 @@ class Glance:
             request.headers["Authorization"] = f"Bearer {token}"
         else:
             request.headers.pop("Authorization", None)
+        request.extensions["caching"] = CacheConfig(key=_cache_key(request.url, token))
 
     def __enter__(self) -> Glance:
         """Enter the context manager, opening the underlying HTTP connection."""
