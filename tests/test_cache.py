@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 from unittest.mock import MagicMock, patch
 
 import httpx
+import jwt
 import platformdirs
 import respx
 from typer.testing import CliRunner
@@ -241,16 +242,33 @@ class TestNoCacheFlag:
 _EMPTY_SEARCH = {"numberOfResults": 0, "results": []}
 
 
-def _search_twice(settings: StareSettings) -> int:
-    """Run the same analysis search twice; return how many reached the network."""
+def _search_as(settings: StareSettings, *tokens: str) -> int:
+    """Run the same analysis search once per token; return how many reached the network."""
     with respx.mock(base_url=settings.base_url) as rx:
         route = rx.get("/searchAnalysis").mock(
             return_value=httpx.Response(200, json=_EMPTY_SEARCH)
         )
-        with Glance(settings=settings, token="fake-token") as g:
-            g.analyses.search(query="referenceCode = ANA-TEST-2026-01")
-            g.analyses.search(query="referenceCode = ANA-TEST-2026-01")
+        for token in tokens:
+            with Glance(settings=settings, token=token) as g:
+                g.analyses.search(query="referenceCode = ANA-TEST-2026-01")
         return route.call_count
+
+
+def _search_twice(settings: StareSettings) -> int:
+    """Run the same analysis search twice; return how many reached the network."""
+    return _search_as(settings, "fake-token", "fake-token")
+
+
+# HS256 needs a key of at least 32 bytes or PyJWT warns
+_JWT_KEY = "test-signing-key-that-is-32-bytes"
+
+
+def _jwt(sub: str, jti: str) -> str:
+    return jwt.encode(
+        {"iss": "https://example.com", "sub": sub, "jti": jti},
+        _JWT_KEY,
+        algorithm="HS256",
+    )
 
 
 class TestGlanceResponseCache:
@@ -294,3 +312,19 @@ class TestGlanceResponseCache:
                 "data BLOB, created_at REAL, deleted_at REAL)"
             )
         assert _search_twice(settings) == 1
+
+
+class TestCacheKeyPerIdentity:
+    def test_different_users_do_not_share_responses(self, tmp_path: Path) -> None:
+        tokens = (_jwt("han.solo", "jti-1"), _jwt("leia.organa", "jti-2"))
+        assert _search_as(_cache_settings(tmp_path), *tokens) == 2
+
+    def test_refreshed_token_for_same_user_hits_cache(self, tmp_path: Path) -> None:
+        # a refresh or re-exchange issues a new token for the same subject
+        tokens = (_jwt("han.solo", "jti-1"), _jwt("han.solo", "jti-2"))
+        assert _search_as(_cache_settings(tmp_path), *tokens) == 1
+
+    def test_different_opaque_tokens_do_not_share_responses(
+        self, tmp_path: Path
+    ) -> None:
+        assert _search_as(_cache_settings(tmp_path), "opaque-a", "opaque-b") == 2
