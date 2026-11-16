@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Annotated
 
 import typer
@@ -229,7 +229,7 @@ def auth_info(
     # Derive the label from the real expiry vs now (not info.is_expired, which
     # bakes in a 60s refresh margin) so the state matches the shown timestamp.
     remaining = exp - now
-    expires_dt = datetime.fromtimestamp(exp, tz=timezone.utc)
+    expires_dt = datetime.fromtimestamp(exp, tz=UTC)
     ts = expires_dt.strftime("%Y-%m-%d %H:%M:%S %Z")
     if remaining > 60:
         mins, secs = divmod(remaining, 60)
@@ -274,9 +274,7 @@ def auth_info(
                 "past the server's idle timeout"
             )
         elif session.refresh_expires_at is not None:
-            refresh_dt = datetime.fromtimestamp(
-                session.refresh_expires_at, tz=timezone.utc
-            )
+            refresh_dt = datetime.fromtimestamp(session.refresh_expires_at, tz=UTC)
             session_label = (
                 f"online — refresh expires {refresh_dt.strftime('%Y-%m-%d %H:%M:%S %Z')} "
                 "or at SSO logout"

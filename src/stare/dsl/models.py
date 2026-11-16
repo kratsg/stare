@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from typing import Union
 
 from pydantic import BaseModel
 
 
-class Operator(str, Enum):
+class Operator(StrEnum):
     """Valid comparison operators for DSL conditions."""
 
     EQ = "="

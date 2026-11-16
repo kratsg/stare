@@ -26,15 +26,14 @@ from stare.models.enums import (
     LenientMeetingType,
     LenientPublicationType,
     LenientRepositoryType,
-    StrEnum,
 )
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
-    from typing import Any, NoReturn
+    from enum import StrEnum
+    from typing import Any, NoReturn, Self
 
     from rich.console import RenderableType
-    from typing_extensions import Self
 
 
 def _format_loc(loc: tuple[str | int, ...]) -> str:

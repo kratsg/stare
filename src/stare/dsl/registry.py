@@ -4,13 +4,7 @@ from __future__ import annotations
 
 import difflib
 import functools
-import sys
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:
-    import tomli as tomllib
-
+import tomllib
 from importlib.resources import files
 from typing import TYPE_CHECKING, Any
 

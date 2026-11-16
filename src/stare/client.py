@@ -47,6 +47,7 @@ _ItemT = TypeVar("_ItemT")
 
 if TYPE_CHECKING:
     import types
+    from typing import Self
 
     from stare.models.search import _SearchResultsBase
     from stare.typing import Mode
@@ -318,7 +319,7 @@ class Glance:
         else:
             request.headers.pop("Authorization", None)
 
-    def __enter__(self) -> Glance:
+    def __enter__(self) -> Self:
         """Enter the context manager, opening the underlying HTTP connection."""
         self._http.__enter__()
         return self

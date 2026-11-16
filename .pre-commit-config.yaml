@@ -61,7 +61,6 @@ repos:
           - platformdirs>=4
           - respx>=0.21
           - lark>=1.2
-          - tomli>=2
 
   - repo: https://github.com/codespell-project/codespell
     rev: "57b21406f092110c18776e39b0bda50d37c945c8" # frozen: v2.4.3
