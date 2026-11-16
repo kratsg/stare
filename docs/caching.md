@@ -65,6 +65,9 @@ stare cache clear
 stare cache clear --yes
 ```
 
+The cache lives in `cache-v2.db` inside the cache directory. `stare cache clear`
+also removes a `cache.db` written by hishel 1.x, which hishel 2.x never reads.
+
 ## Security
 
 The cache directory lives under the per-user platform cache path

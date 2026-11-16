@@ -18,7 +18,7 @@ pixi add stare-atlas # (1)!
 
 1. Note the name difference for the `conda-forge` package.
 
-Requires Python 3.10 or later.
+Requires Python 3.11 or later.
 
 ## Authentication
 
